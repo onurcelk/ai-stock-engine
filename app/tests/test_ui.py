@@ -21,19 +21,41 @@ APP_FILE = pathlib.Path(__file__).resolve().parents[1] / "streamlit_app.py"
 pytestmark = pytest.mark.slow
 
 
-@pytest.fixture(autouse=True)
-def no_network(monkeypatch):
-    """Block downloads for every test in this module.
+# The sidebar defaults to this symbol; the Portfolio tab seeds this basket.
+SEEDED_SYMBOLS = ["AAPL", "MSFT", "NVDA"]
 
-    The app's default data source is "Live ticker" with AAPL, and the Portfolio
-    tab seeds a basket of its own, so *booting* the app downloads several
-    symbols before a test touches anything. That made these tests quietly
-    dependent on Yahoo being up, and they wrote a real cache into whatever
-    checkout they ran from. Patching the download makes them hermetic and
-    turns the live path into a test of offline degradation, which is the part
-    that can actually regress.
+
+@pytest.fixture(autouse=True)
+def offline_cache(tmp_path, monkeypatch):
+    """Give every test in this module a synthetic, offline market cache.
+
+    Two problems this solves at once. First, the app's default data source is
+    "Live ticker", so merely *booting* it downloaded several symbols — the
+    suite was quietly dependent on Yahoo being up and wrote a real app/cache/
+    into whatever checkout it ran from. Second, a fresh clone has no cache at
+    all, so the Portfolio tab could not render and the chart counts differed
+    between machines.
+
+    Seeding a deterministic cache and blocking downloads fixes both: the tests
+    are hermetic, and they exercise every tab rather than only the ones that
+    survive without market data.
     """
+    import numpy as np
+    import pandas as pd
+
     from core import live
+
+    monkeypatch.setattr(live, "CACHE_DIR", tmp_path)
+
+    rng = np.random.default_rng(0)
+    dates = pd.bdate_range("2022-01-03", periods=420)
+    for offset, symbol in enumerate(SEEDED_SYMBOLS):
+        close = 100 + offset * 25 + np.cumsum(rng.standard_normal(len(dates)))
+        live._write_cache(symbol, "1d", pd.DataFrame({
+            "date": dates,
+            "open": close, "high": close + 1, "low": close - 1, "close": close,
+            "volume": rng.integers(1_000, 90_000, len(dates)).astype(float),
+        }))
 
     def refuse(symbol, period, interval):
         raise live.FetchError("network disabled in tests")
@@ -108,23 +130,30 @@ def test_every_bundled_dataset_renders(bundled_app):
         assert_clean(bundled_app, f"dataset {name}")
 
 
-def test_live_ticker_degrades_without_network():
+def test_live_ticker_serves_cache_when_offline():
     """Losing Yahoo must not take the app down.
 
-    With downloads blocked the sidebar should either serve a cached copy with
-    a staleness warning or show a readable error — never raise. This is the
-    regression that would matter most to anyone working offline.
+    Downloads are blocked, so everything here comes off the seeded cache. This
+    is the regression that would matter most to anyone working offline.
     """
     app = fresh_app()
     assert_clean(app, "initial load with no network")
 
     radio_offering(app, "Live ticker").set_value("Live ticker").run()
     assert_clean(app, "live ticker with no network")
-
-    # And the user can still get working by switching source.
-    radio_offering(app, "Bundled dataset").set_value("Bundled dataset").run()
-    assert_clean(app, "recover via bundled dataset")
     assert len(app.get("plotly_chart")) >= 5
+
+
+def test_unknown_symbol_is_reported_not_raised(monkeypatch):
+    """A cache miss with no network shows an error and stops cleanly."""
+    app = fresh_app()
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+
+    symbol = next(w for w in app.text_input if w.label == "Symbol")
+    symbol.set_value("NOTAREALTICKER").run()
+
+    assert_clean(app, "unknown symbol")
+    assert app.sidebar.error, "expected a readable error in the sidebar"
 
 
 # ------------------------------------------------------------------- training
