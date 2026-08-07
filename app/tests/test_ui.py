@@ -21,6 +21,26 @@ APP_FILE = pathlib.Path(__file__).resolve().parents[1] / "streamlit_app.py"
 pytestmark = pytest.mark.slow
 
 
+@pytest.fixture(autouse=True)
+def no_network(monkeypatch):
+    """Block downloads for every test in this module.
+
+    The app's default data source is "Live ticker" with AAPL, and the Portfolio
+    tab seeds a basket of its own, so *booting* the app downloads several
+    symbols before a test touches anything. That made these tests quietly
+    dependent on Yahoo being up, and they wrote a real cache into whatever
+    checkout they ran from. Patching the download makes them hermetic and
+    turns the live path into a test of offline degradation, which is the part
+    that can actually regress.
+    """
+    from core import live
+
+    def refuse(symbol, period, interval):
+        raise live.FetchError("network disabled in tests")
+
+    monkeypatch.setattr(live, "_download", refuse)
+
+
 def fresh_app(timeout=900):
     from streamlit.testing.v1 import AppTest
 
@@ -88,16 +108,23 @@ def test_every_bundled_dataset_renders(bundled_app):
         assert_clean(bundled_app, f"dataset {name}")
 
 
-def test_live_ticker_path(tmp_path):
-    """Only meaningful when a cache exists; app/cache/ is gitignored."""
-    from core import live
+def test_live_ticker_degrades_without_network():
+    """Losing Yahoo must not take the app down.
 
-    if not live.cache_entries():
-        pytest.skip("no cached symbols — run the app once, or go online")
-
+    With downloads blocked the sidebar should either serve a cached copy with
+    a staleness warning or show a readable error — never raise. This is the
+    regression that would matter most to anyone working offline.
+    """
     app = fresh_app()
+    assert_clean(app, "initial load with no network")
+
     radio_offering(app, "Live ticker").set_value("Live ticker").run()
-    assert_clean(app, "live ticker")
+    assert_clean(app, "live ticker with no network")
+
+    # And the user can still get working by switching source.
+    radio_offering(app, "Bundled dataset").set_value("Bundled dataset").run()
+    assert_clean(app, "recover via bundled dataset")
+    assert len(app.get("plotly_chart")) >= 5
 
 
 # ------------------------------------------------------------------- training
