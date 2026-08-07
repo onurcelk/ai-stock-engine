@@ -1,0 +1,13 @@
+# Matches app/core/charts.py exactly. The price chart draws an opaque
+# #131722 panel, so the page background has to be the same value or the
+# chart reads as a rectangle pasted onto the page.
+[theme]
+base = "dark"
+backgroundColor = "#131722"
+secondaryBackgroundColor = "#1e222d"
+textColor = "#d1d4dc"
+primaryColor = "#2962ff"
+
+[server]
+# Editing a cached CSV under app/cache/ shouldn't restart the app.
+folderWatchBlacklist = ["app/cache", "app/runs"]

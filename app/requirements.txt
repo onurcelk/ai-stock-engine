@@ -1,0 +1,22 @@
+# Pinned where it matters: TF 2.15 is the newest release that still ships
+# Keras 2 and a complete tf.compat.v1, which the ported notebook code needs.
+# Streamlit 1.39 is the newest that agrees with TF on protobuf 4.x.
+numpy
+pandas
+matplotlib
+seaborn
+scikit-learn
+tqdm
+plotly
+yfinance
+tensorflow==2.15.1
+streamlit==1.39.0
+protobuf==4.25.5
+
+# Only needed to open the original .ipynb files:
+jupyterlab
+notebook
+
+# Test suite. `pytest` runs the fast checks; `pytest --runslow` adds the
+# 19-agent sweep and the headless UI drivers, which take minutes.
+pytest
