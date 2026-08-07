@@ -1,3 +1,17 @@
 *DS_Store
 *ipynb_checkpoints
 *__pycache__
+
+# Local environment and downloaded market data
+.venv/
+venv/
+app/cache/
+app/runs/
+.pytest_cache/
+
+# .streamlit/config.toml IS committed — it carries the app's theme.
+# Secrets never are.
+.streamlit/secrets.toml
+
+# Personal financial data — real positions and cost basis. Never commit.
+app/holdings.json
