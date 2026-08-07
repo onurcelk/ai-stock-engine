@@ -26,6 +26,22 @@ SEEDED_SYMBOLS = ["AAPL", "MSFT", "NVDA"]
 
 
 @pytest.fixture(autouse=True)
+def scratch_runs(tmp_path, monkeypatch):
+    """Send saved runs to a scratch folder, not the user's real app/runs/.
+
+    Training through the UI now persists a run, so without this the tests
+    would litter whatever checkout they ran from — the same mistake the cache
+    fixture below exists to prevent.
+    """
+    from core import runs
+
+    directory = tmp_path / "runs"
+    directory.mkdir()
+    monkeypatch.setattr(runs, "RUNS_DIR", directory)
+    return directory
+
+
+@pytest.fixture(autouse=True)
 def offline_cache(tmp_path, monkeypatch):
     """Give every test in this module a synthetic, offline market cache.
 
@@ -203,3 +219,64 @@ def test_every_registered_agent_is_reachable_from_the_dropdown(bundled_app):
     picker = select_offering(bundled_app, "Neuro-evolution")
     offered = set(picker.options)
     assert set(agents.REGISTRY) <= offered
+
+
+# ------------------------------------------------------------------- history
+
+
+def test_history_tab_is_empty_before_anything_is_trained(bundled_app):
+    assert_clean(bundled_app, "history with nothing saved")
+    # The empty-state message, so a new user is not staring at a blank tab.
+    messages = " ".join(str(item.value) for item in bundled_app.info)
+    assert "Nothing saved yet" in messages
+
+
+def test_training_survives_a_refresh(bundled_app, scratch_runs):
+    """The whole point: train, throw the session away, still have the result."""
+    from core import runs
+
+    agent = "Neuro-evolution"
+    select_offering(bundled_app, agent).set_value(agent).run()
+    iterations = [s for s in bundled_app.slider if s.label == "Training iterations"]
+    iterations[0].set_value(5).run()
+    train_button(bundled_app, agent)[0].click().run()
+    assert_clean(bundled_app, "train for history")
+
+    # It reached disk, not just session state.
+    saved = runs.load_all()
+    assert len(saved) == 1
+    assert saved[0].kind == runs.AGENT
+    assert saved[0].settings["agent"] == agent
+    assert "return_pct" in saved[0].metrics
+
+    # A brand-new session — exactly what a browser refresh produces.
+    reloaded = fresh_app()
+    radio_offering(reloaded, "Bundled dataset").set_value("Bundled dataset").run()
+    assert_clean(reloaded, "after refresh")
+
+    assert runs.load_all(), "the run vanished on refresh"
+    assert not any("Nothing saved yet" in str(item.value) for item in reloaded.info)
+
+
+def test_history_lists_and_deletes(bundled_app, scratch_runs):
+    from core import runs
+
+    for index in range(3):
+        runs.save(runs.FORECAST, f"SERIES-{index}",
+                  settings={"model": "lstm", "epochs": 10},
+                  metrics={"directional_pct": 50.0 + index},
+                  payload={"actual": [1.0, 2.0], "mean_forecast": [1.1, 2.1],
+                           "naive": [1.0, 1.0]})
+
+    app = fresh_app()
+    radio_offering(app, "Bundled dataset").set_value("Bundled dataset").run()
+    assert_clean(app, "history listing")
+
+    # The comparison table renders every saved run.
+    assert len(runs.load_all()) == 3
+
+    delete = [b for b in app.button if b.label == "Delete this run"]
+    assert delete, "no delete control rendered"
+    delete[0].click().run()
+    assert_clean(app, "after delete")
+    assert len(runs.load_all()) == 2

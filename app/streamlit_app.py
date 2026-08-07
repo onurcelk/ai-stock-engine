@@ -21,7 +21,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 from core import (  # noqa: E402
     agents, backtest, charts, data, forecast, holdings, live, montecarlo,
-    portfolio, strategies,
+    portfolio, runs, strategies,
 )
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -227,12 +227,14 @@ if len(frame) < 40:
 # ------------------------------------------------------------------- tabs
 
 if pro:
-    overview_tab, agent_tab, forecast_tab, portfolio_tab, carlo_tab = st.tabs(
-        ["Overview", "Trading agents", "Forecast", "Portfolio", "Monte Carlo"]
+    (overview_tab, agent_tab, forecast_tab, portfolio_tab, carlo_tab,
+     history_tab) = st.tabs(
+        ["Overview", "Trading agents", "Forecast", "Portfolio", "Monte Carlo",
+         "History"]
     )
 else:
-    overview_tab, agent_tab, forecast_tab, portfolio_tab = st.tabs(
-        ["Overview", "Trading agents", "Forecast", "Portfolio"]
+    overview_tab, agent_tab, forecast_tab, portfolio_tab, history_tab = st.tabs(
+        ["Overview", "Trading agents", "Forecast", "Portfolio", "History"]
     )
     carlo_tab = None
 
@@ -357,12 +359,45 @@ with agent_tab:
                                   layer_size=layer_size, seed=int(seed))
             try:
                 report = learner.train(iterations, on_progress=on_agent_progress)
+                trained_signal = learner.signals()
                 st.session_state["rl"] = {
                     "fingerprint": fingerprint,
-                    "signal": learner.signals(),
+                    "signal": trained_signal,
                     "rewards": report.rewards,
                     "seconds": report.seconds,
                 }
+                # Persist before anything can navigate away. Scored here with
+                # the sizing on screen so the saved ROI matches what the user
+                # is about to see.
+                scored = backtest.run(
+                    close, trained_signal, dates, initial_money=initial_money,
+                    max_buy=max_buy, max_sell=max_sell, fee_pct=fee_pct,
+                    slippage_pct=slippage_pct, sizing=sizing, size_pct=size_pct,
+                    periods_per_year=data.periods_per_year(dates),
+                )
+                runs.save(
+                    kind=runs.AGENT, label=label,
+                    settings={
+                        "agent": agent_name, "iterations": iterations,
+                        "window": window_size, "units": layer_size,
+                        "seed": int(seed), "sizing": sizing, "bars": len(frame),
+                    },
+                    metrics={
+                        "return_pct": scored.roi_pct,
+                        "buy_hold_pct": scored.buy_hold_roi_pct,
+                        "trades": len(scored.trades),
+                        "win_rate_pct": scored.win_rate_pct,
+                        "max_drawdown_pct": scored.max_drawdown_pct,
+                        "train_seconds": report.seconds,
+                    },
+                    payload={
+                        "rewards": report.rewards,
+                        "buys": scored.buys,
+                        "sells": scored.sells,
+                        "equity": scored.equity,
+                        "dates": dates,
+                    },
+                )
             finally:
                 # TF graphs are process-global; a leaked session accumulates.
                 if hasattr(learner, "close_session"):
@@ -582,11 +617,37 @@ with forecast_tab:
                     f"· loss {loss:.5f}"
                 )
 
-            st.session_state["walk"] = forecast.walk_forward(
+            walk_result = forecast.walk_forward(
                 close, dates, folds=fold_count, horizon=test_size, model=model_name,
                 num_layers=num_layers, size_layer=size_layer, timestamp=timestamp,
                 epochs=epochs, dropout=dropout, learning_rate=learning_rate,
                 progress=on_fold_progress,
+            )
+            st.session_state["walk"] = walk_result
+
+            walk_summary = walk_result.summary()
+            runs.save(
+                kind=runs.WALKFORWARD, label=label,
+                settings={
+                    "model": model_name, "folds": fold_count, "horizon": test_size,
+                    "epochs": epochs, "layers": num_layers, "units": size_layer,
+                    "bars": len(frame),
+                },
+                metrics={
+                    "folds_beating_naive": walk_result.folds_beating_naive,
+                    "win_rate_pct": walk_summary["win_rate_pct"],
+                    "mean_accuracy": walk_summary["mean_accuracy"],
+                    "mean_naive": walk_summary["mean_naive"],
+                    "mean_directional": walk_summary["mean_directional"],
+                    "mean_mae": walk_summary["mean_mae"],
+                },
+                payload={
+                    "fold_index": [f.index + 1 for f in walk_result.folds],
+                    "accuracies": walk_result.accuracies,
+                    "naive_accuracies": walk_result.naive_accuracies,
+                    "directionals": walk_result.directionals,
+                    "maes": walk_result.maes,
+                },
             )
             bar.empty()
             status.empty()
@@ -667,6 +728,31 @@ with forecast_tab:
             status.empty()
             st.session_state["forecast"] = outcome
             st.session_state["forecast_label"] = f"{model_name} · {label}"
+
+            runs.save(
+                kind=runs.FORECAST, label=label,
+                settings={
+                    "model": model_name, "epochs": epochs,
+                    "simulations": simulations, "horizon": test_size,
+                    "layers": num_layers, "units": size_layer,
+                    "lookback": timestamp, "bars": len(frame),
+                },
+                metrics={
+                    "directional_pct": outcome.directional_accuracy,
+                    "accuracy_pct": outcome.mean_accuracy,
+                    "naive_pct": outcome.naive_accuracy,
+                    "beats_naive": outcome.beats_naive,
+                    "mae": outcome.mae,
+                    "naive_mae": outcome.naive_mae,
+                    "rmse": outcome.rmse,
+                },
+                payload={
+                    "dates": outcome.dates,
+                    "actual": outcome.actual,
+                    "mean_forecast": outcome.mean_forecast,
+                    "naive": outcome.naive,
+                },
+            )
 
     outcome = st.session_state.get("forecast") if mode == "Single split" else None
     if outcome is not None:
@@ -1051,3 +1137,120 @@ if pro:
                                 line=dict(color=SELL, dash="dash"))
             histogram.update_layout(xaxis_title=f"Price after {days} {bar_word}")
             st.plotly_chart(histogram, use_container_width=True)
+
+
+with history_tab:
+    st.subheader("Saved runs")
+    st.caption(
+        "Every training run is written to disk the moment it finishes, so a "
+        "browser refresh no longer throws the result away — and you can compare "
+        "what different settings actually produced."
+    )
+
+    saved_runs = runs.load_all()
+
+    if not saved_runs:
+        st.info(
+            "Nothing saved yet. Train a forecast or a trading agent and it will "
+            "appear here automatically."
+        )
+    else:
+        kinds = ["All"] + [runs.KIND_LABELS[k] for k in
+                           dict.fromkeys(run.kind for run in saved_runs)]
+        columns = st.columns([2, 3])
+        chosen_kind = columns[0].selectbox("Show", kinds)
+        if chosen_kind != "All":
+            code = next(k for k, v in runs.KIND_LABELS.items() if v == chosen_kind)
+            shown = [run for run in saved_runs if run.kind == code]
+        else:
+            shown = saved_runs
+        columns[1].caption(
+            f"{len(saved_runs)} run(s) on disk · newest {saved_runs[0].describe_age()}"
+        )
+
+        table = runs.table(shown)
+        st.dataframe(table.drop(columns=["id"]), use_container_width=True,
+                     hide_index=True, height=min(420, 60 + 35 * len(table)))
+
+        st.markdown("**Look at one again**")
+        labels = {
+            f"{run.saved_at:%Y-%m-%d %H:%M} · {run.kind_label} · {run.label}": run
+            for run in shown
+        }
+        picked_label = st.selectbox("Run", list(labels), label_visibility="collapsed")
+        picked = labels[picked_label]
+
+        left, right = st.columns([3, 1])
+        with right:
+            st.markdown("**Settings**")
+            st.json(picked.settings, expanded=True)
+        with left:
+            payload = picked.payload
+
+            if picked.kind == runs.FORECAST and payload.get("actual"):
+                figure = base_chart(360)
+                axis = list(range(len(payload["actual"])))
+                figure.add_trace(go.Scatter(x=axis, y=payload["actual"],
+                                            name="Actual",
+                                            line=dict(color=PRICE, width=3)))
+                figure.add_trace(go.Scatter(x=axis, y=payload.get("mean_forecast", []),
+                                            name="Forecast",
+                                            line=dict(color=ACCENT, width=2.5)))
+                figure.add_trace(go.Scatter(x=axis, y=payload.get("naive", []),
+                                            name="Naive baseline",
+                                            line=dict(color=SELL, width=1.5, dash="dot")))
+                figure.update_layout(xaxis_title=f"{bar_word.capitalize()} ahead")
+                st.plotly_chart(figure, use_container_width=True)
+
+            elif picked.kind == runs.WALKFORWARD and payload.get("directionals"):
+                figure = base_chart(360)
+                figure.add_trace(go.Bar(x=payload.get("fold_index", []),
+                                        y=payload["directionals"],
+                                        name="Directional %", marker_color=PRICE))
+                figure.add_hline(y=50, line=dict(color=SELL, dash="dash"),
+                                 annotation_text="coin flip")
+                figure.update_layout(xaxis_title="Fold",
+                                     yaxis_title="Directional accuracy %",
+                                     yaxis=dict(range=[0, 100]))
+                st.plotly_chart(figure, use_container_width=True)
+
+            elif picked.kind == runs.AGENT and payload.get("equity"):
+                figure = base_chart(360)
+                figure.add_trace(go.Scatter(y=payload["equity"], name="Agent",
+                                            line=dict(color=ACCENT, width=2)))
+                figure.update_layout(xaxis_title="Bar",
+                                     yaxis_title="Portfolio value")
+                st.plotly_chart(figure, use_container_width=True)
+                if payload.get("rewards"):
+                    curve = base_chart(220)
+                    curve.add_trace(go.Scatter(y=payload["rewards"],
+                                               name="Policy return %",
+                                               line=dict(color=PRICE, width=2)))
+                    curve.update_layout(xaxis_title="Training iteration")
+                    st.plotly_chart(curve, use_container_width=True)
+            else:
+                st.caption("This run has no chart data saved.")
+
+        st.markdown("**Headline numbers**")
+        metric_columns = st.columns(min(6, max(1, len(picked.metrics))))
+        for index, (name, value) in enumerate(picked.metrics.items()):
+            label_text = name.replace("_", " ").capitalize()
+            if isinstance(value, bool):
+                shown_value = "yes" if value else "no"
+            elif isinstance(value, (int, float)) and value is not None:
+                shown_value = f"{value:,.2f}"
+            else:
+                shown_value = "—" if value is None else str(value)
+            metric_columns[index % len(metric_columns)].metric(label_text, shown_value)
+
+        st.divider()
+        left, right = st.columns([1, 4])
+        if left.button("Delete this run"):
+            runs.delete(picked.id)
+            st.rerun()
+        with right.expander("Delete every saved run"):
+            st.caption("This cannot be undone.")
+            if st.button("Yes, delete all", type="primary"):
+                removed = runs.clear()
+                st.success(f"Deleted {removed} run(s).")
+                st.rerun()
