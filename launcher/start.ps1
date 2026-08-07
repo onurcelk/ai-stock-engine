@@ -2,6 +2,12 @@
 #
 # Safe to run twice: if the app is already up it just opens a tab rather than
 # starting a second server and failing on "port 8501 is already in use".
+#
+# -Quiet reports failures on stdout instead of in a dialog, and skips opening
+# a browser. A dialog is right for a double-clicked shortcut but blocks
+# forever when nobody is there to click it.
+
+param([switch]$Quiet)
 
 $ErrorActionPreference = 'Stop'
 
@@ -19,12 +25,17 @@ function Test-AppUp {
 }
 
 function Show-Problem($message) {
+    if ($Quiet) { Write-Output $message; return }
     Add-Type -AssemblyName PresentationFramework
     [System.Windows.MessageBox]::Show($message, 'Stock Prediction Models', 'OK', 'Error') | Out-Null
 }
 
+function Open-App {
+    if (-not $Quiet) { Start-Process $url }
+}
+
 if (Test-AppUp) {
-    Start-Process $url
+    Open-App
     exit 0
 }
 
@@ -52,7 +63,7 @@ Start-Process -FilePath $python `
 for ($i = 0; $i -lt 120; $i++) {
     Start-Sleep -Milliseconds 500
     if (Test-AppUp) {
-        Start-Process $url
+        Open-App
         exit 0
     }
 }
