@@ -13,7 +13,8 @@
 | 5a | Portfolio (multi-symbol baskets) | ✅ **Done** |
 | 5c | TradingView-style price chart + app-wide dark theme | ✅ **Done** |
 | 4 | Reinforcement-learning agents in the UI | ✅ **Done** — 19 of 19 |
-| 5b | Run persistence, deploy split | ⬜ Not started |
+| 5b | Run persistence (History tab) | ✅ **Done** |
+| 5d | Deploy split, cache warming | ⬜ Not started |
 
 ### The verdict walk-forward delivered
 
@@ -328,8 +329,13 @@ Canary intact: the turtle agent still returns **3.6198%** on `GOOG-year`.
   `apply_dark()` puts every other pane in the same palette via `base_chart()`, and
   `.streamlit/config.toml` matches the page background to the chart canvas — without it
   the chart reads as a dark rectangle pasted onto a light page.
-- **Persist runs.** Forecast results live in `st.session_state` and vanish on refresh.
-  Write them to `app/runs/` so configurations can be compared across sessions.
+- ~~**Persist runs.**~~ ✅ Shipped as `app/core/runs.py` plus a **History** tab. Forecast,
+  walk-forward and agent results are written to `app/runs/` the moment training finishes,
+  so a browser refresh no longer discards minutes of work, and runs can be compared across
+  sessions. One JSON file each — not a pickle, which is tied to the library versions that
+  wrote it and unsafe to load. Agent runs keep the buy/sell indices and equity curve rather
+  than the full per-bar signal; the folder prunes to the newest 200. Results stay local:
+  `app/runs/` is gitignored.
 - **Split requirements for deployment.** TensorFlow makes a ~500 MB image. The overview,
   agent and Monte Carlo tabs need only pandas/plotly. A `requirements-lite.txt` that omits
   TF (hiding the forecast tab) deploys to Streamlit Community Cloud comfortably; the full
