@@ -1,0 +1,28 @@
+calendar   2014-01-02 .. 2026-08-07
+cutoffs    532 scheduled  ->  484 development, 12 exam (10-session guard applied)
+building   540 cutoffs (schedule + the 8 exam dates not on the schedule)
+spacing    5 sessions, horizon 5 -> outcome windows non-overlapping
+    25/540 cutoffs  (8s)
+    50/540 cutoffs  (18s)
+    75/540 cutoffs  (27s)
+   100/540 cutoffs  (36s)
+   125/540 cutoffs  (45s)
+   150/540 cutoffs  (51s)
+   175/540 cutoffs  (59s)
+   200/540 cutoffs  (66s)
+   225/540 cutoffs  (74s)
+   250/540 cutoffs  (82s)
+   275/540 cutoffs  (90s)
+   300/540 cutoffs  (98s)
+   325/540 cutoffs  (106s)
+   350/540 cutoffs  (114s)
+   375/540 cutoffs  (123s)
+   400/540 cutoffs  (131s)
+   425/540 cutoffs  (140s)
+   450/540 cutoffs  (149s)
+   475/540 cutoffs  (157s)
+   500/540 cutoffs  (166s)
+   525/540 cutoffs  (175s)
+
+panel      249,029 rows  ·  100 features ·  180s
+froze      C:\Users\onurc\Desktop\AI Stock\Stock-Prediction-Models\alpha\out\panel.pkl

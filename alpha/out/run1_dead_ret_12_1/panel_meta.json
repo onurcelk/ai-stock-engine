@@ -1,0 +1,18 @@
+{
+  "built_at": "2026-08-08T01:27:38",
+  "rows": 245098,
+  "features": 100,
+  "cutoffs_total": 532,
+  "cutoffs_development": 484,
+  "cutoffs_exam": 12,
+  "first_cutoff": "2016-01-04",
+  "last_cutoff": "2026-07-28",
+  "spacing_sessions": 5,
+  "horizon_sessions": 5,
+  "embargo_sessions": 5,
+  "median_cross_section": 464,
+  "min_cross_section": 400,
+  "max_cross_section": 502,
+  "median_index_coverage_pct": 92.1,
+  "earliest_index_coverage_pct": 84.6
+}

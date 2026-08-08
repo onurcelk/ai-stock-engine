@@ -1,0 +1,183 @@
+panel      221,519 rows  ·  484 development cutoffs
+features   100 total  ·  absolute 18, context 35, relative 47
+
+=== Model A′ — six simple factors, measured before anything is fitted
+    mom_12_1         mean IC +0.00599  hit 53.1%  n=484
+    mom_20d          mean IC -0.00848  hit 50.6%  n=484
+    mom_5d           mean IC -0.00955  hit 49.6%  n=484 <-- chosen
+    mom_60d          mean IC -0.00898  hit 50.2%  n=484
+    rs_vs_sector_20d mean IC -0.00462  hit 52.1%  n=484
+    rs_vs_spy_20d    mean IC -0.00848  hit 50.6%  n=484
+    frozen baseline: mom_5d, sign -1 (chosen on development data only; the exam set gets no vote)
+
+=== V2-A — absolute features, winsorised alpha_5d regression
+    18 features, target `target_train`
+    refit @ 2017-03-21   24,825 rows  through 2017-03-07
+    refit @ 2017-06-22   30,396 rows  through 2017-06-08
+    refit @ 2017-09-25   36,009 rows  through 2017-09-11
+    refit @ 2017-12-27   41,664 rows  through 2017-12-12
+    refit @ 2018-04-03   47,346 rows  through 2018-03-19
+    refit @ 2018-07-05   53,049 rows  through 2018-06-20
+    refit @ 2018-10-05   58,756 rows  through 2018-09-21
+    refit @ 2019-01-10   64,482 rows  through 2018-12-26
+    refit @ 2019-04-15   70,222 rows  through 2019-04-01
+    refit @ 2019-07-18   75,952 rows  through 2019-07-03
+    refit @ 2019-10-18   81,726 rows  through 2019-10-04
+    refit @ 2020-01-23   87,541 rows  through 2020-01-08
+    refit @ 2020-04-27   93,410 rows  through 2020-04-13
+    refit @ 2020-07-29   99,337 rows  through 2020-07-15
+    refit @ 2020-10-29  105,289 rows  through 2020-10-15
+    refit @ 2021-02-03  111,249 rows  through 2021-01-20
+    refit @ 2021-05-07  117,260 rows  through 2021-04-23
+    refit @ 2021-08-10  123,317 rows  through 2021-07-27
+    refit @ 2021-11-10  129,391 rows  through 2021-10-27
+    refit @ 2022-02-14  135,472 rows  through 2022-01-31
+    refit @ 2022-05-18  139,245 rows  through 2022-05-04
+    refit @ 2022-08-22  145,408 rows  through 2022-08-08
+    refit @ 2022-11-22  149,685 rows  through 2022-11-08
+    refit @ 2023-02-28  155,912 rows  through 2023-02-13
+    refit @ 2023-06-01  162,171 rows  through 2023-05-17
+    refit @ 2023-09-05  168,457 rows  through 2023-08-21
+    refit @ 2023-12-06  174,746 rows  through 2023-11-21
+    refit @ 2024-03-12  181,058 rows  through 2024-02-27
+    refit @ 2024-06-13  187,376 rows  through 2024-05-30
+    refit @ 2024-09-24  191,277 rows  through 2024-07-29
+    refit @ 2024-12-26  195,677 rows  through 2024-11-19
+    refit @ 2025-04-16  201,089 rows  through 2025-03-12
+    refit @ 2025-07-22  204,549 rows  through 2025-05-30
+    refit @ 2025-10-22  211,026 rows  through 2025-10-08
+    refit @ 2026-02-25  216,009 rows  through 2026-01-20
+    refit @ 2026-05-29  220,015 rows  through 2026-04-16
+    mean IC +0.00837  hit 50.8%  spread +0.00118  vs A′ mom_5d(-1) -0.00278  (423 cutoffs, 36 refits, 31s)
+    verdict: FAIL — failed 1_mean_ic, 2_ic_hit_rate, 3_top_minus_bottom, 4_sign_stability, 5_beats_simple_factor, 6_no_regime_collapse
+
+=== V2-B — + relative (vs SPY, vs PIT sector) and cross-sectional percentile
+    65 features, target `target_train`
+    refit @ 2017-03-21   24,825 rows  through 2017-03-07
+    refit @ 2017-06-22   30,396 rows  through 2017-06-08
+    refit @ 2017-09-25   36,009 rows  through 2017-09-11
+    refit @ 2017-12-27   41,664 rows  through 2017-12-12
+    refit @ 2018-04-03   47,346 rows  through 2018-03-19
+    refit @ 2018-07-05   53,049 rows  through 2018-06-20
+    refit @ 2018-10-05   58,756 rows  through 2018-09-21
+    refit @ 2019-01-10   64,482 rows  through 2018-12-26
+    refit @ 2019-04-15   70,222 rows  through 2019-04-01
+    refit @ 2019-07-18   75,952 rows  through 2019-07-03
+    refit @ 2019-10-18   81,726 rows  through 2019-10-04
+    refit @ 2020-01-23   87,541 rows  through 2020-01-08
+    refit @ 2020-04-27   93,410 rows  through 2020-04-13
+    refit @ 2020-07-29   99,337 rows  through 2020-07-15
+    refit @ 2020-10-29  105,289 rows  through 2020-10-15
+    refit @ 2021-02-03  111,249 rows  through 2021-01-20
+    refit @ 2021-05-07  117,260 rows  through 2021-04-23
+    refit @ 2021-08-10  123,317 rows  through 2021-07-27
+    refit @ 2021-11-10  129,391 rows  through 2021-10-27
+    refit @ 2022-02-14  135,472 rows  through 2022-01-31
+    refit @ 2022-05-18  139,245 rows  through 2022-05-04
+    refit @ 2022-08-22  145,408 rows  through 2022-08-08
+    refit @ 2022-11-22  149,685 rows  through 2022-11-08
+    refit @ 2023-02-28  155,912 rows  through 2023-02-13
+    refit @ 2023-06-01  162,171 rows  through 2023-05-17
+    refit @ 2023-09-05  168,457 rows  through 2023-08-21
+    refit @ 2023-12-06  174,746 rows  through 2023-11-21
+    refit @ 2024-03-12  181,058 rows  through 2024-02-27
+    refit @ 2024-06-13  187,376 rows  through 2024-05-30
+    refit @ 2024-09-24  191,277 rows  through 2024-07-29
+    refit @ 2024-12-26  195,677 rows  through 2024-11-19
+    refit @ 2025-04-16  201,089 rows  through 2025-03-12
+    refit @ 2025-07-22  204,549 rows  through 2025-05-30
+    refit @ 2025-10-22  211,026 rows  through 2025-10-08
+    refit @ 2026-02-25  216,009 rows  through 2026-01-20
+    refit @ 2026-05-29  220,015 rows  through 2026-04-16
+    mean IC +0.00846  hit 51.3%  spread +0.00090  vs A′ mom_5d(-1) -0.00268  (423 cutoffs, 36 refits, 46s)
+    verdict: FAIL — failed 1_mean_ic, 2_ic_hit_rate, 3_top_minus_bottom, 4_sign_stability, 5_beats_simple_factor, 6_no_regime_collapse
+
+=== V2-E — + regime / VIX / index breadth / overnight-intraday split
+    100 features, target `target_train`
+    refit @ 2017-03-21   24,825 rows  through 2017-03-07
+    refit @ 2017-06-22   30,396 rows  through 2017-06-08
+    refit @ 2017-09-25   36,009 rows  through 2017-09-11
+    refit @ 2017-12-27   41,664 rows  through 2017-12-12
+    refit @ 2018-04-03   47,346 rows  through 2018-03-19
+    refit @ 2018-07-05   53,049 rows  through 2018-06-20
+    refit @ 2018-10-05   58,756 rows  through 2018-09-21
+    refit @ 2019-01-10   64,482 rows  through 2018-12-26
+    refit @ 2019-04-15   70,222 rows  through 2019-04-01
+    refit @ 2019-07-18   75,952 rows  through 2019-07-03
+    refit @ 2019-10-18   81,726 rows  through 2019-10-04
+    refit @ 2020-01-23   87,541 rows  through 2020-01-08
+    refit @ 2020-04-27   93,410 rows  through 2020-04-13
+    refit @ 2020-07-29   99,337 rows  through 2020-07-15
+    refit @ 2020-10-29  105,289 rows  through 2020-10-15
+    refit @ 2021-02-03  111,249 rows  through 2021-01-20
+    refit @ 2021-05-07  117,260 rows  through 2021-04-23
+    refit @ 2021-08-10  123,317 rows  through 2021-07-27
+    refit @ 2021-11-10  129,391 rows  through 2021-10-27
+    refit @ 2022-02-14  135,472 rows  through 2022-01-31
+    refit @ 2022-05-18  139,245 rows  through 2022-05-04
+    refit @ 2022-08-22  145,408 rows  through 2022-08-08
+    refit @ 2022-11-22  149,685 rows  through 2022-11-08
+    refit @ 2023-02-28  155,912 rows  through 2023-02-13
+    refit @ 2023-06-01  162,171 rows  through 2023-05-17
+    refit @ 2023-09-05  168,457 rows  through 2023-08-21
+    refit @ 2023-12-06  174,746 rows  through 2023-11-21
+    refit @ 2024-03-12  181,058 rows  through 2024-02-27
+    refit @ 2024-06-13  187,376 rows  through 2024-05-30
+    refit @ 2024-09-24  191,277 rows  through 2024-07-29
+    refit @ 2024-12-26  195,677 rows  through 2024-11-19
+    refit @ 2025-04-16  201,089 rows  through 2025-03-12
+    refit @ 2025-07-22  204,549 rows  through 2025-05-30
+    refit @ 2025-10-22  211,026 rows  through 2025-10-08
+    refit @ 2026-02-25  216,009 rows  through 2026-01-20
+    refit @ 2026-05-29  220,015 rows  through 2026-04-16
+    mean IC +0.02381  hit 53.4%  spread +0.00210  vs A′ mom_5d(-1) +0.01267  (423 cutoffs, 36 refits, 77s)
+    verdict: FAIL — failed 1_mean_ic, 2_ic_hit_rate, 3_top_minus_bottom, 4_sign_stability, 5_beats_simple_factor, 6_no_regime_collapse
+
+=== V2-F — V2-E features, volatility-scaled target; scored on alpha_5d
+    100 features, target `target_vol_scaled`
+    refit @ 2017-03-21   24,825 rows  through 2017-03-07
+    refit @ 2017-06-22   30,396 rows  through 2017-06-08
+    refit @ 2017-09-25   36,009 rows  through 2017-09-11
+    refit @ 2017-12-27   41,664 rows  through 2017-12-12
+    refit @ 2018-04-03   47,346 rows  through 2018-03-19
+    refit @ 2018-07-05   53,049 rows  through 2018-06-20
+    refit @ 2018-10-05   58,756 rows  through 2018-09-21
+    refit @ 2019-01-10   64,482 rows  through 2018-12-26
+    refit @ 2019-04-15   70,222 rows  through 2019-04-01
+    refit @ 2019-07-18   75,952 rows  through 2019-07-03
+    refit @ 2019-10-18   81,726 rows  through 2019-10-04
+    refit @ 2020-01-23   87,541 rows  through 2020-01-08
+    refit @ 2020-04-27   93,410 rows  through 2020-04-13
+    refit @ 2020-07-29   99,337 rows  through 2020-07-15
+    refit @ 2020-10-29  105,289 rows  through 2020-10-15
+    refit @ 2021-02-03  111,249 rows  through 2021-01-20
+    refit @ 2021-05-07  117,260 rows  through 2021-04-23
+    refit @ 2021-08-10  123,317 rows  through 2021-07-27
+    refit @ 2021-11-10  129,391 rows  through 2021-10-27
+    refit @ 2022-02-14  135,472 rows  through 2022-01-31
+    refit @ 2022-05-18  139,245 rows  through 2022-05-04
+    refit @ 2022-08-22  145,408 rows  through 2022-08-08
+    refit @ 2022-11-22  149,685 rows  through 2022-11-08
+    refit @ 2023-02-28  155,912 rows  through 2023-02-13
+    refit @ 2023-06-01  162,171 rows  through 2023-05-17
+    refit @ 2023-09-05  168,457 rows  through 2023-08-21
+    refit @ 2023-12-06  174,746 rows  through 2023-11-21
+    refit @ 2024-03-12  181,058 rows  through 2024-02-27
+    refit @ 2024-06-13  187,376 rows  through 2024-05-30
+    refit @ 2024-09-24  191,277 rows  through 2024-07-29
+    refit @ 2024-12-26  195,677 rows  through 2024-11-19
+    refit @ 2025-04-16  201,089 rows  through 2025-03-12
+    refit @ 2025-07-22  204,549 rows  through 2025-05-30
+    refit @ 2025-10-22  211,026 rows  through 2025-10-08
+    refit @ 2026-02-25  216,009 rows  through 2026-01-20
+    refit @ 2026-05-29  220,015 rows  through 2026-04-16
+    mean IC +0.03179  hit 57.0%  spread +0.00257  vs A′ mom_5d(-1) +0.02064  (423 cutoffs, 36 refits, 76s)
+    verdict: FAIL — failed 4_sign_stability, 5_beats_simple_factor, 6_no_regime_collapse
+
+=== §14 gate on the ranker: V2-A fail, V2-B fail  ->  CLOSED
+    V2-C and V2-D are not built. Not built-and-caveated — not built.
+
+=== exam configuration frozen: V2-F (highest development mean IC; chosen before the exam ran)
+
+froze      C:\Users\onurc\Desktop\AI Stock\Stock-Prediction-Models\alpha\out\development.json
+froze      C:\Users\onurc\Desktop\AI Stock\Stock-Prediction-Models\alpha\out\development.pkl

@@ -1,0 +1,6688 @@
+{
+  "protocol": "V2.2",
+  "stage": "carrier ladder / development",
+  "preregistration": "alpha/V2_2_PREREGISTRATION.md",
+  "written_at": "2026-08-08T16:27:20",
+  "exam_set_digest": "b55e065f4c9f91737b7a56fd715f0913cf8f41207bdb24d91452c10bc1c98ab0",
+  "exam_predictions_exist": false,
+  "development_cutoffs": 316,
+  "rows": 143675,
+  "first_cutoff": "2016-01-04",
+  "last_cutoff": "2026-07-28",
+  "refit_sessions": 65,
+  "min_train_cutoffs": 60,
+  "family_size": 3,
+  "learner_params": {
+    "loss": "squared_error",
+    "max_iter": 300,
+    "learning_rate": 0.05,
+    "max_leaf_nodes": 31,
+    "min_samples_leaf": 100,
+    "l2_regularization": 1.0,
+    "max_bins": 255,
+    "early_stopping": false,
+    "random_state": 0
+  },
+  "rank_transform_asymmetry": {
+    "market_context_columns": 26,
+    "all_market_context_cutoff_constant": true,
+    "market_context_rank_transformed": false,
+    "stock_level_columns": 9,
+    "all_stock_level_varying": true,
+    "stock_level_rank_transformed": true,
+    "note": "\u00a72.1: a within-cutoff rank of a cutoff-constant column is 0.5 for every name, so context passes through raw and the tree splits on it across cutoffs. Pre-registered asymmetry, not an oversight."
+  },
+  "s0": {
+    "definition": "z__ret_12_1 = rank_pct(ret_12_1) - 0.5, no model",
+    "mean_ic": 0.01,
+    "n_cutoffs": 316,
+    "rank_identical_to_benchmark_1": true,
+    "max_abs_ic_difference": 0.0,
+    "sample_note": "S0 needs no fit, so it scores every development cutoff. Every arm and rung scores only the cutoffs a fit reached \u2014 the walk-forward needs 60 training cutoffs before it predicts anything \u2014 so the two headline means are over different samples and are not comparable. The G1 figures in one_feature_sanity_test are paired and carry S0's mean on the paired sample beside them."
+  },
+  "one_feature_sanity_test": {
+    "S1-A": {
+      "rung": "S1-A",
+      "criterion": "paired mean per-cutoff IC of the one-feature rung minus S0",
+      "threshold": ">= -0.005",
+      "value": -0.02495,
+      "ci": [
+        -0.05273,
+        0.00233
+      ],
+      "n_cutoffs": 255,
+      "rung_mean_ic_on_paired_cutoffs": -0.00381,
+      "s0_mean_ic_on_paired_cutoffs": 0.02115,
+      "passed": false
+    },
+    "S1-B": {
+      "rung": "S1-B",
+      "criterion": "paired mean per-cutoff IC of the one-feature rung minus S0",
+      "threshold": ">= -0.005",
+      "value": -0.00018,
+      "ci": [
+        -0.0005,
+        0.00012
+      ],
+      "n_cutoffs": 255,
+      "rung_mean_ic_on_paired_cutoffs": 0.02097,
+      "s0_mean_ic_on_paired_cutoffs": 0.02115,
+      "passed": true
+    },
+    "S1-C": {
+      "rung": "S1-C",
+      "criterion": "paired mean per-cutoff IC of the one-feature rung minus S0",
+      "threshold": ">= -0.005",
+      "value": -0.00696,
+      "ci": [
+        -0.01467,
+        0.00164
+      ],
+      "n_cutoffs": 210,
+      "rung_mean_ic_on_paired_cutoffs": 0.00725,
+      "s0_mean_ic_on_paired_cutoffs": 0.01421,
+      "passed": false
+    }
+  },
+  "carrier_grid": {
+    "cells": {
+      "raw_level__winsorised_level": 0.00053,
+      "raw_level__rank": 0.00225,
+      "z_rank__winsorised_level": -0.00551,
+      "z_rank__rank": -0.00381
+    },
+    "s0_mean_ic_on_the_same_cutoffs": 0.02115,
+    "n_cutoffs": 255,
+    "frozen_v2_1_a_mean_ic": 0.00053,
+    "reproduces_frozen_v2_1_a": true,
+    "fourth_cell_note": "z_rank__rank is S1-A by construction \u2014 same columns, target, fitter and cutoffs \u2014 and is reused rather than re-fitted",
+    "note": "\u00a74.2: the grid decomposes the +0.02115 -> +0.00053 collapse into an input effect and a target effect. It diagnoses; it does not choose. The arms' carrier is fixed in \u00a73 by prior argument."
+  },
+  "lambda_sensitivity": {
+    "V2.2-B": {
+      "0.00": {
+        "mean_ic": 0.02115,
+        "n_cutoffs": 255,
+        "hit_rate": 0.5647,
+        "order_bound_violations": 0,
+        "is_the_arm": false
+      },
+      "0.25": {
+        "mean_ic": 0.022,
+        "n_cutoffs": 255,
+        "hit_rate": 0.5647,
+        "order_bound_violations": 0,
+        "is_the_arm": false
+      },
+      "0.50": {
+        "mean_ic": 0.02356,
+        "n_cutoffs": 255,
+        "hit_rate": 0.5569,
+        "order_bound_violations": 0,
+        "is_the_arm": true
+      },
+      "1.00": {
+        "mean_ic": 0.02105,
+        "n_cutoffs": 255,
+        "hit_rate": 0.5804,
+        "order_bound_violations": 0,
+        "is_the_arm": false
+      }
+    },
+    "S1-B": {
+      "0.00": {
+        "mean_ic": 0.02115,
+        "n_cutoffs": 255,
+        "hit_rate": 0.5647,
+        "order_bound_violations": 0,
+        "is_the_arm": false
+      },
+      "0.25": {
+        "mean_ic": 0.02109,
+        "n_cutoffs": 255,
+        "hit_rate": 0.5608,
+        "order_bound_violations": 0,
+        "is_the_arm": false
+      },
+      "0.50": {
+        "mean_ic": 0.02097,
+        "n_cutoffs": 255,
+        "hit_rate": 0.5608,
+        "order_bound_violations": 0,
+        "is_the_arm": true
+      },
+      "1.00": {
+        "mean_ic": -0.00169,
+        "n_cutoffs": 255,
+        "hit_rate": 0.5137,
+        "order_bound_violations": 0,
+        "is_the_arm": false
+      }
+    }
+  },
+  "lambda_note": "\u00a73.2: lambda = 0.50 is the arm. If 0.25 or 1.00 scores better that is reported and does not become the arm. Promoting a lambda variant would make the Holm family 5, not 3.",
+  "arms": {
+    "V2.2-A": {
+      "protocol": "V2.1",
+      "arm": "V2.2-A",
+      "n_cutoffs": 255,
+      "ic": {
+        "what": "V2.2-A Spearman IC",
+        "n_cutoffs": 255,
+        "mean": 0.03241,
+        "median": 0.02906,
+        "sd": 0.17275,
+        "hit_rate": 0.5647,
+        "naive_se": 0.01082,
+        "nw_se": 0.00923,
+        "boot_lo": 0.01605,
+        "boot_hi": 0.05279,
+        "t": 3.512,
+        "p_nw": 0.00053,
+        "p_boot": 0.0005,
+        "excludes_null": true
+      },
+      "spread": {
+        "what": "V2.2-A top-bottom spread",
+        "n_cutoffs": 255,
+        "mean": 0.00399,
+        "median": 0.00236,
+        "sd": 0.02048,
+        "hit_rate": 0.6118,
+        "naive_se": 0.00128,
+        "nw_se": 0.00106,
+        "boot_lo": 0.00211,
+        "boot_hi": 0.00637,
+        "t": 3.773,
+        "p_nw": 0.0002,
+        "p_boot": 0.0004,
+        "excludes_null": true
+      },
+      "top_quintile": {
+        "what": "V2.2-A top quintile alpha",
+        "n_cutoffs": 255,
+        "mean": 0.00177,
+        "median": 0.00094,
+        "sd": 0.01369,
+        "hit_rate": 0.5333,
+        "naive_se": 0.00086,
+        "nw_se": 0.00076,
+        "boot_lo": 0.00035,
+        "boot_hi": 0.00338,
+        "t": 2.309,
+        "p_nw": 0.02177,
+        "p_boot": 0.023,
+        "excludes_null": true
+      },
+      "bottom_quintile": {
+        "what": "V2.2-A bottom quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00223,
+        "median": -0.00187,
+        "sd": 0.01369,
+        "hit_rate": 0.4118,
+        "naive_se": 0.00086,
+        "nw_se": 0.00078,
+        "boot_lo": -0.00393,
+        "boot_hi": -0.00082,
+        "t": -2.875,
+        "p_nw": 0.00438,
+        "p_boot": 0.0051,
+        "excludes_null": true
+      },
+      "net_spread": {
+        "what": "V2.2-A net spread @5bps",
+        "n_cutoffs": 255,
+        "mean": 0.00328,
+        "median": 0.00159,
+        "sd": 0.02046,
+        "hit_rate": 0.5804,
+        "naive_se": 0.00128,
+        "nw_se": 0.00106,
+        "boot_lo": 0.0014,
+        "boot_hi": 0.00566,
+        "t": 3.106,
+        "p_nw": 0.00211,
+        "p_boot": 0.0032,
+        "excludes_null": true
+      },
+      "benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "12-1 momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02115,
+          "median": 0.03182,
+          "sd": 0.2354,
+          "hit_rate": 0.5647,
+          "naive_se": 0.01474,
+          "nw_se": 0.01331,
+          "boot_lo": -0.00469,
+          "boot_hi": 0.04808,
+          "t": 1.588,
+          "p_nw": 0.11346,
+          "p_boot": 0.10819,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "5-day reversal",
+          "n_cutoffs": 255,
+          "mean": 0.00872,
+          "median": 0.00166,
+          "sd": 0.18174,
+          "hit_rate": 0.5059,
+          "naive_se": 0.01138,
+          "nw_se": 0.01015,
+          "boot_lo": -0.01268,
+          "boot_hi": 0.02808,
+          "t": 0.859,
+          "p_nw": 0.39103,
+          "p_boot": 0.40886,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "regime-switched momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02836,
+          "median": 0.03279,
+          "sd": 0.22617,
+          "hit_rate": 0.5765,
+          "naive_se": 0.01416,
+          "nw_se": 0.01284,
+          "boot_lo": 0.00307,
+          "boot_hi": 0.05467,
+          "t": 2.209,
+          "p_nw": 0.02809,
+          "p_boot": 0.0283,
+          "excludes_null": true
+        }
+      },
+      "versus_benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "V2.2-A IC - 12-1 momentum IC",
+          "n_cutoffs": 255,
+          "mean": 0.01126,
+          "median": 0.00138,
+          "sd": 0.28786,
+          "hit_rate": 0.5059,
+          "naive_se": 0.01803,
+          "nw_se": 0.01744,
+          "boot_lo": -0.02162,
+          "boot_hi": 0.04822,
+          "t": 0.646,
+          "p_nw": 0.51897,
+          "p_boot": 0.52075,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "V2.2-A IC - 5-day reversal IC",
+          "n_cutoffs": 255,
+          "mean": 0.02368,
+          "median": 0.0142,
+          "sd": 0.24369,
+          "hit_rate": 0.5294,
+          "naive_se": 0.01526,
+          "nw_se": 0.01328,
+          "boot_lo": 0.00014,
+          "boot_hi": 0.05296,
+          "t": 1.783,
+          "p_nw": 0.07579,
+          "p_boot": 0.08559,
+          "excludes_null": true
+        },
+        "b3_regime_switched": {
+          "what": "V2.2-A IC - regime-switched momentum IC",
+          "n_cutoffs": 255,
+          "mean": 0.00405,
+          "median": -0.00185,
+          "sd": 0.27344,
+          "hit_rate": 0.4941,
+          "naive_se": 0.01712,
+          "nw_se": 0.01621,
+          "boot_lo": -0.02744,
+          "boot_hi": 0.03849,
+          "t": 0.25,
+          "p_nw": 0.80312,
+          "p_boot": 0.80802,
+          "excludes_null": false
+        }
+      },
+      "regime_ic": {
+        "BEAR_TREND": {
+          "n_cutoffs": 27,
+          "mean_ic": 0.06288345433890441,
+          "hit_rate": 0.5185185185185185
+        },
+        "BULL_TREND": {
+          "n_cutoffs": 204,
+          "mean_ic": 0.02702576207015846,
+          "hit_rate": 0.5735294117647058
+        },
+        "SIDEWAYS": {
+          "n_cutoffs": 24,
+          "mean_ic": 0.04385265230237915,
+          "hit_rate": 0.5416666666666666
+        },
+        "HIGH_VOL": {
+          "n_cutoffs": 126,
+          "mean_ic": 0.04378288270439116,
+          "hit_rate": 0.5793650793650794
+        },
+        "LOW_VOL": {
+          "n_cutoffs": 129,
+          "mean_ic": 0.02129402452687255,
+          "hit_rate": 0.5503875968992248
+        }
+      },
+      "halves": {
+        "first": {
+          "n": 128,
+          "mean_ic": 0.04107,
+          "hit_rate": 0.5781,
+          "from": "2017-03-21",
+          "to": "2021-07-13"
+        },
+        "second": {
+          "n": 127,
+          "mean_ic": 0.02368,
+          "hit_rate": 0.5512,
+          "from": "2021-08-10",
+          "to": "2026-07-28"
+        }
+      },
+      "interval_sensitivity": {
+        "block_1": [
+          0.01109,
+          0.05372
+        ],
+        "block_2": [
+          0.01248,
+          0.05422
+        ],
+        "block_4": [
+          0.01605,
+          0.05279
+        ],
+        "block_8": [
+          0.01536,
+          0.05371
+        ],
+        "newey_west_se": 0.00923,
+        "naive_se": 0.01082
+      },
+      "criteria": {
+        "1_mean_ic": {
+          "value": 0.03241,
+          "threshold": "> 0.03, CI excludes 0",
+          "ci": [
+            0.01605,
+            0.05279
+          ],
+          "gate": true,
+          "passed": true
+        },
+        "2_ic_hit_rate": {
+          "value": 0.5647,
+          "threshold": "> 0.55, CI excludes 0.5",
+          "ci": [
+            0.5059,
+            0.6275
+          ],
+          "gate": true,
+          "passed": true
+        },
+        "3_top_minus_bottom": {
+          "value": 0.00399,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            0.00211,
+            0.00637
+          ],
+          "gate": true,
+          "passed": true
+        },
+        "4_sign_stability": {
+          "value": {
+            "hit_rate": 0.5647,
+            "first_half_mean_ic": 0.04107,
+            "second_half_mean_ic": 0.02368
+          },
+          "threshold": "IC > 0 in >= 60% of cutoffs AND mean IC > 0 in both halves",
+          "gate": true,
+          "passed": false
+        },
+        "5_beats_12_1_momentum": {
+          "value": 0.01126,
+          "benchmark": "12-1 momentum",
+          "benchmark_mean_ic": 0.02115,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.02162,
+            0.04822
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "6_beats_5d_reversal": {
+          "value": 0.02368,
+          "benchmark": "5-day reversal",
+          "benchmark_mean_ic": 0.00872,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            0.00014,
+            0.05296
+          ],
+          "gate": true,
+          "passed": true
+        },
+        "7_no_regime_collapse": {
+          "value": {
+            "gating": {
+              "BEAR_TREND": {
+                "n_cutoffs": 27,
+                "mean_ic": 0.06288
+              },
+              "BULL_TREND": {
+                "n_cutoffs": 204,
+                "mean_ic": 0.02703
+              },
+              "SIDEWAYS": {
+                "n_cutoffs": 24,
+                "mean_ic": 0.04385
+              },
+              "HIGH_VOL": {
+                "n_cutoffs": 126,
+                "mean_ic": 0.04378
+              },
+              "LOW_VOL": {
+                "n_cutoffs": 129,
+                "mean_ic": 0.02129
+              }
+            },
+            "below_minimum_reported_only": {}
+          },
+          "threshold": "mean IC > 0 in every bucket with >= 8 cutoffs",
+          "gate": true,
+          "passed": true
+        },
+        "8_effective_sample": {
+          "value": 255,
+          "threshold": ">= 50 independent cutoffs",
+          "gate": true,
+          "passed": true
+        },
+        "9_cost_adjusted_spread": {
+          "value": 0.00328,
+          "threshold": "> 0 at 5 bps one-way, CI excludes 0",
+          "ci": [
+            0.0014,
+            0.00566
+          ],
+          "gate": true,
+          "passed": true
+        },
+        "10_turnover": {
+          "value": {
+            "mean_long": 0.7099,
+            "mean_short": 0.7142,
+            "mean_total": 1.4241,
+            "n_cutoffs": 255
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "11_cost_sensitivity": {
+          "value": {
+            "5bps": {
+              "mean": 0.00328,
+              "ci": [
+                0.0014,
+                0.00566
+              ],
+              "excludes_zero": true
+            },
+            "10bps": {
+              "mean": 0.00257,
+              "ci": [
+                0.00069,
+                0.00494
+              ],
+              "excludes_zero": true
+            },
+            "20bps": {
+              "mean": 0.00115,
+              "ci": [
+                -0.00072,
+                0.00351
+              ],
+              "excludes_zero": false
+            }
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12_independent_cutoffs": {
+          "value": 255,
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12b_versus_regime_switched": {
+          "value": 0.00405,
+          "benchmark": "regime-switched momentum",
+          "benchmark_mean_ic": 0.02836,
+          "threshold": "reported",
+          "ci": [
+            -0.02744,
+            0.03849
+          ],
+          "gate": false,
+          "passed": true
+        }
+      },
+      "production_weight": 0.0,
+      "production_weight_note": "Weight stays 0 until every gate passes on the frozen V2.1 exam set under this protocol with the Holm-Bonferroni correction applied across the arms run. This field is not a result.",
+      "preregistration": "alpha/V2_2_PREREGISTRATION.md",
+      "note": "rank-preserving input: z__ of the 9 stock-level columns + 26 raw context, trained on the within-cutoff rank. Isolates the input side of the carrier against V2.1-D, which was the same 35 columns and the same target on raw levels",
+      "n_features": 35,
+      "feature_columns": [
+        "z__ret_12_1",
+        "z__ret_5d",
+        "z__ret_20d",
+        "z__rvol_20d",
+        "z__rvol_60d",
+        "z__sma200_dist",
+        "z__overnight_mean_20d",
+        "z__intraday_mean_20d",
+        "z__overnight_share_60d",
+        "mkt_spy_ret_5d",
+        "mkt_spy_ret_20d",
+        "mkt_spy_ret_60d",
+        "mkt_spy_rsi14",
+        "mkt_spy_rvol_20d",
+        "mkt_spy_sma50_dist",
+        "mkt_spy_sma200_dist",
+        "mkt_qqq_ret_5d",
+        "mkt_qqq_ret_20d",
+        "mkt_qqq_ret_60d",
+        "mkt_qqq_rsi14",
+        "mkt_qqq_rvol_20d",
+        "mkt_qqq_sma50_dist",
+        "mkt_qqq_sma200_dist",
+        "vix_level",
+        "vix_percentile",
+        "vix_change_5d",
+        "index_breadth_above_sma20",
+        "index_breadth_above_sma50",
+        "index_advance_share",
+        "watchlist_breadth_proxy_above_sma20",
+        "watchlist_breadth_proxy_advance_share",
+        "regime_bull",
+        "regime_bear",
+        "regime_sideways",
+        "regime_high_vol"
+      ],
+      "train_target": "target_rank",
+      "output_combination": "prediction",
+      "lambda": null,
+      "monotone_increasing_on": null,
+      "scored_against": "alpha_5d",
+      "is_arm": true,
+      "seconds": 27.1,
+      "refits": [
+        {
+          "refit_at": "2017-03-21",
+          "train_rows": 24825,
+          "train_cutoffs": 60,
+          "trained_through": "2017-03-07"
+        },
+        {
+          "refit_at": "2017-06-22",
+          "train_rows": 30396,
+          "train_cutoffs": 73,
+          "trained_through": "2017-06-08"
+        },
+        {
+          "refit_at": "2017-09-25",
+          "train_rows": 36009,
+          "train_cutoffs": 86,
+          "trained_through": "2017-09-11"
+        },
+        {
+          "refit_at": "2018-01-11",
+          "train_rows": 41664,
+          "train_cutoffs": 99,
+          "trained_through": "2017-12-12"
+        },
+        {
+          "refit_at": "2018-04-17",
+          "train_rows": 44287,
+          "train_cutoffs": 105,
+          "trained_through": "2018-03-12"
+        },
+        {
+          "refit_at": "2018-07-19",
+          "train_rows": 47359,
+          "train_cutoffs": 112,
+          "trained_through": "2018-07-05"
+        },
+        {
+          "refit_at": "2018-11-09",
+          "train_rows": 50872,
+          "train_cutoffs": 120,
+          "trained_through": "2018-10-12"
+        },
+        {
+          "refit_at": "2019-02-15",
+          "train_rows": 53517,
+          "train_cutoffs": 126,
+          "trained_through": "2019-01-10"
+        },
+        {
+          "refit_at": "2019-05-21",
+          "train_rows": 56608,
+          "train_cutoffs": 133,
+          "trained_through": "2019-05-07"
+        },
+        {
+          "refit_at": "2019-09-13",
+          "train_rows": 60142,
+          "train_cutoffs": 141,
+          "trained_through": "2019-08-15"
+        },
+        {
+          "refit_at": "2019-12-16",
+          "train_rows": 62816,
+          "train_cutoffs": 147,
+          "trained_through": "2019-11-08"
+        },
+        {
+          "refit_at": "2020-03-20",
+          "train_rows": 65963,
+          "train_cutoffs": 154,
+          "trained_through": "2020-03-06"
+        },
+        {
+          "refit_at": "2020-07-15",
+          "train_rows": 69600,
+          "train_cutoffs": 162,
+          "trained_through": "2020-06-16"
+        },
+        {
+          "refit_at": "2020-10-15",
+          "train_rows": 72348,
+          "train_cutoffs": 168,
+          "trained_through": "2020-09-10"
+        },
+        {
+          "refit_at": "2021-01-20",
+          "train_rows": 75555,
+          "train_cutoffs": 175,
+          "trained_through": "2021-01-05"
+        },
+        {
+          "refit_at": "2021-05-14",
+          "train_rows": 79250,
+          "train_cutoffs": 183,
+          "trained_through": "2021-04-16"
+        },
+        {
+          "refit_at": "2021-08-17",
+          "train_rows": 82046,
+          "train_cutoffs": 189,
+          "trained_through": "2021-07-13"
+        },
+        {
+          "refit_at": "2021-11-17",
+          "train_rows": 85315,
+          "train_cutoffs": 196,
+          "trained_through": "2021-11-03"
+        },
+        {
+          "refit_at": "2022-03-15",
+          "train_rows": 89060,
+          "train_cutoffs": 204,
+          "trained_through": "2022-02-14"
+        },
+        {
+          "refit_at": "2022-06-16",
+          "train_rows": 91892,
+          "train_cutoffs": 210,
+          "trained_through": "2022-05-11"
+        },
+        {
+          "refit_at": "2022-09-20",
+          "train_rows": 95212,
+          "train_cutoffs": 217,
+          "trained_through": "2022-09-06"
+        },
+        {
+          "refit_at": "2023-01-13",
+          "train_rows": 99026,
+          "train_cutoffs": 225,
+          "trained_through": "2022-12-14"
+        },
+        {
+          "refit_at": "2023-04-19",
+          "train_rows": 101904,
+          "train_cutoffs": 231,
+          "trained_through": "2023-03-14"
+        },
+        {
+          "refit_at": "2023-07-24",
+          "train_rows": 105283,
+          "train_cutoffs": 238,
+          "trained_through": "2023-07-10"
+        },
+        {
+          "refit_at": "2023-11-14",
+          "train_rows": 109153,
+          "train_cutoffs": 246,
+          "trained_through": "2023-10-17"
+        },
+        {
+          "refit_at": "2024-02-20",
+          "train_rows": 112063,
+          "train_cutoffs": 252,
+          "trained_through": "2024-01-12"
+        },
+        {
+          "refit_at": "2024-05-22",
+          "train_rows": 115465,
+          "train_cutoffs": 259,
+          "trained_through": "2024-05-08"
+        },
+        {
+          "refit_at": "2024-09-17",
+          "train_rows": 119367,
+          "train_cutoffs": 267,
+          "trained_through": "2024-08-19"
+        },
+        {
+          "refit_at": "2024-12-18",
+          "train_rows": 122300,
+          "train_cutoffs": 273,
+          "trained_through": "2024-11-12"
+        },
+        {
+          "refit_at": "2025-03-26",
+          "train_rows": 125740,
+          "train_cutoffs": 280,
+          "trained_through": "2025-03-12"
+        },
+        {
+          "refit_at": "2025-07-22",
+          "train_rows": 129691,
+          "train_cutoffs": 288,
+          "trained_through": "2025-06-23"
+        },
+        {
+          "refit_at": "2025-10-22",
+          "train_rows": 132681,
+          "train_cutoffs": 294,
+          "trained_through": "2025-09-17"
+        },
+        {
+          "refit_at": "2026-01-27",
+          "train_rows": 136169,
+          "train_cutoffs": 301,
+          "trained_through": "2026-01-12"
+        },
+        {
+          "refit_at": "2026-05-21",
+          "train_rows": 140173,
+          "train_cutoffs": 309,
+          "trained_through": "2026-04-23"
+        }
+      ],
+      "carrier_diagnostics": {
+        "n_cutoffs": 255,
+        "spearman_vs_factor": {
+          "mean": -0.0089,
+          "min": -0.7531,
+          "max": 0.8987,
+          "share_negative": 0.549,
+          "share_below_0.99": 1.0
+        },
+        "inversions": {
+          "total": 59037,
+          "cutoffs_with_any": 255
+        },
+        "runs_vs_factor": {
+          "median": 466,
+          "min": 426,
+          "max": 502
+        },
+        "distinct_scores": {
+          "median": 465,
+          "min": 426,
+          "max": 501
+        },
+        "cross_section": {
+          "min": 426,
+          "max": 502
+        },
+        "is_univariate_in_factor": false,
+        "collapsed_cutoffs": 0
+      },
+      "gates_are_diagnostic_here": "V2_2_PREREGISTRATION.md \u00a76.3 gates the *selected arm* on development. The nine V2.1 criteria below are the same arithmetic run on the same slice and decide nothing here; \u00a78 keeps the exam sealed either way.",
+      "diagnostic_gates_passed": false,
+      "diagnostic_failed_gates": [
+        "4_sign_stability",
+        "5_beats_12_1_momentum"
+      ],
+      "multiplicity_on_development": {
+        "p_raw": 0.0005,
+        "p_holm": 0.0015,
+        "significant": true
+      }
+    },
+    "V2.2-B": {
+      "protocol": "V2.1",
+      "arm": "V2.2-B",
+      "n_cutoffs": 255,
+      "ic": {
+        "what": "V2.2-B Spearman IC",
+        "n_cutoffs": 255,
+        "mean": 0.02356,
+        "median": 0.029,
+        "sd": 0.23426,
+        "hit_rate": 0.5569,
+        "naive_se": 0.01467,
+        "nw_se": 0.01307,
+        "boot_lo": -0.00167,
+        "boot_hi": 0.05016,
+        "t": 1.802,
+        "p_nw": 0.07272,
+        "p_boot": 0.06929,
+        "excludes_null": false
+      },
+      "spread": {
+        "what": "V2.2-B top-bottom spread",
+        "n_cutoffs": 255,
+        "mean": 0.00199,
+        "median": 0.00388,
+        "sd": 0.02673,
+        "hit_rate": 0.5725,
+        "naive_se": 0.00167,
+        "nw_se": 0.00145,
+        "boot_lo": -0.00089,
+        "boot_hi": 0.005,
+        "t": 1.365,
+        "p_nw": 0.17345,
+        "p_boot": 0.17468,
+        "excludes_null": false
+      },
+      "top_quintile": {
+        "what": "V2.2-B top quintile alpha",
+        "n_cutoffs": 255,
+        "mean": 0.00033,
+        "median": 0.00024,
+        "sd": 0.01166,
+        "hit_rate": 0.5098,
+        "naive_se": 0.00073,
+        "nw_se": 0.00065,
+        "boot_lo": -0.00095,
+        "boot_hi": 0.00163,
+        "t": 0.515,
+        "p_nw": 0.60673,
+        "p_boot": 0.61954,
+        "excludes_null": false
+      },
+      "bottom_quintile": {
+        "what": "V2.2-B bottom quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00165,
+        "median": -0.00185,
+        "sd": 0.02071,
+        "hit_rate": 0.4275,
+        "naive_se": 0.0013,
+        "nw_se": 0.00113,
+        "boot_lo": -0.00398,
+        "boot_hi": 0.00048,
+        "t": -1.468,
+        "p_nw": 0.14337,
+        "p_boot": 0.14029,
+        "excludes_null": false
+      },
+      "net_spread": {
+        "what": "V2.2-B net spread @5bps",
+        "n_cutoffs": 255,
+        "mean": 0.00181,
+        "median": 0.00368,
+        "sd": 0.02674,
+        "hit_rate": 0.5725,
+        "naive_se": 0.00167,
+        "nw_se": 0.00146,
+        "boot_lo": -0.00107,
+        "boot_hi": 0.00483,
+        "t": 1.241,
+        "p_nw": 0.21576,
+        "p_boot": 0.21578,
+        "excludes_null": false
+      },
+      "benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "12-1 momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02115,
+          "median": 0.03182,
+          "sd": 0.2354,
+          "hit_rate": 0.5647,
+          "naive_se": 0.01474,
+          "nw_se": 0.01331,
+          "boot_lo": -0.00469,
+          "boot_hi": 0.04808,
+          "t": 1.588,
+          "p_nw": 0.11346,
+          "p_boot": 0.10819,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "5-day reversal",
+          "n_cutoffs": 255,
+          "mean": 0.00872,
+          "median": 0.00166,
+          "sd": 0.18174,
+          "hit_rate": 0.5059,
+          "naive_se": 0.01138,
+          "nw_se": 0.01015,
+          "boot_lo": -0.01268,
+          "boot_hi": 0.02808,
+          "t": 0.859,
+          "p_nw": 0.39103,
+          "p_boot": 0.40886,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "regime-switched momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02836,
+          "median": 0.03279,
+          "sd": 0.22617,
+          "hit_rate": 0.5765,
+          "naive_se": 0.01416,
+          "nw_se": 0.01284,
+          "boot_lo": 0.00307,
+          "boot_hi": 0.05467,
+          "t": 2.209,
+          "p_nw": 0.02809,
+          "p_boot": 0.0283,
+          "excludes_null": true
+        }
+      },
+      "versus_benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "V2.2-B IC - 12-1 momentum IC",
+          "n_cutoffs": 255,
+          "mean": 0.00241,
+          "median": 0.00226,
+          "sd": 0.0151,
+          "hit_rate": 0.5882,
+          "naive_se": 0.00095,
+          "nw_se": 0.00094,
+          "boot_lo": 0.00069,
+          "boot_hi": 0.00434,
+          "t": 2.58,
+          "p_nw": 0.01043,
+          "p_boot": 0.0099,
+          "excludes_null": true
+        },
+        "b2_reversal_5d": {
+          "what": "V2.2-B IC - 5-day reversal IC",
+          "n_cutoffs": 255,
+          "mean": 0.01484,
+          "median": 0.0325,
+          "sd": 0.28198,
+          "hit_rate": 0.5529,
+          "naive_se": 0.01766,
+          "nw_se": 0.01568,
+          "boot_lo": -0.01473,
+          "boot_hi": 0.04676,
+          "t": 0.946,
+          "p_nw": 0.34507,
+          "p_boot": 0.34537,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "V2.2-B IC - regime-switched momentum IC",
+          "n_cutoffs": 255,
+          "mean": -0.0048,
+          "median": 0.00183,
+          "sd": 0.09379,
+          "hit_rate": 0.5686,
+          "naive_se": 0.00587,
+          "nw_se": 0.00565,
+          "boot_lo": -0.01682,
+          "boot_hi": 0.00534,
+          "t": -0.849,
+          "p_nw": 0.39655,
+          "p_boot": 0.39476,
+          "excludes_null": false
+        }
+      },
+      "regime_ic": {
+        "BEAR_TREND": {
+          "n_cutoffs": 27,
+          "mean_ic": -0.026021089447409634,
+          "hit_rate": 0.4074074074074074
+        },
+        "BULL_TREND": {
+          "n_cutoffs": 204,
+          "mean_ic": 0.02702142656126517,
+          "hit_rate": 0.5686274509803921
+        },
+        "SIDEWAYS": {
+          "n_cutoffs": 24,
+          "mean_ic": 0.04990299773188448,
+          "hit_rate": 0.625
+        },
+        "HIGH_VOL": {
+          "n_cutoffs": 126,
+          "mean_ic": 0.05565789016040988,
+          "hit_rate": 0.5952380952380952
+        },
+        "LOW_VOL": {
+          "n_cutoffs": 129,
+          "mean_ic": -0.007793958226576609,
+          "hit_rate": 0.5193798449612403
+        }
+      },
+      "halves": {
+        "first": {
+          "n": 128,
+          "mean_ic": 0.01656,
+          "hit_rate": 0.5156,
+          "from": "2017-03-21",
+          "to": "2021-07-13"
+        },
+        "second": {
+          "n": 127,
+          "mean_ic": 0.03062,
+          "hit_rate": 0.5984,
+          "from": "2021-08-10",
+          "to": "2026-07-28"
+        }
+      },
+      "interval_sensitivity": {
+        "block_1": [
+          -0.00523,
+          0.05263
+        ],
+        "block_2": [
+          -0.0047,
+          0.05046
+        ],
+        "block_4": [
+          -0.00167,
+          0.05016
+        ],
+        "block_8": [
+          -0.00166,
+          0.04892
+        ],
+        "newey_west_se": 0.01307,
+        "naive_se": 0.01467
+      },
+      "criteria": {
+        "1_mean_ic": {
+          "value": 0.02356,
+          "threshold": "> 0.03, CI excludes 0",
+          "ci": [
+            -0.00167,
+            0.05016
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "2_ic_hit_rate": {
+          "value": 0.5569,
+          "threshold": "> 0.55, CI excludes 0.5",
+          "ci": [
+            0.498,
+            0.6118
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "3_top_minus_bottom": {
+          "value": 0.00199,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.00089,
+            0.005
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "4_sign_stability": {
+          "value": {
+            "hit_rate": 0.5569,
+            "first_half_mean_ic": 0.01656,
+            "second_half_mean_ic": 0.03062
+          },
+          "threshold": "IC > 0 in >= 60% of cutoffs AND mean IC > 0 in both halves",
+          "gate": true,
+          "passed": false
+        },
+        "5_beats_12_1_momentum": {
+          "value": 0.00241,
+          "benchmark": "12-1 momentum",
+          "benchmark_mean_ic": 0.02115,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            0.00069,
+            0.00434
+          ],
+          "gate": true,
+          "passed": true
+        },
+        "6_beats_5d_reversal": {
+          "value": 0.01484,
+          "benchmark": "5-day reversal",
+          "benchmark_mean_ic": 0.00872,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.01473,
+            0.04676
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "7_no_regime_collapse": {
+          "value": {
+            "gating": {
+              "BEAR_TREND": {
+                "n_cutoffs": 27,
+                "mean_ic": -0.02602
+              },
+              "BULL_TREND": {
+                "n_cutoffs": 204,
+                "mean_ic": 0.02702
+              },
+              "SIDEWAYS": {
+                "n_cutoffs": 24,
+                "mean_ic": 0.0499
+              },
+              "HIGH_VOL": {
+                "n_cutoffs": 126,
+                "mean_ic": 0.05566
+              },
+              "LOW_VOL": {
+                "n_cutoffs": 129,
+                "mean_ic": -0.00779
+              }
+            },
+            "below_minimum_reported_only": {}
+          },
+          "threshold": "mean IC > 0 in every bucket with >= 8 cutoffs",
+          "gate": true,
+          "passed": false
+        },
+        "8_effective_sample": {
+          "value": 255,
+          "threshold": ">= 50 independent cutoffs",
+          "gate": true,
+          "passed": true
+        },
+        "9_cost_adjusted_spread": {
+          "value": 0.00181,
+          "threshold": "> 0 at 5 bps one-way, CI excludes 0",
+          "ci": [
+            -0.00107,
+            0.00483
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "10_turnover": {
+          "value": {
+            "mean_long": 0.1864,
+            "mean_short": 0.1727,
+            "mean_total": 0.3591,
+            "n_cutoffs": 255
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "11_cost_sensitivity": {
+          "value": {
+            "5bps": {
+              "mean": 0.00181,
+              "ci": [
+                -0.00107,
+                0.00483
+              ],
+              "excludes_zero": false
+            },
+            "10bps": {
+              "mean": 0.00163,
+              "ci": [
+                -0.00125,
+                0.00466
+              ],
+              "excludes_zero": false
+            },
+            "20bps": {
+              "mean": 0.00127,
+              "ci": [
+                -0.00161,
+                0.00429
+              ],
+              "excludes_zero": false
+            }
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12_independent_cutoffs": {
+          "value": 255,
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12b_versus_regime_switched": {
+          "value": -0.0048,
+          "benchmark": "regime-switched momentum",
+          "benchmark_mean_ic": 0.02836,
+          "threshold": "reported",
+          "ci": [
+            -0.01682,
+            0.00534
+          ],
+          "gate": false,
+          "passed": true
+        }
+      },
+      "production_weight": 0.0,
+      "production_weight_note": "Weight stays 0 until every gate passes on the frozen V2.1 exam set under this protocol with the Holm-Bonferroni correction applied across the arms run. This field is not a result.",
+      "preregistration": "alpha/V2_2_PREREGISTRATION.md",
+      "note": "factor plus bounded learned adjustment: residual target, final = z__ret_12_1 + 0.50 * u. The model may tilt momentum, never replace it \u2014 \u00a73.2's order bound makes an inversion impossible",
+      "n_features": 35,
+      "feature_columns": [
+        "z__ret_12_1",
+        "z__ret_5d",
+        "z__ret_20d",
+        "z__rvol_20d",
+        "z__rvol_60d",
+        "z__sma200_dist",
+        "z__overnight_mean_20d",
+        "z__intraday_mean_20d",
+        "z__overnight_share_60d",
+        "mkt_spy_ret_5d",
+        "mkt_spy_ret_20d",
+        "mkt_spy_ret_60d",
+        "mkt_spy_rsi14",
+        "mkt_spy_rvol_20d",
+        "mkt_spy_sma50_dist",
+        "mkt_spy_sma200_dist",
+        "mkt_qqq_ret_5d",
+        "mkt_qqq_ret_20d",
+        "mkt_qqq_ret_60d",
+        "mkt_qqq_rsi14",
+        "mkt_qqq_rvol_20d",
+        "mkt_qqq_sma50_dist",
+        "mkt_qqq_sma200_dist",
+        "vix_level",
+        "vix_percentile",
+        "vix_change_5d",
+        "index_breadth_above_sma20",
+        "index_breadth_above_sma50",
+        "index_advance_share",
+        "watchlist_breadth_proxy_above_sma20",
+        "watchlist_breadth_proxy_advance_share",
+        "regime_bull",
+        "regime_bear",
+        "regime_sideways",
+        "regime_high_vol"
+      ],
+      "train_target": "y_resid",
+      "output_combination": "blend",
+      "lambda": 0.5,
+      "monotone_increasing_on": null,
+      "scored_against": "alpha_5d",
+      "is_arm": true,
+      "seconds": 29.0,
+      "refits": [
+        {
+          "refit_at": "2017-03-21",
+          "train_rows": 24823,
+          "train_cutoffs": 60,
+          "trained_through": "2017-03-07"
+        },
+        {
+          "refit_at": "2017-06-22",
+          "train_rows": 30394,
+          "train_cutoffs": 73,
+          "trained_through": "2017-06-08"
+        },
+        {
+          "refit_at": "2017-09-25",
+          "train_rows": 36007,
+          "train_cutoffs": 86,
+          "trained_through": "2017-09-11"
+        },
+        {
+          "refit_at": "2018-01-11",
+          "train_rows": 41662,
+          "train_cutoffs": 99,
+          "trained_through": "2017-12-12"
+        },
+        {
+          "refit_at": "2018-04-17",
+          "train_rows": 44285,
+          "train_cutoffs": 105,
+          "trained_through": "2018-03-12"
+        },
+        {
+          "refit_at": "2018-07-19",
+          "train_rows": 47357,
+          "train_cutoffs": 112,
+          "trained_through": "2018-07-05"
+        },
+        {
+          "refit_at": "2018-11-09",
+          "train_rows": 50870,
+          "train_cutoffs": 120,
+          "trained_through": "2018-10-12"
+        },
+        {
+          "refit_at": "2019-02-15",
+          "train_rows": 53515,
+          "train_cutoffs": 126,
+          "trained_through": "2019-01-10"
+        },
+        {
+          "refit_at": "2019-05-21",
+          "train_rows": 56606,
+          "train_cutoffs": 133,
+          "trained_through": "2019-05-07"
+        },
+        {
+          "refit_at": "2019-09-13",
+          "train_rows": 60140,
+          "train_cutoffs": 141,
+          "trained_through": "2019-08-15"
+        },
+        {
+          "refit_at": "2019-12-16",
+          "train_rows": 62814,
+          "train_cutoffs": 147,
+          "trained_through": "2019-11-08"
+        },
+        {
+          "refit_at": "2020-03-20",
+          "train_rows": 65961,
+          "train_cutoffs": 154,
+          "trained_through": "2020-03-06"
+        },
+        {
+          "refit_at": "2020-07-15",
+          "train_rows": 69598,
+          "train_cutoffs": 162,
+          "trained_through": "2020-06-16"
+        },
+        {
+          "refit_at": "2020-10-15",
+          "train_rows": 72346,
+          "train_cutoffs": 168,
+          "trained_through": "2020-09-10"
+        },
+        {
+          "refit_at": "2021-01-20",
+          "train_rows": 75553,
+          "train_cutoffs": 175,
+          "trained_through": "2021-01-05"
+        },
+        {
+          "refit_at": "2021-05-14",
+          "train_rows": 79248,
+          "train_cutoffs": 183,
+          "trained_through": "2021-04-16"
+        },
+        {
+          "refit_at": "2021-08-17",
+          "train_rows": 82044,
+          "train_cutoffs": 189,
+          "trained_through": "2021-07-13"
+        },
+        {
+          "refit_at": "2021-11-17",
+          "train_rows": 85313,
+          "train_cutoffs": 196,
+          "trained_through": "2021-11-03"
+        },
+        {
+          "refit_at": "2022-03-15",
+          "train_rows": 89058,
+          "train_cutoffs": 204,
+          "trained_through": "2022-02-14"
+        },
+        {
+          "refit_at": "2022-06-16",
+          "train_rows": 91890,
+          "train_cutoffs": 210,
+          "trained_through": "2022-05-11"
+        },
+        {
+          "refit_at": "2022-09-20",
+          "train_rows": 95210,
+          "train_cutoffs": 217,
+          "trained_through": "2022-09-06"
+        },
+        {
+          "refit_at": "2023-01-13",
+          "train_rows": 99024,
+          "train_cutoffs": 225,
+          "trained_through": "2022-12-14"
+        },
+        {
+          "refit_at": "2023-04-19",
+          "train_rows": 101902,
+          "train_cutoffs": 231,
+          "trained_through": "2023-03-14"
+        },
+        {
+          "refit_at": "2023-07-24",
+          "train_rows": 105281,
+          "train_cutoffs": 238,
+          "trained_through": "2023-07-10"
+        },
+        {
+          "refit_at": "2023-11-14",
+          "train_rows": 109151,
+          "train_cutoffs": 246,
+          "trained_through": "2023-10-17"
+        },
+        {
+          "refit_at": "2024-02-20",
+          "train_rows": 112061,
+          "train_cutoffs": 252,
+          "trained_through": "2024-01-12"
+        },
+        {
+          "refit_at": "2024-05-22",
+          "train_rows": 115463,
+          "train_cutoffs": 259,
+          "trained_through": "2024-05-08"
+        },
+        {
+          "refit_at": "2024-09-17",
+          "train_rows": 119365,
+          "train_cutoffs": 267,
+          "trained_through": "2024-08-19"
+        },
+        {
+          "refit_at": "2024-12-18",
+          "train_rows": 122298,
+          "train_cutoffs": 273,
+          "trained_through": "2024-11-12"
+        },
+        {
+          "refit_at": "2025-03-26",
+          "train_rows": 125738,
+          "train_cutoffs": 280,
+          "trained_through": "2025-03-12"
+        },
+        {
+          "refit_at": "2025-07-22",
+          "train_rows": 129689,
+          "train_cutoffs": 288,
+          "trained_through": "2025-06-23"
+        },
+        {
+          "refit_at": "2025-10-22",
+          "train_rows": 132679,
+          "train_cutoffs": 294,
+          "trained_through": "2025-09-17"
+        },
+        {
+          "refit_at": "2026-01-27",
+          "train_rows": 136167,
+          "train_cutoffs": 301,
+          "trained_through": "2026-01-12"
+        },
+        {
+          "refit_at": "2026-05-21",
+          "train_rows": 140171,
+          "train_cutoffs": 309,
+          "trained_through": "2026-04-23"
+        }
+      ],
+      "carrier_diagnostics": {
+        "n_cutoffs": 255,
+        "spearman_vs_factor": {
+          "mean": 0.9935,
+          "min": 0.9682,
+          "max": 0.9988,
+          "share_negative": 0.0,
+          "share_below_0.99": 0.1451
+        },
+        "inversions": {
+          "total": 56110,
+          "cutoffs_with_any": 255
+        },
+        "runs_vs_factor": {
+          "median": 458,
+          "min": 421,
+          "max": 499
+        },
+        "distinct_scores": {
+          "median": 389,
+          "min": 329,
+          "max": 425
+        },
+        "cross_section": {
+          "min": 426,
+          "max": 502
+        },
+        "is_univariate_in_factor": false,
+        "collapsed_cutoffs": 0
+      },
+      "gates_are_diagnostic_here": "V2_2_PREREGISTRATION.md \u00a76.3 gates the *selected arm* on development. The nine V2.1 criteria below are the same arithmetic run on the same slice and decide nothing here; \u00a78 keeps the exam sealed either way.",
+      "diagnostic_gates_passed": false,
+      "diagnostic_failed_gates": [
+        "1_mean_ic",
+        "2_ic_hit_rate",
+        "3_top_minus_bottom",
+        "4_sign_stability",
+        "6_beats_5d_reversal",
+        "7_no_regime_collapse",
+        "9_cost_adjusted_spread"
+      ],
+      "multiplicity_on_development": {
+        "p_raw": 0.06929,
+        "p_holm": 0.06929,
+        "significant": false
+      }
+    },
+    "V2.2-C": {
+      "protocol": "V2.1",
+      "arm": "V2.2-C",
+      "n_cutoffs": 255,
+      "ic": {
+        "what": "V2.2-C Spearman IC",
+        "n_cutoffs": 255,
+        "mean": 0.02723,
+        "median": 0.02078,
+        "sd": 0.17069,
+        "hit_rate": 0.5765,
+        "naive_se": 0.01069,
+        "nw_se": 0.00933,
+        "boot_lo": 0.0103,
+        "boot_hi": 0.04707,
+        "t": 2.92,
+        "p_nw": 0.00382,
+        "p_boot": 0.0036,
+        "excludes_null": true
+      },
+      "spread": {
+        "what": "V2.2-C top-bottom spread",
+        "n_cutoffs": 255,
+        "mean": 0.00253,
+        "median": 0.00146,
+        "sd": 0.02041,
+        "hit_rate": 0.5373,
+        "naive_se": 0.00128,
+        "nw_se": 0.00104,
+        "boot_lo": 0.0006,
+        "boot_hi": 0.00476,
+        "t": 2.447,
+        "p_nw": 0.01508,
+        "p_boot": 0.0176,
+        "excludes_null": true
+      },
+      "top_quintile": {
+        "what": "V2.2-C top quintile alpha",
+        "n_cutoffs": 255,
+        "mean": 0.00075,
+        "median": 0.0001,
+        "sd": 0.01331,
+        "hit_rate": 0.5059,
+        "naive_se": 0.00083,
+        "nw_se": 0.0007,
+        "boot_lo": -0.00067,
+        "boot_hi": 0.00218,
+        "t": 1.063,
+        "p_nw": 0.28888,
+        "p_boot": 0.30407,
+        "excludes_null": false
+      },
+      "bottom_quintile": {
+        "what": "V2.2-C bottom quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00179,
+        "median": -0.00194,
+        "sd": 0.01413,
+        "hit_rate": 0.4118,
+        "naive_se": 0.00088,
+        "nw_se": 0.00083,
+        "boot_lo": -0.00357,
+        "boot_hi": -0.00028,
+        "t": -2.143,
+        "p_nw": 0.03307,
+        "p_boot": 0.0339,
+        "excludes_null": true
+      },
+      "net_spread": {
+        "what": "V2.2-C net spread @5bps",
+        "n_cutoffs": 255,
+        "mean": 0.00183,
+        "median": 0.00083,
+        "sd": 0.0204,
+        "hit_rate": 0.5137,
+        "naive_se": 0.00128,
+        "nw_se": 0.00103,
+        "boot_lo": -0.00011,
+        "boot_hi": 0.00406,
+        "t": 1.77,
+        "p_nw": 0.07786,
+        "p_boot": 0.08709,
+        "excludes_null": false
+      },
+      "benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "12-1 momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02115,
+          "median": 0.03182,
+          "sd": 0.2354,
+          "hit_rate": 0.5647,
+          "naive_se": 0.01474,
+          "nw_se": 0.01331,
+          "boot_lo": -0.00469,
+          "boot_hi": 0.04808,
+          "t": 1.588,
+          "p_nw": 0.11346,
+          "p_boot": 0.10819,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "5-day reversal",
+          "n_cutoffs": 255,
+          "mean": 0.00872,
+          "median": 0.00166,
+          "sd": 0.18174,
+          "hit_rate": 0.5059,
+          "naive_se": 0.01138,
+          "nw_se": 0.01015,
+          "boot_lo": -0.01268,
+          "boot_hi": 0.02808,
+          "t": 0.859,
+          "p_nw": 0.39103,
+          "p_boot": 0.40886,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "regime-switched momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02836,
+          "median": 0.03279,
+          "sd": 0.22617,
+          "hit_rate": 0.5765,
+          "naive_se": 0.01416,
+          "nw_se": 0.01284,
+          "boot_lo": 0.00307,
+          "boot_hi": 0.05467,
+          "t": 2.209,
+          "p_nw": 0.02809,
+          "p_boot": 0.0283,
+          "excludes_null": true
+        }
+      },
+      "versus_benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "V2.2-C IC - 12-1 momentum IC",
+          "n_cutoffs": 255,
+          "mean": 0.00608,
+          "median": 0.00019,
+          "sd": 0.27021,
+          "hit_rate": 0.502,
+          "naive_se": 0.01692,
+          "nw_se": 0.01598,
+          "boot_lo": -0.02491,
+          "boot_hi": 0.03949,
+          "t": 0.381,
+          "p_nw": 0.70381,
+          "p_boot": 0.70533,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "V2.2-C IC - 5-day reversal IC",
+          "n_cutoffs": 255,
+          "mean": 0.0185,
+          "median": 0.01371,
+          "sd": 0.23557,
+          "hit_rate": 0.5294,
+          "naive_se": 0.01475,
+          "nw_se": 0.01328,
+          "boot_lo": -0.00544,
+          "boot_hi": 0.04744,
+          "t": 1.393,
+          "p_nw": 0.16487,
+          "p_boot": 0.17228,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "V2.2-C IC - regime-switched momentum IC",
+          "n_cutoffs": 255,
+          "mean": -0.00113,
+          "median": -0.00037,
+          "sd": 0.25579,
+          "hit_rate": 0.498,
+          "naive_se": 0.01602,
+          "nw_se": 0.01501,
+          "boot_lo": -0.0304,
+          "boot_hi": 0.0297,
+          "t": -0.076,
+          "p_nw": 0.93985,
+          "p_boot": 0.94411,
+          "excludes_null": false
+        }
+      },
+      "regime_ic": {
+        "BEAR_TREND": {
+          "n_cutoffs": 27,
+          "mean_ic": 0.06285620322705247,
+          "hit_rate": 0.6296296296296297
+        },
+        "BULL_TREND": {
+          "n_cutoffs": 204,
+          "mean_ic": 0.024028406097792648,
+          "hit_rate": 0.5784313725490197
+        },
+        "SIDEWAYS": {
+          "n_cutoffs": 24,
+          "mean_ic": 0.014324167951373229,
+          "hit_rate": 0.5
+        },
+        "HIGH_VOL": {
+          "n_cutoffs": 126,
+          "mean_ic": 0.03422263691759425,
+          "hit_rate": 0.5873015873015873
+        },
+        "LOW_VOL": {
+          "n_cutoffs": 129,
+          "mean_ic": 0.020392558994544174,
+          "hit_rate": 0.5658914728682171
+        }
+      },
+      "halves": {
+        "first": {
+          "n": 128,
+          "mean_ic": 0.02776,
+          "hit_rate": 0.5703,
+          "from": "2017-03-21",
+          "to": "2021-07-13"
+        },
+        "second": {
+          "n": 127,
+          "mean_ic": 0.02669,
+          "hit_rate": 0.5827,
+          "from": "2021-08-10",
+          "to": "2026-07-28"
+        }
+      },
+      "interval_sensitivity": {
+        "block_1": [
+          0.00657,
+          0.04851
+        ],
+        "block_2": [
+          0.00752,
+          0.04806
+        ],
+        "block_4": [
+          0.0103,
+          0.04707
+        ],
+        "block_8": [
+          0.0097,
+          0.04808
+        ],
+        "newey_west_se": 0.00933,
+        "naive_se": 0.01069
+      },
+      "criteria": {
+        "1_mean_ic": {
+          "value": 0.02723,
+          "threshold": "> 0.03, CI excludes 0",
+          "ci": [
+            0.0103,
+            0.04707
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "2_ic_hit_rate": {
+          "value": 0.5765,
+          "threshold": "> 0.55, CI excludes 0.5",
+          "ci": [
+            0.5215,
+            0.6392
+          ],
+          "gate": true,
+          "passed": true
+        },
+        "3_top_minus_bottom": {
+          "value": 0.00253,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            0.0006,
+            0.00476
+          ],
+          "gate": true,
+          "passed": true
+        },
+        "4_sign_stability": {
+          "value": {
+            "hit_rate": 0.5765,
+            "first_half_mean_ic": 0.02776,
+            "second_half_mean_ic": 0.02669
+          },
+          "threshold": "IC > 0 in >= 60% of cutoffs AND mean IC > 0 in both halves",
+          "gate": true,
+          "passed": false
+        },
+        "5_beats_12_1_momentum": {
+          "value": 0.00608,
+          "benchmark": "12-1 momentum",
+          "benchmark_mean_ic": 0.02115,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.02491,
+            0.03949
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "6_beats_5d_reversal": {
+          "value": 0.0185,
+          "benchmark": "5-day reversal",
+          "benchmark_mean_ic": 0.00872,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.00544,
+            0.04744
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "7_no_regime_collapse": {
+          "value": {
+            "gating": {
+              "BEAR_TREND": {
+                "n_cutoffs": 27,
+                "mean_ic": 0.06286
+              },
+              "BULL_TREND": {
+                "n_cutoffs": 204,
+                "mean_ic": 0.02403
+              },
+              "SIDEWAYS": {
+                "n_cutoffs": 24,
+                "mean_ic": 0.01432
+              },
+              "HIGH_VOL": {
+                "n_cutoffs": 126,
+                "mean_ic": 0.03422
+              },
+              "LOW_VOL": {
+                "n_cutoffs": 129,
+                "mean_ic": 0.02039
+              }
+            },
+            "below_minimum_reported_only": {}
+          },
+          "threshold": "mean IC > 0 in every bucket with >= 8 cutoffs",
+          "gate": true,
+          "passed": true
+        },
+        "8_effective_sample": {
+          "value": 255,
+          "threshold": ">= 50 independent cutoffs",
+          "gate": true,
+          "passed": true
+        },
+        "9_cost_adjusted_spread": {
+          "value": 0.00183,
+          "threshold": "> 0 at 5 bps one-way, CI excludes 0",
+          "ci": [
+            -0.00011,
+            0.00406
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "10_turnover": {
+          "value": {
+            "mean_long": 0.7009,
+            "mean_short": 0.7038,
+            "mean_total": 1.4047,
+            "n_cutoffs": 255
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "11_cost_sensitivity": {
+          "value": {
+            "5bps": {
+              "mean": 0.00183,
+              "ci": [
+                -0.00011,
+                0.00406
+              ],
+              "excludes_zero": false
+            },
+            "10bps": {
+              "mean": 0.00113,
+              "ci": [
+                -0.00082,
+                0.00335
+              ],
+              "excludes_zero": false
+            },
+            "20bps": {
+              "mean": -0.00028,
+              "ci": [
+                -0.00222,
+                0.00194
+              ],
+              "excludes_zero": false
+            }
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12_independent_cutoffs": {
+          "value": 255,
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12b_versus_regime_switched": {
+          "value": -0.00113,
+          "benchmark": "regime-switched momentum",
+          "benchmark_mean_ic": 0.02836,
+          "threshold": "reported",
+          "ci": [
+            -0.0304,
+            0.0297
+          ],
+          "gate": false,
+          "passed": true
+        }
+      },
+      "production_weight": 0.0,
+      "production_weight_note": "Weight stays 0 until every gate passes on the frozen V2.1 exam set under this protocol with the Holm-Bonferroni correction applied across the arms run. This field is not a result.",
+      "preregistration": "alpha/V2_2_PREREGISTRATION.md",
+      "note": "contextual momentum with no sign reversal: monotonic_cst = +1 on the momentum rank, 0 on the other 34. Context may flatten or steepen the momentum slope, never reverse it",
+      "n_features": 35,
+      "feature_columns": [
+        "z__ret_12_1",
+        "z__ret_5d",
+        "z__ret_20d",
+        "z__rvol_20d",
+        "z__rvol_60d",
+        "z__sma200_dist",
+        "z__overnight_mean_20d",
+        "z__intraday_mean_20d",
+        "z__overnight_share_60d",
+        "mkt_spy_ret_5d",
+        "mkt_spy_ret_20d",
+        "mkt_spy_ret_60d",
+        "mkt_spy_rsi14",
+        "mkt_spy_rvol_20d",
+        "mkt_spy_sma50_dist",
+        "mkt_spy_sma200_dist",
+        "mkt_qqq_ret_5d",
+        "mkt_qqq_ret_20d",
+        "mkt_qqq_ret_60d",
+        "mkt_qqq_rsi14",
+        "mkt_qqq_rvol_20d",
+        "mkt_qqq_sma50_dist",
+        "mkt_qqq_sma200_dist",
+        "vix_level",
+        "vix_percentile",
+        "vix_change_5d",
+        "index_breadth_above_sma20",
+        "index_breadth_above_sma50",
+        "index_advance_share",
+        "watchlist_breadth_proxy_above_sma20",
+        "watchlist_breadth_proxy_advance_share",
+        "regime_bull",
+        "regime_bear",
+        "regime_sideways",
+        "regime_high_vol"
+      ],
+      "train_target": "target_rank",
+      "output_combination": "prediction",
+      "lambda": null,
+      "monotone_increasing_on": "z__ret_12_1",
+      "scored_against": "alpha_5d",
+      "is_arm": true,
+      "seconds": 29.1,
+      "refits": [
+        {
+          "refit_at": "2017-03-21",
+          "train_rows": 24825,
+          "train_cutoffs": 60,
+          "trained_through": "2017-03-07"
+        },
+        {
+          "refit_at": "2017-06-22",
+          "train_rows": 30396,
+          "train_cutoffs": 73,
+          "trained_through": "2017-06-08"
+        },
+        {
+          "refit_at": "2017-09-25",
+          "train_rows": 36009,
+          "train_cutoffs": 86,
+          "trained_through": "2017-09-11"
+        },
+        {
+          "refit_at": "2018-01-11",
+          "train_rows": 41664,
+          "train_cutoffs": 99,
+          "trained_through": "2017-12-12"
+        },
+        {
+          "refit_at": "2018-04-17",
+          "train_rows": 44287,
+          "train_cutoffs": 105,
+          "trained_through": "2018-03-12"
+        },
+        {
+          "refit_at": "2018-07-19",
+          "train_rows": 47359,
+          "train_cutoffs": 112,
+          "trained_through": "2018-07-05"
+        },
+        {
+          "refit_at": "2018-11-09",
+          "train_rows": 50872,
+          "train_cutoffs": 120,
+          "trained_through": "2018-10-12"
+        },
+        {
+          "refit_at": "2019-02-15",
+          "train_rows": 53517,
+          "train_cutoffs": 126,
+          "trained_through": "2019-01-10"
+        },
+        {
+          "refit_at": "2019-05-21",
+          "train_rows": 56608,
+          "train_cutoffs": 133,
+          "trained_through": "2019-05-07"
+        },
+        {
+          "refit_at": "2019-09-13",
+          "train_rows": 60142,
+          "train_cutoffs": 141,
+          "trained_through": "2019-08-15"
+        },
+        {
+          "refit_at": "2019-12-16",
+          "train_rows": 62816,
+          "train_cutoffs": 147,
+          "trained_through": "2019-11-08"
+        },
+        {
+          "refit_at": "2020-03-20",
+          "train_rows": 65963,
+          "train_cutoffs": 154,
+          "trained_through": "2020-03-06"
+        },
+        {
+          "refit_at": "2020-07-15",
+          "train_rows": 69600,
+          "train_cutoffs": 162,
+          "trained_through": "2020-06-16"
+        },
+        {
+          "refit_at": "2020-10-15",
+          "train_rows": 72348,
+          "train_cutoffs": 168,
+          "trained_through": "2020-09-10"
+        },
+        {
+          "refit_at": "2021-01-20",
+          "train_rows": 75555,
+          "train_cutoffs": 175,
+          "trained_through": "2021-01-05"
+        },
+        {
+          "refit_at": "2021-05-14",
+          "train_rows": 79250,
+          "train_cutoffs": 183,
+          "trained_through": "2021-04-16"
+        },
+        {
+          "refit_at": "2021-08-17",
+          "train_rows": 82046,
+          "train_cutoffs": 189,
+          "trained_through": "2021-07-13"
+        },
+        {
+          "refit_at": "2021-11-17",
+          "train_rows": 85315,
+          "train_cutoffs": 196,
+          "trained_through": "2021-11-03"
+        },
+        {
+          "refit_at": "2022-03-15",
+          "train_rows": 89060,
+          "train_cutoffs": 204,
+          "trained_through": "2022-02-14"
+        },
+        {
+          "refit_at": "2022-06-16",
+          "train_rows": 91892,
+          "train_cutoffs": 210,
+          "trained_through": "2022-05-11"
+        },
+        {
+          "refit_at": "2022-09-20",
+          "train_rows": 95212,
+          "train_cutoffs": 217,
+          "trained_through": "2022-09-06"
+        },
+        {
+          "refit_at": "2023-01-13",
+          "train_rows": 99026,
+          "train_cutoffs": 225,
+          "trained_through": "2022-12-14"
+        },
+        {
+          "refit_at": "2023-04-19",
+          "train_rows": 101904,
+          "train_cutoffs": 231,
+          "trained_through": "2023-03-14"
+        },
+        {
+          "refit_at": "2023-07-24",
+          "train_rows": 105283,
+          "train_cutoffs": 238,
+          "trained_through": "2023-07-10"
+        },
+        {
+          "refit_at": "2023-11-14",
+          "train_rows": 109153,
+          "train_cutoffs": 246,
+          "trained_through": "2023-10-17"
+        },
+        {
+          "refit_at": "2024-02-20",
+          "train_rows": 112063,
+          "train_cutoffs": 252,
+          "trained_through": "2024-01-12"
+        },
+        {
+          "refit_at": "2024-05-22",
+          "train_rows": 115465,
+          "train_cutoffs": 259,
+          "trained_through": "2024-05-08"
+        },
+        {
+          "refit_at": "2024-09-17",
+          "train_rows": 119367,
+          "train_cutoffs": 267,
+          "trained_through": "2024-08-19"
+        },
+        {
+          "refit_at": "2024-12-18",
+          "train_rows": 122300,
+          "train_cutoffs": 273,
+          "trained_through": "2024-11-12"
+        },
+        {
+          "refit_at": "2025-03-26",
+          "train_rows": 125740,
+          "train_cutoffs": 280,
+          "trained_through": "2025-03-12"
+        },
+        {
+          "refit_at": "2025-07-22",
+          "train_rows": 129691,
+          "train_cutoffs": 288,
+          "trained_through": "2025-06-23"
+        },
+        {
+          "refit_at": "2025-10-22",
+          "train_rows": 132681,
+          "train_cutoffs": 294,
+          "trained_through": "2025-09-17"
+        },
+        {
+          "refit_at": "2026-01-27",
+          "train_rows": 136169,
+          "train_cutoffs": 301,
+          "trained_through": "2026-01-12"
+        },
+        {
+          "refit_at": "2026-05-21",
+          "train_rows": 140173,
+          "train_cutoffs": 309,
+          "trained_through": "2026-04-23"
+        }
+      ],
+      "carrier_diagnostics": {
+        "n_cutoffs": 255,
+        "spearman_vs_factor": {
+          "mean": 0.0893,
+          "min": -0.6685,
+          "max": 0.8081,
+          "share_negative": 0.4078,
+          "share_below_0.99": 1.0
+        },
+        "inversions": {
+          "total": 58954,
+          "cutoffs_with_any": 255
+        },
+        "runs_vs_factor": {
+          "median": 466,
+          "min": 426,
+          "max": 502
+        },
+        "distinct_scores": {
+          "median": 463,
+          "min": 423,
+          "max": 501
+        },
+        "cross_section": {
+          "min": 426,
+          "max": 502
+        },
+        "is_univariate_in_factor": false,
+        "collapsed_cutoffs": 0
+      },
+      "gates_are_diagnostic_here": "V2_2_PREREGISTRATION.md \u00a76.3 gates the *selected arm* on development. The nine V2.1 criteria below are the same arithmetic run on the same slice and decide nothing here; \u00a78 keeps the exam sealed either way.",
+      "diagnostic_gates_passed": false,
+      "diagnostic_failed_gates": [
+        "1_mean_ic",
+        "4_sign_stability",
+        "5_beats_12_1_momentum",
+        "6_beats_5d_reversal",
+        "9_cost_adjusted_spread"
+      ],
+      "multiplicity_on_development": {
+        "p_raw": 0.0036,
+        "p_holm": 0.0072,
+        "significant": true
+      }
+    }
+  },
+  "rungs": {
+    "S1-A": {
+      "protocol": "V2.1",
+      "arm": "S1-A",
+      "n_cutoffs": 255,
+      "ic": {
+        "what": "S1-A Spearman IC",
+        "n_cutoffs": 255,
+        "mean": -0.00381,
+        "median": -0.00093,
+        "sd": 0.05676,
+        "hit_rate": 0.4941,
+        "naive_se": 0.00355,
+        "nw_se": 0.00341,
+        "boot_lo": -0.01017,
+        "boot_hi": 0.00322,
+        "t": -1.117,
+        "p_nw": 0.26508,
+        "p_boot": 0.26967,
+        "excludes_null": false
+      },
+      "spread": {
+        "what": "S1-A top-bottom spread",
+        "n_cutoffs": 255,
+        "mean": 9e-05,
+        "median": 7e-05,
+        "sd": 0.00716,
+        "hit_rate": 0.5059,
+        "naive_se": 0.00045,
+        "nw_se": 0.00044,
+        "boot_lo": -0.00071,
+        "boot_hi": 0.001,
+        "t": 0.2,
+        "p_nw": 0.84197,
+        "p_boot": 0.83202,
+        "excludes_null": false
+      },
+      "top_quintile": {
+        "what": "S1-A top quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00087,
+        "median": -0.00101,
+        "sd": 0.00927,
+        "hit_rate": 0.451,
+        "naive_se": 0.00058,
+        "nw_se": 0.00053,
+        "boot_lo": -0.00188,
+        "boot_hi": 0.00018,
+        "t": -1.651,
+        "p_nw": 0.09999,
+        "p_boot": 0.09329,
+        "excludes_null": false
+      },
+      "bottom_quintile": {
+        "what": "S1-A bottom quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00096,
+        "median": -0.00111,
+        "sd": 0.01138,
+        "hit_rate": 0.4353,
+        "naive_se": 0.00071,
+        "nw_se": 0.00062,
+        "boot_lo": -0.00219,
+        "boot_hi": 0.00025,
+        "t": -1.542,
+        "p_nw": 0.1243,
+        "p_boot": 0.11899,
+        "excludes_null": false
+      },
+      "net_spread": {
+        "what": "S1-A net spread @5bps",
+        "n_cutoffs": 255,
+        "mean": -0.00067,
+        "median": -0.00073,
+        "sd": 0.00716,
+        "hit_rate": 0.4431,
+        "naive_se": 0.00045,
+        "nw_se": 0.00045,
+        "boot_lo": -0.00148,
+        "boot_hi": 0.00023,
+        "t": -1.511,
+        "p_nw": 0.13199,
+        "p_boot": 0.12329,
+        "excludes_null": false
+      },
+      "benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "12-1 momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02115,
+          "median": 0.03182,
+          "sd": 0.2354,
+          "hit_rate": 0.5647,
+          "naive_se": 0.01474,
+          "nw_se": 0.01331,
+          "boot_lo": -0.00469,
+          "boot_hi": 0.04808,
+          "t": 1.588,
+          "p_nw": 0.11346,
+          "p_boot": 0.10819,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "5-day reversal",
+          "n_cutoffs": 255,
+          "mean": 0.00872,
+          "median": 0.00166,
+          "sd": 0.18174,
+          "hit_rate": 0.5059,
+          "naive_se": 0.01138,
+          "nw_se": 0.01015,
+          "boot_lo": -0.01268,
+          "boot_hi": 0.02808,
+          "t": 0.859,
+          "p_nw": 0.39103,
+          "p_boot": 0.40886,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "regime-switched momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02836,
+          "median": 0.03279,
+          "sd": 0.22617,
+          "hit_rate": 0.5765,
+          "naive_se": 0.01416,
+          "nw_se": 0.01284,
+          "boot_lo": 0.00307,
+          "boot_hi": 0.05467,
+          "t": 2.209,
+          "p_nw": 0.02809,
+          "p_boot": 0.0283,
+          "excludes_null": true
+        }
+      },
+      "versus_benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "S1-A IC - 12-1 momentum IC",
+          "n_cutoffs": 255,
+          "mean": -0.02495,
+          "median": -0.02312,
+          "sd": 0.24546,
+          "hit_rate": 0.4706,
+          "naive_se": 0.01537,
+          "nw_se": 0.01389,
+          "boot_lo": -0.05273,
+          "boot_hi": 0.00233,
+          "t": -1.797,
+          "p_nw": 0.07355,
+          "p_boot": 0.06949,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "S1-A IC - 5-day reversal IC",
+          "n_cutoffs": 255,
+          "mean": -0.01253,
+          "median": -0.00634,
+          "sd": 0.19369,
+          "hit_rate": 0.4863,
+          "naive_se": 0.01213,
+          "nw_se": 0.01125,
+          "boot_lo": -0.03367,
+          "boot_hi": 0.01149,
+          "t": -1.114,
+          "p_nw": 0.26629,
+          "p_boot": 0.28897,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "S1-A IC - regime-switched momentum IC",
+          "n_cutoffs": 255,
+          "mean": -0.03217,
+          "median": -0.02854,
+          "sd": 0.2358,
+          "hit_rate": 0.4549,
+          "naive_se": 0.01477,
+          "nw_se": 0.01338,
+          "boot_lo": -0.05911,
+          "boot_hi": -0.00584,
+          "t": -2.404,
+          "p_nw": 0.01693,
+          "p_boot": 0.0182,
+          "excludes_null": true
+        }
+      },
+      "regime_ic": {
+        "BEAR_TREND": {
+          "n_cutoffs": 27,
+          "mean_ic": -0.01114080044367329,
+          "hit_rate": 0.4444444444444444
+        },
+        "BULL_TREND": {
+          "n_cutoffs": 204,
+          "mean_ic": -0.004308591738797696,
+          "hit_rate": 0.4803921568627451
+        },
+        "SIDEWAYS": {
+          "n_cutoffs": 24,
+          "mean_ic": 0.008720832429479023,
+          "hit_rate": 0.6666666666666666
+        },
+        "HIGH_VOL": {
+          "n_cutoffs": 126,
+          "mean_ic": -0.0016879459484196143,
+          "hit_rate": 0.5476190476190477
+        },
+        "LOW_VOL": {
+          "n_cutoffs": 129,
+          "mean_ic": -0.005874210533996442,
+          "hit_rate": 0.4418604651162791
+        }
+      },
+      "halves": {
+        "first": {
+          "n": 128,
+          "mean_ic": -0.00856,
+          "hit_rate": 0.4766,
+          "from": "2017-03-21",
+          "to": "2021-07-13"
+        },
+        "second": {
+          "n": 127,
+          "mean_ic": 0.00099,
+          "hit_rate": 0.5118,
+          "from": "2021-08-10",
+          "to": "2026-07-28"
+        }
+      },
+      "interval_sensitivity": {
+        "block_1": [
+          -0.01085,
+          0.0029
+        ],
+        "block_2": [
+          -0.01094,
+          0.0032
+        ],
+        "block_4": [
+          -0.01017,
+          0.00322
+        ],
+        "block_8": [
+          -0.00992,
+          0.00276
+        ],
+        "newey_west_se": 0.00341,
+        "naive_se": 0.00355
+      },
+      "criteria": {
+        "1_mean_ic": {
+          "value": -0.00381,
+          "threshold": "> 0.03, CI excludes 0",
+          "ci": [
+            -0.01017,
+            0.00322
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "2_ic_hit_rate": {
+          "value": 0.4941,
+          "threshold": "> 0.55, CI excludes 0.5",
+          "ci": [
+            0.4314,
+            0.5569
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "3_top_minus_bottom": {
+          "value": 9e-05,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.00071,
+            0.001
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "4_sign_stability": {
+          "value": {
+            "hit_rate": 0.4941,
+            "first_half_mean_ic": -0.00856,
+            "second_half_mean_ic": 0.00099
+          },
+          "threshold": "IC > 0 in >= 60% of cutoffs AND mean IC > 0 in both halves",
+          "gate": true,
+          "passed": false
+        },
+        "5_beats_12_1_momentum": {
+          "value": -0.02495,
+          "benchmark": "12-1 momentum",
+          "benchmark_mean_ic": 0.02115,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.05273,
+            0.00233
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "6_beats_5d_reversal": {
+          "value": -0.01253,
+          "benchmark": "5-day reversal",
+          "benchmark_mean_ic": 0.00872,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.03367,
+            0.01149
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "7_no_regime_collapse": {
+          "value": {
+            "gating": {
+              "BEAR_TREND": {
+                "n_cutoffs": 27,
+                "mean_ic": -0.01114
+              },
+              "BULL_TREND": {
+                "n_cutoffs": 204,
+                "mean_ic": -0.00431
+              },
+              "SIDEWAYS": {
+                "n_cutoffs": 24,
+                "mean_ic": 0.00872
+              },
+              "HIGH_VOL": {
+                "n_cutoffs": 126,
+                "mean_ic": -0.00169
+              },
+              "LOW_VOL": {
+                "n_cutoffs": 129,
+                "mean_ic": -0.00587
+              }
+            },
+            "below_minimum_reported_only": {}
+          },
+          "threshold": "mean IC > 0 in every bucket with >= 8 cutoffs",
+          "gate": true,
+          "passed": false
+        },
+        "8_effective_sample": {
+          "value": 255,
+          "threshold": ">= 50 independent cutoffs",
+          "gate": true,
+          "passed": true
+        },
+        "9_cost_adjusted_spread": {
+          "value": -0.00067,
+          "threshold": "> 0 at 5 bps one-way, CI excludes 0",
+          "ci": [
+            -0.00148,
+            0.00023
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "10_turnover": {
+          "value": {
+            "mean_long": 0.7593,
+            "mean_short": 0.7645,
+            "mean_total": 1.5238,
+            "n_cutoffs": 255
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "11_cost_sensitivity": {
+          "value": {
+            "5bps": {
+              "mean": -0.00067,
+              "ci": [
+                -0.00148,
+                0.00023
+              ],
+              "excludes_zero": false
+            },
+            "10bps": {
+              "mean": -0.00143,
+              "ci": [
+                -0.00224,
+                -0.00052
+              ],
+              "excludes_zero": true
+            },
+            "20bps": {
+              "mean": -0.00296,
+              "ci": [
+                -0.00376,
+                -0.00205
+              ],
+              "excludes_zero": true
+            }
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12_independent_cutoffs": {
+          "value": 255,
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12b_versus_regime_switched": {
+          "value": -0.03217,
+          "benchmark": "regime-switched momentum",
+          "benchmark_mean_ic": 0.02836,
+          "threshold": "reported",
+          "ci": [
+            -0.05911,
+            -0.00584
+          ],
+          "gate": false,
+          "passed": true
+        }
+      },
+      "production_weight": 0.0,
+      "production_weight_note": "Weight stays 0 until every gate passes on the frozen V2.1 exam set under this protocol with the Holm-Bonferroni correction applied across the arms run. This field is not a result.",
+      "preregistration": "alpha/V2_2_PREREGISTRATION.md",
+      "note": "A's carrier on ret_12_1 alone",
+      "n_features": 1,
+      "feature_columns": [
+        "z__ret_12_1"
+      ],
+      "train_target": "target_rank",
+      "output_combination": "prediction",
+      "lambda": null,
+      "monotone_increasing_on": null,
+      "scored_against": "alpha_5d",
+      "is_arm": false,
+      "seconds": 20.0,
+      "refits": [
+        {
+          "refit_at": "2017-03-21",
+          "train_rows": 24825,
+          "train_cutoffs": 60,
+          "trained_through": "2017-03-07"
+        },
+        {
+          "refit_at": "2017-06-22",
+          "train_rows": 30396,
+          "train_cutoffs": 73,
+          "trained_through": "2017-06-08"
+        },
+        {
+          "refit_at": "2017-09-25",
+          "train_rows": 36009,
+          "train_cutoffs": 86,
+          "trained_through": "2017-09-11"
+        },
+        {
+          "refit_at": "2018-01-11",
+          "train_rows": 41664,
+          "train_cutoffs": 99,
+          "trained_through": "2017-12-12"
+        },
+        {
+          "refit_at": "2018-04-17",
+          "train_rows": 44287,
+          "train_cutoffs": 105,
+          "trained_through": "2018-03-12"
+        },
+        {
+          "refit_at": "2018-07-19",
+          "train_rows": 47359,
+          "train_cutoffs": 112,
+          "trained_through": "2018-07-05"
+        },
+        {
+          "refit_at": "2018-11-09",
+          "train_rows": 50872,
+          "train_cutoffs": 120,
+          "trained_through": "2018-10-12"
+        },
+        {
+          "refit_at": "2019-02-15",
+          "train_rows": 53517,
+          "train_cutoffs": 126,
+          "trained_through": "2019-01-10"
+        },
+        {
+          "refit_at": "2019-05-21",
+          "train_rows": 56608,
+          "train_cutoffs": 133,
+          "trained_through": "2019-05-07"
+        },
+        {
+          "refit_at": "2019-09-13",
+          "train_rows": 60142,
+          "train_cutoffs": 141,
+          "trained_through": "2019-08-15"
+        },
+        {
+          "refit_at": "2019-12-16",
+          "train_rows": 62816,
+          "train_cutoffs": 147,
+          "trained_through": "2019-11-08"
+        },
+        {
+          "refit_at": "2020-03-20",
+          "train_rows": 65963,
+          "train_cutoffs": 154,
+          "trained_through": "2020-03-06"
+        },
+        {
+          "refit_at": "2020-07-15",
+          "train_rows": 69600,
+          "train_cutoffs": 162,
+          "trained_through": "2020-06-16"
+        },
+        {
+          "refit_at": "2020-10-15",
+          "train_rows": 72348,
+          "train_cutoffs": 168,
+          "trained_through": "2020-09-10"
+        },
+        {
+          "refit_at": "2021-01-20",
+          "train_rows": 75555,
+          "train_cutoffs": 175,
+          "trained_through": "2021-01-05"
+        },
+        {
+          "refit_at": "2021-05-14",
+          "train_rows": 79250,
+          "train_cutoffs": 183,
+          "trained_through": "2021-04-16"
+        },
+        {
+          "refit_at": "2021-08-17",
+          "train_rows": 82046,
+          "train_cutoffs": 189,
+          "trained_through": "2021-07-13"
+        },
+        {
+          "refit_at": "2021-11-17",
+          "train_rows": 85315,
+          "train_cutoffs": 196,
+          "trained_through": "2021-11-03"
+        },
+        {
+          "refit_at": "2022-03-15",
+          "train_rows": 89060,
+          "train_cutoffs": 204,
+          "trained_through": "2022-02-14"
+        },
+        {
+          "refit_at": "2022-06-16",
+          "train_rows": 91892,
+          "train_cutoffs": 210,
+          "trained_through": "2022-05-11"
+        },
+        {
+          "refit_at": "2022-09-20",
+          "train_rows": 95212,
+          "train_cutoffs": 217,
+          "trained_through": "2022-09-06"
+        },
+        {
+          "refit_at": "2023-01-13",
+          "train_rows": 99026,
+          "train_cutoffs": 225,
+          "trained_through": "2022-12-14"
+        },
+        {
+          "refit_at": "2023-04-19",
+          "train_rows": 101904,
+          "train_cutoffs": 231,
+          "trained_through": "2023-03-14"
+        },
+        {
+          "refit_at": "2023-07-24",
+          "train_rows": 105283,
+          "train_cutoffs": 238,
+          "trained_through": "2023-07-10"
+        },
+        {
+          "refit_at": "2023-11-14",
+          "train_rows": 109153,
+          "train_cutoffs": 246,
+          "trained_through": "2023-10-17"
+        },
+        {
+          "refit_at": "2024-02-20",
+          "train_rows": 112063,
+          "train_cutoffs": 252,
+          "trained_through": "2024-01-12"
+        },
+        {
+          "refit_at": "2024-05-22",
+          "train_rows": 115465,
+          "train_cutoffs": 259,
+          "trained_through": "2024-05-08"
+        },
+        {
+          "refit_at": "2024-09-17",
+          "train_rows": 119367,
+          "train_cutoffs": 267,
+          "trained_through": "2024-08-19"
+        },
+        {
+          "refit_at": "2024-12-18",
+          "train_rows": 122300,
+          "train_cutoffs": 273,
+          "trained_through": "2024-11-12"
+        },
+        {
+          "refit_at": "2025-03-26",
+          "train_rows": 125740,
+          "train_cutoffs": 280,
+          "trained_through": "2025-03-12"
+        },
+        {
+          "refit_at": "2025-07-22",
+          "train_rows": 129691,
+          "train_cutoffs": 288,
+          "trained_through": "2025-06-23"
+        },
+        {
+          "refit_at": "2025-10-22",
+          "train_rows": 132681,
+          "train_cutoffs": 294,
+          "trained_through": "2025-09-17"
+        },
+        {
+          "refit_at": "2026-01-27",
+          "train_rows": 136169,
+          "train_cutoffs": 301,
+          "trained_through": "2026-01-12"
+        },
+        {
+          "refit_at": "2026-05-21",
+          "train_rows": 140173,
+          "train_cutoffs": 309,
+          "trained_through": "2026-04-23"
+        }
+      ],
+      "carrier_diagnostics": {
+        "n_cutoffs": 255,
+        "spearman_vs_factor": {
+          "mean": -0.0444,
+          "min": -0.3932,
+          "max": 0.2723,
+          "share_negative": 0.6667,
+          "share_below_0.99": 1.0
+        },
+        "inversions": {
+          "total": 31439,
+          "cutoffs_with_any": 255
+        },
+        "runs_vs_factor": {
+          "median": 245,
+          "min": 238,
+          "max": 251
+        },
+        "distinct_scores": {
+          "median": 245,
+          "min": 238,
+          "max": 251
+        },
+        "cross_section": {
+          "min": 426,
+          "max": 502
+        },
+        "is_univariate_in_factor": true,
+        "collapsed_cutoffs": 0
+      },
+      "gates_are_diagnostic_here": "V2_2_PREREGISTRATION.md \u00a76.3 gates the *selected arm* on development. The nine V2.1 criteria below are the same arithmetic run on the same slice and decide nothing here; \u00a78 keeps the exam sealed either way.",
+      "diagnostic_gates_passed": false,
+      "diagnostic_failed_gates": [
+        "1_mean_ic",
+        "2_ic_hit_rate",
+        "3_top_minus_bottom",
+        "4_sign_stability",
+        "5_beats_12_1_momentum",
+        "6_beats_5d_reversal",
+        "7_no_regime_collapse",
+        "9_cost_adjusted_spread"
+      ]
+    },
+    "S1-B": {
+      "protocol": "V2.1",
+      "arm": "S1-B",
+      "n_cutoffs": 255,
+      "ic": {
+        "what": "S1-B Spearman IC",
+        "n_cutoffs": 255,
+        "mean": 0.02097,
+        "median": 0.02764,
+        "sd": 0.23528,
+        "hit_rate": 0.5608,
+        "naive_se": 0.01473,
+        "nw_se": 0.01329,
+        "boot_lo": -0.00481,
+        "boot_hi": 0.04786,
+        "t": 1.578,
+        "p_nw": 0.11592,
+        "p_boot": 0.11129,
+        "excludes_null": false
+      },
+      "spread": {
+        "what": "S1-B top-bottom spread",
+        "n_cutoffs": 255,
+        "mean": 0.00169,
+        "median": 0.00389,
+        "sd": 0.02688,
+        "hit_rate": 0.5725,
+        "naive_se": 0.00168,
+        "nw_se": 0.00148,
+        "boot_lo": -0.0012,
+        "boot_hi": 0.00473,
+        "t": 1.144,
+        "p_nw": 0.25365,
+        "p_boot": 0.24908,
+        "excludes_null": false
+      },
+      "top_quintile": {
+        "what": "S1-B top quintile alpha",
+        "n_cutoffs": 255,
+        "mean": 0.00017,
+        "median": 0.00032,
+        "sd": 0.01142,
+        "hit_rate": 0.5059,
+        "naive_se": 0.00071,
+        "nw_se": 0.00066,
+        "boot_lo": -0.00113,
+        "boot_hi": 0.00148,
+        "t": 0.259,
+        "p_nw": 0.79563,
+        "p_boot": 0.80242,
+        "excludes_null": false
+      },
+      "bottom_quintile": {
+        "what": "S1-B bottom quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00152,
+        "median": -0.00241,
+        "sd": 0.02104,
+        "hit_rate": 0.4353,
+        "naive_se": 0.00132,
+        "nw_se": 0.00113,
+        "boot_lo": -0.00385,
+        "boot_hi": 0.00064,
+        "t": -1.34,
+        "p_nw": 0.18145,
+        "p_boot": 0.17658,
+        "excludes_null": false
+      },
+      "net_spread": {
+        "what": "S1-B net spread @5bps",
+        "n_cutoffs": 255,
+        "mean": 0.00154,
+        "median": 0.00353,
+        "sd": 0.02689,
+        "hit_rate": 0.5725,
+        "naive_se": 0.00168,
+        "nw_se": 0.00148,
+        "boot_lo": -0.00136,
+        "boot_hi": 0.00458,
+        "t": 1.037,
+        "p_nw": 0.30082,
+        "p_boot": 0.29707,
+        "excludes_null": false
+      },
+      "benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "12-1 momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02115,
+          "median": 0.03182,
+          "sd": 0.2354,
+          "hit_rate": 0.5647,
+          "naive_se": 0.01474,
+          "nw_se": 0.01331,
+          "boot_lo": -0.00469,
+          "boot_hi": 0.04808,
+          "t": 1.588,
+          "p_nw": 0.11346,
+          "p_boot": 0.10819,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "5-day reversal",
+          "n_cutoffs": 255,
+          "mean": 0.00872,
+          "median": 0.00166,
+          "sd": 0.18174,
+          "hit_rate": 0.5059,
+          "naive_se": 0.01138,
+          "nw_se": 0.01015,
+          "boot_lo": -0.01268,
+          "boot_hi": 0.02808,
+          "t": 0.859,
+          "p_nw": 0.39103,
+          "p_boot": 0.40886,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "regime-switched momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02836,
+          "median": 0.03279,
+          "sd": 0.22617,
+          "hit_rate": 0.5765,
+          "naive_se": 0.01416,
+          "nw_se": 0.01284,
+          "boot_lo": 0.00307,
+          "boot_hi": 0.05467,
+          "t": 2.209,
+          "p_nw": 0.02809,
+          "p_boot": 0.0283,
+          "excludes_null": true
+        }
+      },
+      "versus_benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "S1-B IC - 12-1 momentum IC",
+          "n_cutoffs": 255,
+          "mean": -0.00018,
+          "median": -0.00017,
+          "sd": 0.00259,
+          "hit_rate": 0.4706,
+          "naive_se": 0.00016,
+          "nw_se": 0.00015,
+          "boot_lo": -0.0005,
+          "boot_hi": 0.00012,
+          "t": -1.159,
+          "p_nw": 0.24749,
+          "p_boot": 0.26927,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "S1-B IC - 5-day reversal IC",
+          "n_cutoffs": 255,
+          "mean": 0.01225,
+          "median": 0.02761,
+          "sd": 0.28416,
+          "hit_rate": 0.549,
+          "naive_se": 0.01779,
+          "nw_se": 0.01594,
+          "boot_lo": -0.01793,
+          "boot_hi": 0.04446,
+          "t": 0.768,
+          "p_nw": 0.44298,
+          "p_boot": 0.44456,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "S1-B IC - regime-switched momentum IC",
+          "n_cutoffs": 255,
+          "mean": -0.00739,
+          "median": -0.00015,
+          "sd": 0.09468,
+          "hit_rate": 0.4784,
+          "naive_se": 0.00593,
+          "nw_se": 0.00599,
+          "boot_lo": -0.02017,
+          "boot_hi": 0.0031,
+          "t": -1.234,
+          "p_nw": 0.21831,
+          "p_boot": 0.21008,
+          "excludes_null": false
+        }
+      },
+      "regime_ic": {
+        "BEAR_TREND": {
+          "n_cutoffs": 27,
+          "mean_ic": -0.03345424930314512,
+          "hit_rate": 0.4074074074074074
+        },
+        "BULL_TREND": {
+          "n_cutoffs": 204,
+          "mean_ic": 0.02531092600387358,
+          "hit_rate": 0.5735294117647058
+        },
+        "SIDEWAYS": {
+          "n_cutoffs": 24,
+          "mean_ic": 0.04530085442000557,
+          "hit_rate": 0.625
+        },
+        "HIGH_VOL": {
+          "n_cutoffs": 126,
+          "mean_ic": 0.05223595405699928,
+          "hit_rate": 0.6031746031746031
+        },
+        "LOW_VOL": {
+          "n_cutoffs": 129,
+          "mean_ic": -0.009568570011600636,
+          "hit_rate": 0.5193798449612403
+        }
+      },
+      "halves": {
+        "first": {
+          "n": 128,
+          "mean_ic": 0.01264,
+          "hit_rate": 0.5156,
+          "from": "2017-03-21",
+          "to": "2021-07-13"
+        },
+        "second": {
+          "n": 127,
+          "mean_ic": 0.02937,
+          "hit_rate": 0.6063,
+          "from": "2021-08-10",
+          "to": "2026-07-28"
+        }
+      },
+      "interval_sensitivity": {
+        "block_1": [
+          -0.0081,
+          0.04991
+        ],
+        "block_2": [
+          -0.00728,
+          0.04796
+        ],
+        "block_4": [
+          -0.00481,
+          0.04786
+        ],
+        "block_8": [
+          -0.0051,
+          0.04685
+        ],
+        "newey_west_se": 0.01329,
+        "naive_se": 0.01473
+      },
+      "criteria": {
+        "1_mean_ic": {
+          "value": 0.02097,
+          "threshold": "> 0.03, CI excludes 0",
+          "ci": [
+            -0.00481,
+            0.04786
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "2_ic_hit_rate": {
+          "value": 0.5608,
+          "threshold": "> 0.55, CI excludes 0.5",
+          "ci": [
+            0.502,
+            0.6157
+          ],
+          "gate": true,
+          "passed": true
+        },
+        "3_top_minus_bottom": {
+          "value": 0.00169,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.0012,
+            0.00473
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "4_sign_stability": {
+          "value": {
+            "hit_rate": 0.5608,
+            "first_half_mean_ic": 0.01264,
+            "second_half_mean_ic": 0.02937
+          },
+          "threshold": "IC > 0 in >= 60% of cutoffs AND mean IC > 0 in both halves",
+          "gate": true,
+          "passed": false
+        },
+        "5_beats_12_1_momentum": {
+          "value": -0.00018,
+          "benchmark": "12-1 momentum",
+          "benchmark_mean_ic": 0.02115,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.0005,
+            0.00012
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "6_beats_5d_reversal": {
+          "value": 0.01225,
+          "benchmark": "5-day reversal",
+          "benchmark_mean_ic": 0.00872,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.01793,
+            0.04446
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "7_no_regime_collapse": {
+          "value": {
+            "gating": {
+              "BEAR_TREND": {
+                "n_cutoffs": 27,
+                "mean_ic": -0.03345
+              },
+              "BULL_TREND": {
+                "n_cutoffs": 204,
+                "mean_ic": 0.02531
+              },
+              "SIDEWAYS": {
+                "n_cutoffs": 24,
+                "mean_ic": 0.0453
+              },
+              "HIGH_VOL": {
+                "n_cutoffs": 126,
+                "mean_ic": 0.05224
+              },
+              "LOW_VOL": {
+                "n_cutoffs": 129,
+                "mean_ic": -0.00957
+              }
+            },
+            "below_minimum_reported_only": {}
+          },
+          "threshold": "mean IC > 0 in every bucket with >= 8 cutoffs",
+          "gate": true,
+          "passed": false
+        },
+        "8_effective_sample": {
+          "value": 255,
+          "threshold": ">= 50 independent cutoffs",
+          "gate": true,
+          "passed": true
+        },
+        "9_cost_adjusted_spread": {
+          "value": 0.00154,
+          "threshold": "> 0 at 5 bps one-way, CI excludes 0",
+          "ci": [
+            -0.00136,
+            0.00458
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "10_turnover": {
+          "value": {
+            "mean_long": 0.1642,
+            "mean_short": 0.1514,
+            "mean_total": 0.3156,
+            "n_cutoffs": 255
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "11_cost_sensitivity": {
+          "value": {
+            "5bps": {
+              "mean": 0.00154,
+              "ci": [
+                -0.00136,
+                0.00458
+              ],
+              "excludes_zero": false
+            },
+            "10bps": {
+              "mean": 0.00138,
+              "ci": [
+                -0.00151,
+                0.00442
+              ],
+              "excludes_zero": false
+            },
+            "20bps": {
+              "mean": 0.00106,
+              "ci": [
+                -0.00183,
+                0.00412
+              ],
+              "excludes_zero": false
+            }
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12_independent_cutoffs": {
+          "value": 255,
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12b_versus_regime_switched": {
+          "value": -0.00739,
+          "benchmark": "regime-switched momentum",
+          "benchmark_mean_ic": 0.02836,
+          "threshold": "reported",
+          "ci": [
+            -0.02017,
+            0.0031
+          ],
+          "gate": false,
+          "passed": true
+        }
+      },
+      "production_weight": 0.0,
+      "production_weight_note": "Weight stays 0 until every gate passes on the frozen V2.1 exam set under this protocol with the Holm-Bonferroni correction applied across the arms run. This field is not a result.",
+      "preregistration": "alpha/V2_2_PREREGISTRATION.md",
+      "note": "B's carrier on ret_12_1 alone",
+      "n_features": 1,
+      "feature_columns": [
+        "z__ret_12_1"
+      ],
+      "train_target": "y_resid",
+      "output_combination": "blend",
+      "lambda": 0.5,
+      "monotone_increasing_on": null,
+      "scored_against": "alpha_5d",
+      "is_arm": false,
+      "seconds": 19.8,
+      "refits": [
+        {
+          "refit_at": "2017-03-21",
+          "train_rows": 24823,
+          "train_cutoffs": 60,
+          "trained_through": "2017-03-07"
+        },
+        {
+          "refit_at": "2017-06-22",
+          "train_rows": 30394,
+          "train_cutoffs": 73,
+          "trained_through": "2017-06-08"
+        },
+        {
+          "refit_at": "2017-09-25",
+          "train_rows": 36007,
+          "train_cutoffs": 86,
+          "trained_through": "2017-09-11"
+        },
+        {
+          "refit_at": "2018-01-11",
+          "train_rows": 41662,
+          "train_cutoffs": 99,
+          "trained_through": "2017-12-12"
+        },
+        {
+          "refit_at": "2018-04-17",
+          "train_rows": 44285,
+          "train_cutoffs": 105,
+          "trained_through": "2018-03-12"
+        },
+        {
+          "refit_at": "2018-07-19",
+          "train_rows": 47357,
+          "train_cutoffs": 112,
+          "trained_through": "2018-07-05"
+        },
+        {
+          "refit_at": "2018-11-09",
+          "train_rows": 50870,
+          "train_cutoffs": 120,
+          "trained_through": "2018-10-12"
+        },
+        {
+          "refit_at": "2019-02-15",
+          "train_rows": 53515,
+          "train_cutoffs": 126,
+          "trained_through": "2019-01-10"
+        },
+        {
+          "refit_at": "2019-05-21",
+          "train_rows": 56606,
+          "train_cutoffs": 133,
+          "trained_through": "2019-05-07"
+        },
+        {
+          "refit_at": "2019-09-13",
+          "train_rows": 60140,
+          "train_cutoffs": 141,
+          "trained_through": "2019-08-15"
+        },
+        {
+          "refit_at": "2019-12-16",
+          "train_rows": 62814,
+          "train_cutoffs": 147,
+          "trained_through": "2019-11-08"
+        },
+        {
+          "refit_at": "2020-03-20",
+          "train_rows": 65961,
+          "train_cutoffs": 154,
+          "trained_through": "2020-03-06"
+        },
+        {
+          "refit_at": "2020-07-15",
+          "train_rows": 69598,
+          "train_cutoffs": 162,
+          "trained_through": "2020-06-16"
+        },
+        {
+          "refit_at": "2020-10-15",
+          "train_rows": 72346,
+          "train_cutoffs": 168,
+          "trained_through": "2020-09-10"
+        },
+        {
+          "refit_at": "2021-01-20",
+          "train_rows": 75553,
+          "train_cutoffs": 175,
+          "trained_through": "2021-01-05"
+        },
+        {
+          "refit_at": "2021-05-14",
+          "train_rows": 79248,
+          "train_cutoffs": 183,
+          "trained_through": "2021-04-16"
+        },
+        {
+          "refit_at": "2021-08-17",
+          "train_rows": 82044,
+          "train_cutoffs": 189,
+          "trained_through": "2021-07-13"
+        },
+        {
+          "refit_at": "2021-11-17",
+          "train_rows": 85313,
+          "train_cutoffs": 196,
+          "trained_through": "2021-11-03"
+        },
+        {
+          "refit_at": "2022-03-15",
+          "train_rows": 89058,
+          "train_cutoffs": 204,
+          "trained_through": "2022-02-14"
+        },
+        {
+          "refit_at": "2022-06-16",
+          "train_rows": 91890,
+          "train_cutoffs": 210,
+          "trained_through": "2022-05-11"
+        },
+        {
+          "refit_at": "2022-09-20",
+          "train_rows": 95210,
+          "train_cutoffs": 217,
+          "trained_through": "2022-09-06"
+        },
+        {
+          "refit_at": "2023-01-13",
+          "train_rows": 99024,
+          "train_cutoffs": 225,
+          "trained_through": "2022-12-14"
+        },
+        {
+          "refit_at": "2023-04-19",
+          "train_rows": 101902,
+          "train_cutoffs": 231,
+          "trained_through": "2023-03-14"
+        },
+        {
+          "refit_at": "2023-07-24",
+          "train_rows": 105281,
+          "train_cutoffs": 238,
+          "trained_through": "2023-07-10"
+        },
+        {
+          "refit_at": "2023-11-14",
+          "train_rows": 109151,
+          "train_cutoffs": 246,
+          "trained_through": "2023-10-17"
+        },
+        {
+          "refit_at": "2024-02-20",
+          "train_rows": 112061,
+          "train_cutoffs": 252,
+          "trained_through": "2024-01-12"
+        },
+        {
+          "refit_at": "2024-05-22",
+          "train_rows": 115463,
+          "train_cutoffs": 259,
+          "trained_through": "2024-05-08"
+        },
+        {
+          "refit_at": "2024-09-17",
+          "train_rows": 119365,
+          "train_cutoffs": 267,
+          "trained_through": "2024-08-19"
+        },
+        {
+          "refit_at": "2024-12-18",
+          "train_rows": 122298,
+          "train_cutoffs": 273,
+          "trained_through": "2024-11-12"
+        },
+        {
+          "refit_at": "2025-03-26",
+          "train_rows": 125738,
+          "train_cutoffs": 280,
+          "trained_through": "2025-03-12"
+        },
+        {
+          "refit_at": "2025-07-22",
+          "train_rows": 129689,
+          "train_cutoffs": 288,
+          "trained_through": "2025-06-23"
+        },
+        {
+          "refit_at": "2025-10-22",
+          "train_rows": 132679,
+          "train_cutoffs": 294,
+          "trained_through": "2025-09-17"
+        },
+        {
+          "refit_at": "2026-01-27",
+          "train_rows": 136167,
+          "train_cutoffs": 301,
+          "trained_through": "2026-01-12"
+        },
+        {
+          "refit_at": "2026-05-21",
+          "train_rows": 140171,
+          "train_cutoffs": 309,
+          "trained_through": "2026-04-23"
+        }
+      ],
+      "carrier_diagnostics": {
+        "n_cutoffs": 255,
+        "spearman_vs_factor": {
+          "mean": 0.9986,
+          "min": 0.9966,
+          "max": 0.9994,
+          "share_negative": 0.0,
+          "share_below_0.99": 0.0
+        },
+        "inversions": {
+          "total": 31796,
+          "cutoffs_with_any": 255
+        },
+        "runs_vs_factor": {
+          "median": 460,
+          "min": 423,
+          "max": 494
+        },
+        "distinct_scores": {
+          "median": 396,
+          "min": 345,
+          "max": 426
+        },
+        "cross_section": {
+          "min": 426,
+          "max": 502
+        },
+        "is_univariate_in_factor": false,
+        "collapsed_cutoffs": 0
+      },
+      "gates_are_diagnostic_here": "V2_2_PREREGISTRATION.md \u00a76.3 gates the *selected arm* on development. The nine V2.1 criteria below are the same arithmetic run on the same slice and decide nothing here; \u00a78 keeps the exam sealed either way.",
+      "diagnostic_gates_passed": false,
+      "diagnostic_failed_gates": [
+        "1_mean_ic",
+        "3_top_minus_bottom",
+        "4_sign_stability",
+        "5_beats_12_1_momentum",
+        "6_beats_5d_reversal",
+        "7_no_regime_collapse",
+        "9_cost_adjusted_spread"
+      ]
+    },
+    "S1-C": {
+      "protocol": "V2.1",
+      "arm": "S1-C",
+      "n_cutoffs": 210,
+      "ic": {
+        "what": "S1-C Spearman IC",
+        "n_cutoffs": 210,
+        "mean": 0.00725,
+        "median": 0.01686,
+        "sd": 0.19944,
+        "hit_rate": 0.5429,
+        "naive_se": 0.01376,
+        "nw_se": 0.01268,
+        "boot_lo": -0.01628,
+        "boot_hi": 0.03354,
+        "t": 0.572,
+        "p_nw": 0.56807,
+        "p_boot": 0.57354,
+        "excludes_null": false
+      },
+      "spread": {
+        "what": "S1-C top-bottom spread",
+        "n_cutoffs": 255,
+        "mean": 0.00042,
+        "median": 0.00118,
+        "sd": 0.02286,
+        "hit_rate": 0.5294,
+        "naive_se": 0.00143,
+        "nw_se": 0.00124,
+        "boot_lo": -0.00207,
+        "boot_hi": 0.00301,
+        "t": 0.336,
+        "p_nw": 0.7368,
+        "p_boot": 0.74383,
+        "excludes_null": false
+      },
+      "top_quintile": {
+        "what": "S1-C top quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00022,
+        "median": -0.00042,
+        "sd": 0.00956,
+        "hit_rate": 0.4784,
+        "naive_se": 0.0006,
+        "nw_se": 0.00054,
+        "boot_lo": -0.00127,
+        "boot_hi": 0.00092,
+        "t": -0.398,
+        "p_nw": 0.69104,
+        "p_boot": 0.69593,
+        "excludes_null": false
+      },
+      "bottom_quintile": {
+        "what": "S1-C bottom quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00063,
+        "median": -0.00151,
+        "sd": 0.01972,
+        "hit_rate": 0.451,
+        "naive_se": 0.00123,
+        "nw_se": 0.00107,
+        "boot_lo": -0.00283,
+        "boot_hi": 0.00148,
+        "t": -0.591,
+        "p_nw": 0.55503,
+        "p_boot": 0.54805,
+        "excludes_null": false
+      },
+      "net_spread": {
+        "what": "S1-C net spread @5bps",
+        "n_cutoffs": 255,
+        "mean": 9e-05,
+        "median": 0.00036,
+        "sd": 0.02288,
+        "hit_rate": 0.5137,
+        "naive_se": 0.00143,
+        "nw_se": 0.00124,
+        "boot_lo": -0.00237,
+        "boot_hi": 0.00268,
+        "t": 0.071,
+        "p_nw": 0.94383,
+        "p_boot": 0.94521,
+        "excludes_null": false
+      },
+      "benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "12-1 momentum",
+          "n_cutoffs": 210,
+          "mean": 0.01421,
+          "median": 0.02072,
+          "sd": 0.23714,
+          "hit_rate": 0.5476,
+          "naive_se": 0.01636,
+          "nw_se": 0.01503,
+          "boot_lo": -0.01478,
+          "boot_hi": 0.04484,
+          "t": 0.945,
+          "p_nw": 0.34581,
+          "p_boot": 0.35016,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "5-day reversal",
+          "n_cutoffs": 210,
+          "mean": 0.01211,
+          "median": 0.0099,
+          "sd": 0.18621,
+          "hit_rate": 0.5238,
+          "naive_se": 0.01285,
+          "nw_se": 0.01087,
+          "boot_lo": -0.00949,
+          "boot_hi": 0.0346,
+          "t": 1.113,
+          "p_nw": 0.26684,
+          "p_boot": 0.27437,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "regime-switched momentum",
+          "n_cutoffs": 210,
+          "mean": 0.02297,
+          "median": 0.02709,
+          "sd": 0.2262,
+          "hit_rate": 0.5619,
+          "naive_se": 0.01561,
+          "nw_se": 0.0145,
+          "boot_lo": -0.00528,
+          "boot_hi": 0.05216,
+          "t": 1.583,
+          "p_nw": 0.11484,
+          "p_boot": 0.12309,
+          "excludes_null": false
+        }
+      },
+      "versus_benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "S1-C IC - 12-1 momentum IC",
+          "n_cutoffs": 210,
+          "mean": -0.00696,
+          "median": -0.00013,
+          "sd": 0.07604,
+          "hit_rate": 0.4952,
+          "naive_se": 0.00525,
+          "nw_se": 0.00421,
+          "boot_lo": -0.01467,
+          "boot_hi": 0.00164,
+          "t": -1.653,
+          "p_nw": 0.09978,
+          "p_boot": 0.09959,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "S1-C IC - 5-day reversal IC",
+          "n_cutoffs": 210,
+          "mean": -0.00486,
+          "median": 0.02224,
+          "sd": 0.25084,
+          "hit_rate": 0.5238,
+          "naive_se": 0.01731,
+          "nw_se": 0.01563,
+          "boot_lo": -0.03481,
+          "boot_hi": 0.02553,
+          "t": -0.311,
+          "p_nw": 0.75633,
+          "p_boot": 0.75422,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "S1-C IC - regime-switched momentum IC",
+          "n_cutoffs": 210,
+          "mean": -0.01572,
+          "median": -0.00246,
+          "sd": 0.10771,
+          "hit_rate": 0.4619,
+          "naive_se": 0.00743,
+          "nw_se": 0.00709,
+          "boot_lo": -0.03065,
+          "boot_hi": -0.00192,
+          "t": -2.217,
+          "p_nw": 0.02768,
+          "p_boot": 0.0298,
+          "excludes_null": true
+        }
+      },
+      "regime_ic": {
+        "BEAR_TREND": {
+          "n_cutoffs": 27,
+          "mean_ic": -0.03824783470041838,
+          "hit_rate": 0.4074074074074074
+        },
+        "BULL_TREND": {
+          "n_cutoffs": 159,
+          "mean_ic": 0.011016618171170252,
+          "hit_rate": 0.559748427672956
+        },
+        "SIDEWAYS": {
+          "n_cutoffs": 24,
+          "mean_ic": 0.033480829063345936,
+          "hit_rate": 0.5833333333333334
+        },
+        "HIGH_VOL": {
+          "n_cutoffs": 114,
+          "mean_ic": 0.031415666340886245,
+          "hit_rate": 0.5877192982456141
+        },
+        "LOW_VOL": {
+          "n_cutoffs": 96,
+          "mean_ic": -0.021446826177457867,
+          "hit_rate": 0.4895833333333333
+        }
+      },
+      "halves": {
+        "first": {
+          "n": 105,
+          "mean_ic": -0.00832,
+          "hit_rate": 0.4857,
+          "from": "2018-01-11",
+          "to": "2022-06-09"
+        },
+        "second": {
+          "n": 105,
+          "mean_ic": 0.02282,
+          "hit_rate": 0.6,
+          "from": "2022-06-16",
+          "to": "2026-07-28"
+        }
+      },
+      "interval_sensitivity": {
+        "block_1": [
+          -0.01984,
+          0.03425
+        ],
+        "block_2": [
+          -0.01846,
+          0.03262
+        ],
+        "block_4": [
+          -0.01628,
+          0.03354
+        ],
+        "block_8": [
+          -0.01665,
+          0.03056
+        ],
+        "newey_west_se": 0.01268,
+        "naive_se": 0.01376
+      },
+      "criteria": {
+        "1_mean_ic": {
+          "value": 0.00725,
+          "threshold": "> 0.03, CI excludes 0",
+          "ci": [
+            -0.01628,
+            0.03354
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "2_ic_hit_rate": {
+          "value": 0.5429,
+          "threshold": "> 0.55, CI excludes 0.5",
+          "ci": [
+            0.481,
+            0.6048
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "3_top_minus_bottom": {
+          "value": 0.00042,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.00207,
+            0.00301
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "4_sign_stability": {
+          "value": {
+            "hit_rate": 0.5429,
+            "first_half_mean_ic": -0.00832,
+            "second_half_mean_ic": 0.02282
+          },
+          "threshold": "IC > 0 in >= 60% of cutoffs AND mean IC > 0 in both halves",
+          "gate": true,
+          "passed": false
+        },
+        "5_beats_12_1_momentum": {
+          "value": -0.00696,
+          "benchmark": "12-1 momentum",
+          "benchmark_mean_ic": 0.01421,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.01467,
+            0.00164
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "6_beats_5d_reversal": {
+          "value": -0.00486,
+          "benchmark": "5-day reversal",
+          "benchmark_mean_ic": 0.01211,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.03481,
+            0.02553
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "7_no_regime_collapse": {
+          "value": {
+            "gating": {
+              "BEAR_TREND": {
+                "n_cutoffs": 27,
+                "mean_ic": -0.03825
+              },
+              "BULL_TREND": {
+                "n_cutoffs": 159,
+                "mean_ic": 0.01102
+              },
+              "SIDEWAYS": {
+                "n_cutoffs": 24,
+                "mean_ic": 0.03348
+              },
+              "HIGH_VOL": {
+                "n_cutoffs": 114,
+                "mean_ic": 0.03142
+              },
+              "LOW_VOL": {
+                "n_cutoffs": 96,
+                "mean_ic": -0.02145
+              }
+            },
+            "below_minimum_reported_only": {}
+          },
+          "threshold": "mean IC > 0 in every bucket with >= 8 cutoffs",
+          "gate": true,
+          "passed": false
+        },
+        "8_effective_sample": {
+          "value": 210,
+          "threshold": ">= 50 independent cutoffs",
+          "gate": true,
+          "passed": true
+        },
+        "9_cost_adjusted_spread": {
+          "value": 9e-05,
+          "threshold": "> 0 at 5 bps one-way, CI excludes 0",
+          "ci": [
+            -0.00237,
+            0.00268
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "10_turnover": {
+          "value": {
+            "mean_long": 0.1953,
+            "mean_short": 0.176,
+            "mean_total": 0.3713,
+            "n_cutoffs": 210
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "11_cost_sensitivity": {
+          "value": {
+            "5bps": {
+              "mean": 9e-05,
+              "ci": [
+                -0.00237,
+                0.00268
+              ],
+              "excludes_zero": false
+            },
+            "10bps": {
+              "mean": -0.00024,
+              "ci": [
+                -0.0027,
+                0.00238
+              ],
+              "excludes_zero": false
+            },
+            "20bps": {
+              "mean": -0.0009,
+              "ci": [
+                -0.00335,
+                0.00175
+              ],
+              "excludes_zero": false
+            }
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12_independent_cutoffs": {
+          "value": 210,
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12b_versus_regime_switched": {
+          "value": -0.01572,
+          "benchmark": "regime-switched momentum",
+          "benchmark_mean_ic": 0.02297,
+          "threshold": "reported",
+          "ci": [
+            -0.03065,
+            -0.00192
+          ],
+          "gate": false,
+          "passed": true
+        }
+      },
+      "production_weight": 0.0,
+      "production_weight_note": "Weight stays 0 until every gate passes on the frozen V2.1 exam set under this protocol with the Holm-Bonferroni correction applied across the arms run. This field is not a result.",
+      "preregistration": "alpha/V2_2_PREREGISTRATION.md",
+      "note": "C's carrier on ret_12_1 alone",
+      "n_features": 1,
+      "feature_columns": [
+        "z__ret_12_1"
+      ],
+      "train_target": "target_rank",
+      "output_combination": "prediction",
+      "lambda": null,
+      "monotone_increasing_on": "z__ret_12_1",
+      "scored_against": "alpha_5d",
+      "is_arm": false,
+      "seconds": 9.1,
+      "refits": [
+        {
+          "refit_at": "2017-03-21",
+          "train_rows": 24825,
+          "train_cutoffs": 60,
+          "trained_through": "2017-03-07"
+        },
+        {
+          "refit_at": "2017-06-22",
+          "train_rows": 30396,
+          "train_cutoffs": 73,
+          "trained_through": "2017-06-08"
+        },
+        {
+          "refit_at": "2017-09-25",
+          "train_rows": 36009,
+          "train_cutoffs": 86,
+          "trained_through": "2017-09-11"
+        },
+        {
+          "refit_at": "2018-01-11",
+          "train_rows": 41664,
+          "train_cutoffs": 99,
+          "trained_through": "2017-12-12"
+        },
+        {
+          "refit_at": "2018-04-17",
+          "train_rows": 44287,
+          "train_cutoffs": 105,
+          "trained_through": "2018-03-12"
+        },
+        {
+          "refit_at": "2018-07-19",
+          "train_rows": 47359,
+          "train_cutoffs": 112,
+          "trained_through": "2018-07-05"
+        },
+        {
+          "refit_at": "2018-11-09",
+          "train_rows": 50872,
+          "train_cutoffs": 120,
+          "trained_through": "2018-10-12"
+        },
+        {
+          "refit_at": "2019-02-15",
+          "train_rows": 53517,
+          "train_cutoffs": 126,
+          "trained_through": "2019-01-10"
+        },
+        {
+          "refit_at": "2019-05-21",
+          "train_rows": 56608,
+          "train_cutoffs": 133,
+          "trained_through": "2019-05-07"
+        },
+        {
+          "refit_at": "2019-09-13",
+          "train_rows": 60142,
+          "train_cutoffs": 141,
+          "trained_through": "2019-08-15"
+        },
+        {
+          "refit_at": "2019-12-16",
+          "train_rows": 62816,
+          "train_cutoffs": 147,
+          "trained_through": "2019-11-08"
+        },
+        {
+          "refit_at": "2020-03-20",
+          "train_rows": 65963,
+          "train_cutoffs": 154,
+          "trained_through": "2020-03-06"
+        },
+        {
+          "refit_at": "2020-07-15",
+          "train_rows": 69600,
+          "train_cutoffs": 162,
+          "trained_through": "2020-06-16"
+        },
+        {
+          "refit_at": "2020-10-15",
+          "train_rows": 72348,
+          "train_cutoffs": 168,
+          "trained_through": "2020-09-10"
+        },
+        {
+          "refit_at": "2021-01-20",
+          "train_rows": 75555,
+          "train_cutoffs": 175,
+          "trained_through": "2021-01-05"
+        },
+        {
+          "refit_at": "2021-05-14",
+          "train_rows": 79250,
+          "train_cutoffs": 183,
+          "trained_through": "2021-04-16"
+        },
+        {
+          "refit_at": "2021-08-17",
+          "train_rows": 82046,
+          "train_cutoffs": 189,
+          "trained_through": "2021-07-13"
+        },
+        {
+          "refit_at": "2021-11-17",
+          "train_rows": 85315,
+          "train_cutoffs": 196,
+          "trained_through": "2021-11-03"
+        },
+        {
+          "refit_at": "2022-03-15",
+          "train_rows": 89060,
+          "train_cutoffs": 204,
+          "trained_through": "2022-02-14"
+        },
+        {
+          "refit_at": "2022-06-16",
+          "train_rows": 91892,
+          "train_cutoffs": 210,
+          "trained_through": "2022-05-11"
+        },
+        {
+          "refit_at": "2022-09-20",
+          "train_rows": 95212,
+          "train_cutoffs": 217,
+          "trained_through": "2022-09-06"
+        },
+        {
+          "refit_at": "2023-01-13",
+          "train_rows": 99026,
+          "train_cutoffs": 225,
+          "trained_through": "2022-12-14"
+        },
+        {
+          "refit_at": "2023-04-19",
+          "train_rows": 101904,
+          "train_cutoffs": 231,
+          "trained_through": "2023-03-14"
+        },
+        {
+          "refit_at": "2023-07-24",
+          "train_rows": 105283,
+          "train_cutoffs": 238,
+          "trained_through": "2023-07-10"
+        },
+        {
+          "refit_at": "2023-11-14",
+          "train_rows": 109153,
+          "train_cutoffs": 246,
+          "trained_through": "2023-10-17"
+        },
+        {
+          "refit_at": "2024-02-20",
+          "train_rows": 112063,
+          "train_cutoffs": 252,
+          "trained_through": "2024-01-12"
+        },
+        {
+          "refit_at": "2024-05-22",
+          "train_rows": 115465,
+          "train_cutoffs": 259,
+          "trained_through": "2024-05-08"
+        },
+        {
+          "refit_at": "2024-09-17",
+          "train_rows": 119367,
+          "train_cutoffs": 267,
+          "trained_through": "2024-08-19"
+        },
+        {
+          "refit_at": "2024-12-18",
+          "train_rows": 122300,
+          "train_cutoffs": 273,
+          "trained_through": "2024-11-12"
+        },
+        {
+          "refit_at": "2025-03-26",
+          "train_rows": 125740,
+          "train_cutoffs": 280,
+          "trained_through": "2025-03-12"
+        },
+        {
+          "refit_at": "2025-07-22",
+          "train_rows": 129691,
+          "train_cutoffs": 288,
+          "trained_through": "2025-06-23"
+        },
+        {
+          "refit_at": "2025-10-22",
+          "train_rows": 132681,
+          "train_cutoffs": 294,
+          "trained_through": "2025-09-17"
+        },
+        {
+          "refit_at": "2026-01-27",
+          "train_rows": 136169,
+          "train_cutoffs": 301,
+          "trained_through": "2026-01-12"
+        },
+        {
+          "refit_at": "2026-05-21",
+          "train_rows": 140173,
+          "train_cutoffs": 309,
+          "trained_through": "2026-04-23"
+        }
+      ],
+      "carrier_diagnostics": {
+        "n_cutoffs": 255,
+        "spearman_vs_factor": {
+          "mean": 0.799,
+          "min": 0.3482,
+          "max": 0.9839,
+          "share_negative": 0.0,
+          "share_below_0.99": 1.0
+        },
+        "inversions": {
+          "total": 0,
+          "cutoffs_with_any": 0
+        },
+        "runs_vs_factor": {
+          "median": 5,
+          "min": 1,
+          "max": 13
+        },
+        "distinct_scores": {
+          "median": 5,
+          "min": 1,
+          "max": 13
+        },
+        "cross_section": {
+          "min": 426,
+          "max": 502
+        },
+        "is_univariate_in_factor": true,
+        "collapsed_cutoffs": 26
+      },
+      "gates_are_diagnostic_here": "V2_2_PREREGISTRATION.md \u00a76.3 gates the *selected arm* on development. The nine V2.1 criteria below are the same arithmetic run on the same slice and decide nothing here; \u00a78 keeps the exam sealed either way.",
+      "diagnostic_gates_passed": false,
+      "diagnostic_failed_gates": [
+        "1_mean_ic",
+        "2_ic_hit_rate",
+        "3_top_minus_bottom",
+        "4_sign_stability",
+        "5_beats_12_1_momentum",
+        "6_beats_5d_reversal",
+        "7_no_regime_collapse",
+        "9_cost_adjusted_spread"
+      ]
+    },
+    "raw_level__winsorised_level": {
+      "protocol": "V2.1",
+      "arm": "raw_level__winsorised_level",
+      "n_cutoffs": 255,
+      "ic": {
+        "what": "raw_level__winsorised_level Spearman IC",
+        "n_cutoffs": 255,
+        "mean": 0.00053,
+        "median": -0.0025,
+        "sd": 0.08128,
+        "hit_rate": 0.4824,
+        "naive_se": 0.00509,
+        "nw_se": 0.00436,
+        "boot_lo": -0.00839,
+        "boot_hi": 0.0089,
+        "t": 0.122,
+        "p_nw": 0.90266,
+        "p_boot": 0.89931,
+        "excludes_null": false
+      },
+      "spread": {
+        "what": "raw_level__winsorised_level top-bottom spread",
+        "n_cutoffs": 255,
+        "mean": 0.00025,
+        "median": -0.0001,
+        "sd": 0.0117,
+        "hit_rate": 0.4941,
+        "naive_se": 0.00073,
+        "nw_se": 0.00062,
+        "boot_lo": -0.00101,
+        "boot_hi": 0.00141,
+        "t": 0.397,
+        "p_nw": 0.69207,
+        "p_boot": 0.69173,
+        "excludes_null": false
+      },
+      "top_quintile": {
+        "what": "raw_level__winsorised_level top quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00099,
+        "median": -0.0011,
+        "sd": 0.01354,
+        "hit_rate": 0.4549,
+        "naive_se": 0.00085,
+        "nw_se": 0.00075,
+        "boot_lo": -0.00251,
+        "boot_hi": 0.00041,
+        "t": -1.315,
+        "p_nw": 0.18978,
+        "p_boot": 0.18888,
+        "excludes_null": false
+      },
+      "bottom_quintile": {
+        "what": "raw_level__winsorised_level bottom quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00123,
+        "median": -0.00133,
+        "sd": 0.01023,
+        "hit_rate": 0.4392,
+        "naive_se": 0.00064,
+        "nw_se": 0.00058,
+        "boot_lo": -0.00232,
+        "boot_hi": -0.00015,
+        "t": -2.144,
+        "p_nw": 0.03301,
+        "p_boot": 0.0297,
+        "excludes_null": true
+      },
+      "net_spread": {
+        "what": "raw_level__winsorised_level net spread @5bps",
+        "n_cutoffs": 255,
+        "mean": -0.00047,
+        "median": -0.00079,
+        "sd": 0.0117,
+        "hit_rate": 0.4471,
+        "naive_se": 0.00073,
+        "nw_se": 0.00062,
+        "boot_lo": -0.00172,
+        "boot_hi": 0.00069,
+        "t": -0.752,
+        "p_nw": 0.45256,
+        "p_boot": 0.45675,
+        "excludes_null": false
+      },
+      "benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "12-1 momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02115,
+          "median": 0.03182,
+          "sd": 0.2354,
+          "hit_rate": 0.5647,
+          "naive_se": 0.01474,
+          "nw_se": 0.01331,
+          "boot_lo": -0.00469,
+          "boot_hi": 0.04808,
+          "t": 1.588,
+          "p_nw": 0.11346,
+          "p_boot": 0.10819,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "5-day reversal",
+          "n_cutoffs": 255,
+          "mean": 0.00872,
+          "median": 0.00166,
+          "sd": 0.18174,
+          "hit_rate": 0.5059,
+          "naive_se": 0.01138,
+          "nw_se": 0.01015,
+          "boot_lo": -0.01268,
+          "boot_hi": 0.02808,
+          "t": 0.859,
+          "p_nw": 0.39103,
+          "p_boot": 0.40886,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "regime-switched momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02836,
+          "median": 0.03279,
+          "sd": 0.22617,
+          "hit_rate": 0.5765,
+          "naive_se": 0.01416,
+          "nw_se": 0.01284,
+          "boot_lo": 0.00307,
+          "boot_hi": 0.05467,
+          "t": 2.209,
+          "p_nw": 0.02809,
+          "p_boot": 0.0283,
+          "excludes_null": true
+        }
+      },
+      "versus_benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "raw_level__winsorised_level IC - 12-1 momentum IC",
+          "n_cutoffs": 255,
+          "mean": -0.02061,
+          "median": -0.02828,
+          "sd": 0.29983,
+          "hit_rate": 0.4588,
+          "naive_se": 0.01878,
+          "nw_se": 0.01668,
+          "boot_lo": -0.05457,
+          "boot_hi": 0.01165,
+          "t": -1.235,
+          "p_nw": 0.21782,
+          "p_boot": 0.22148,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "raw_level__winsorised_level IC - 5-day reversal IC",
+          "n_cutoffs": 255,
+          "mean": -0.00819,
+          "median": 0.00243,
+          "sd": 0.20269,
+          "hit_rate": 0.5176,
+          "naive_se": 0.01269,
+          "nw_se": 0.01174,
+          "boot_lo": -0.03083,
+          "boot_hi": 0.01604,
+          "t": -0.698,
+          "p_nw": 0.48595,
+          "p_boot": 0.49695,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "raw_level__winsorised_level IC - regime-switched momentum IC",
+          "n_cutoffs": 255,
+          "mean": -0.02783,
+          "median": -0.03573,
+          "sd": 0.28578,
+          "hit_rate": 0.4471,
+          "naive_se": 0.0179,
+          "nw_se": 0.01604,
+          "boot_lo": -0.06044,
+          "boot_hi": 0.00367,
+          "t": -1.735,
+          "p_nw": 0.08392,
+          "p_boot": 0.08719,
+          "excludes_null": false
+        }
+      },
+      "regime_ic": {
+        "BEAR_TREND": {
+          "n_cutoffs": 27,
+          "mean_ic": 0.01669878269767917,
+          "hit_rate": 0.6296296296296297
+        },
+        "BULL_TREND": {
+          "n_cutoffs": 204,
+          "mean_ic": -0.0010936344354501996,
+          "hit_rate": 0.47549019607843135
+        },
+        "SIDEWAYS": {
+          "n_cutoffs": 24,
+          "mean_ic": -0.003813532461902653,
+          "hit_rate": 0.375
+        },
+        "HIGH_VOL": {
+          "n_cutoffs": 126,
+          "mean_ic": -0.005614200398203758,
+          "hit_rate": 0.4365079365079365
+        },
+        "LOW_VOL": {
+          "n_cutoffs": 129,
+          "mean_ic": 0.0065397688301822255,
+          "hit_rate": 0.5271317829457365
+        }
+      },
+      "halves": {
+        "first": {
+          "n": 128,
+          "mean_ic": -0.00261,
+          "hit_rate": 0.4609,
+          "from": "2017-03-21",
+          "to": "2021-07-13"
+        },
+        "second": {
+          "n": 127,
+          "mean_ic": 0.0037,
+          "hit_rate": 0.5039,
+          "from": "2021-08-10",
+          "to": "2026-07-28"
+        }
+      },
+      "interval_sensitivity": {
+        "block_1": [
+          -0.00966,
+          0.01049
+        ],
+        "block_2": [
+          -0.00908,
+          0.00953
+        ],
+        "block_4": [
+          -0.00839,
+          0.0089
+        ],
+        "block_8": [
+          -0.00827,
+          0.0083
+        ],
+        "newey_west_se": 0.00436,
+        "naive_se": 0.00509
+      },
+      "criteria": {
+        "1_mean_ic": {
+          "value": 0.00053,
+          "threshold": "> 0.03, CI excludes 0",
+          "ci": [
+            -0.00839,
+            0.0089
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "2_ic_hit_rate": {
+          "value": 0.4824,
+          "threshold": "> 0.55, CI excludes 0.5",
+          "ci": [
+            0.4275,
+            0.5373
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "3_top_minus_bottom": {
+          "value": 0.00025,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.00101,
+            0.00141
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "4_sign_stability": {
+          "value": {
+            "hit_rate": 0.4824,
+            "first_half_mean_ic": -0.00261,
+            "second_half_mean_ic": 0.0037
+          },
+          "threshold": "IC > 0 in >= 60% of cutoffs AND mean IC > 0 in both halves",
+          "gate": true,
+          "passed": false
+        },
+        "5_beats_12_1_momentum": {
+          "value": -0.02061,
+          "benchmark": "12-1 momentum",
+          "benchmark_mean_ic": 0.02115,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.05457,
+            0.01165
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "6_beats_5d_reversal": {
+          "value": -0.00819,
+          "benchmark": "5-day reversal",
+          "benchmark_mean_ic": 0.00872,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.03083,
+            0.01604
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "7_no_regime_collapse": {
+          "value": {
+            "gating": {
+              "BEAR_TREND": {
+                "n_cutoffs": 27,
+                "mean_ic": 0.0167
+              },
+              "BULL_TREND": {
+                "n_cutoffs": 204,
+                "mean_ic": -0.00109
+              },
+              "SIDEWAYS": {
+                "n_cutoffs": 24,
+                "mean_ic": -0.00381
+              },
+              "HIGH_VOL": {
+                "n_cutoffs": 126,
+                "mean_ic": -0.00561
+              },
+              "LOW_VOL": {
+                "n_cutoffs": 129,
+                "mean_ic": 0.00654
+              }
+            },
+            "below_minimum_reported_only": {}
+          },
+          "threshold": "mean IC > 0 in every bucket with >= 8 cutoffs",
+          "gate": true,
+          "passed": false
+        },
+        "8_effective_sample": {
+          "value": 255,
+          "threshold": ">= 50 independent cutoffs",
+          "gate": true,
+          "passed": true
+        },
+        "9_cost_adjusted_spread": {
+          "value": -0.00047,
+          "threshold": "> 0 at 5 bps one-way, CI excludes 0",
+          "ci": [
+            -0.00172,
+            0.00069
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "10_turnover": {
+          "value": {
+            "mean_long": 0.6955,
+            "mean_short": 0.7322,
+            "mean_total": 1.4277,
+            "n_cutoffs": 255
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "11_cost_sensitivity": {
+          "value": {
+            "5bps": {
+              "mean": -0.00047,
+              "ci": [
+                -0.00172,
+                0.00069
+              ],
+              "excludes_zero": false
+            },
+            "10bps": {
+              "mean": -0.00118,
+              "ci": [
+                -0.00243,
+                -2e-05
+              ],
+              "excludes_zero": true
+            },
+            "20bps": {
+              "mean": -0.00261,
+              "ci": [
+                -0.00386,
+                -0.00145
+              ],
+              "excludes_zero": true
+            }
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12_independent_cutoffs": {
+          "value": 255,
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12b_versus_regime_switched": {
+          "value": -0.02783,
+          "benchmark": "regime-switched momentum",
+          "benchmark_mean_ic": 0.02836,
+          "threshold": "reported",
+          "ci": [
+            -0.06044,
+            0.00367
+          ],
+          "gate": false,
+          "passed": true
+        }
+      },
+      "production_weight": 0.0,
+      "production_weight_note": "Weight stays 0 until every gate passes on the frozen V2.1 exam set under this protocol with the Holm-Bonferroni correction applied across the arms run. This field is not a result.",
+      "preregistration": "alpha/V2_2_PREREGISTRATION.md",
+      "note": "this cell IS V2.1-A \u2014 re-run here to check the pipeline reproduces the frozen +0.00053 across a module boundary",
+      "n_features": 1,
+      "feature_columns": [
+        "ret_12_1"
+      ],
+      "train_target": "target_train",
+      "output_combination": "prediction",
+      "lambda": null,
+      "monotone_increasing_on": null,
+      "scored_against": "alpha_5d",
+      "is_arm": false,
+      "seconds": 18.5,
+      "refits": [
+        {
+          "refit_at": "2017-03-21",
+          "train_rows": 24825,
+          "train_cutoffs": 60,
+          "trained_through": "2017-03-07"
+        },
+        {
+          "refit_at": "2017-06-22",
+          "train_rows": 30396,
+          "train_cutoffs": 73,
+          "trained_through": "2017-06-08"
+        },
+        {
+          "refit_at": "2017-09-25",
+          "train_rows": 36009,
+          "train_cutoffs": 86,
+          "trained_through": "2017-09-11"
+        },
+        {
+          "refit_at": "2018-01-11",
+          "train_rows": 41664,
+          "train_cutoffs": 99,
+          "trained_through": "2017-12-12"
+        },
+        {
+          "refit_at": "2018-04-17",
+          "train_rows": 44287,
+          "train_cutoffs": 105,
+          "trained_through": "2018-03-12"
+        },
+        {
+          "refit_at": "2018-07-19",
+          "train_rows": 47359,
+          "train_cutoffs": 112,
+          "trained_through": "2018-07-05"
+        },
+        {
+          "refit_at": "2018-11-09",
+          "train_rows": 50872,
+          "train_cutoffs": 120,
+          "trained_through": "2018-10-12"
+        },
+        {
+          "refit_at": "2019-02-15",
+          "train_rows": 53517,
+          "train_cutoffs": 126,
+          "trained_through": "2019-01-10"
+        },
+        {
+          "refit_at": "2019-05-21",
+          "train_rows": 56608,
+          "train_cutoffs": 133,
+          "trained_through": "2019-05-07"
+        },
+        {
+          "refit_at": "2019-09-13",
+          "train_rows": 60142,
+          "train_cutoffs": 141,
+          "trained_through": "2019-08-15"
+        },
+        {
+          "refit_at": "2019-12-16",
+          "train_rows": 62816,
+          "train_cutoffs": 147,
+          "trained_through": "2019-11-08"
+        },
+        {
+          "refit_at": "2020-03-20",
+          "train_rows": 65963,
+          "train_cutoffs": 154,
+          "trained_through": "2020-03-06"
+        },
+        {
+          "refit_at": "2020-07-15",
+          "train_rows": 69600,
+          "train_cutoffs": 162,
+          "trained_through": "2020-06-16"
+        },
+        {
+          "refit_at": "2020-10-15",
+          "train_rows": 72348,
+          "train_cutoffs": 168,
+          "trained_through": "2020-09-10"
+        },
+        {
+          "refit_at": "2021-01-20",
+          "train_rows": 75555,
+          "train_cutoffs": 175,
+          "trained_through": "2021-01-05"
+        },
+        {
+          "refit_at": "2021-05-14",
+          "train_rows": 79250,
+          "train_cutoffs": 183,
+          "trained_through": "2021-04-16"
+        },
+        {
+          "refit_at": "2021-08-17",
+          "train_rows": 82046,
+          "train_cutoffs": 189,
+          "trained_through": "2021-07-13"
+        },
+        {
+          "refit_at": "2021-11-17",
+          "train_rows": 85315,
+          "train_cutoffs": 196,
+          "trained_through": "2021-11-03"
+        },
+        {
+          "refit_at": "2022-03-15",
+          "train_rows": 89060,
+          "train_cutoffs": 204,
+          "trained_through": "2022-02-14"
+        },
+        {
+          "refit_at": "2022-06-16",
+          "train_rows": 91892,
+          "train_cutoffs": 210,
+          "trained_through": "2022-05-11"
+        },
+        {
+          "refit_at": "2022-09-20",
+          "train_rows": 95212,
+          "train_cutoffs": 217,
+          "trained_through": "2022-09-06"
+        },
+        {
+          "refit_at": "2023-01-13",
+          "train_rows": 99026,
+          "train_cutoffs": 225,
+          "trained_through": "2022-12-14"
+        },
+        {
+          "refit_at": "2023-04-19",
+          "train_rows": 101904,
+          "train_cutoffs": 231,
+          "trained_through": "2023-03-14"
+        },
+        {
+          "refit_at": "2023-07-24",
+          "train_rows": 105283,
+          "train_cutoffs": 238,
+          "trained_through": "2023-07-10"
+        },
+        {
+          "refit_at": "2023-11-14",
+          "train_rows": 109153,
+          "train_cutoffs": 246,
+          "trained_through": "2023-10-17"
+        },
+        {
+          "refit_at": "2024-02-20",
+          "train_rows": 112063,
+          "train_cutoffs": 252,
+          "trained_through": "2024-01-12"
+        },
+        {
+          "refit_at": "2024-05-22",
+          "train_rows": 115465,
+          "train_cutoffs": 259,
+          "trained_through": "2024-05-08"
+        },
+        {
+          "refit_at": "2024-09-17",
+          "train_rows": 119367,
+          "train_cutoffs": 267,
+          "trained_through": "2024-08-19"
+        },
+        {
+          "refit_at": "2024-12-18",
+          "train_rows": 122300,
+          "train_cutoffs": 273,
+          "trained_through": "2024-11-12"
+        },
+        {
+          "refit_at": "2025-03-26",
+          "train_rows": 125740,
+          "train_cutoffs": 280,
+          "trained_through": "2025-03-12"
+        },
+        {
+          "refit_at": "2025-07-22",
+          "train_rows": 129691,
+          "train_cutoffs": 288,
+          "trained_through": "2025-06-23"
+        },
+        {
+          "refit_at": "2025-10-22",
+          "train_rows": 132681,
+          "train_cutoffs": 294,
+          "trained_through": "2025-09-17"
+        },
+        {
+          "refit_at": "2026-01-27",
+          "train_rows": 136169,
+          "train_cutoffs": 301,
+          "trained_through": "2026-01-12"
+        },
+        {
+          "refit_at": "2026-05-21",
+          "train_rows": 140173,
+          "train_cutoffs": 309,
+          "trained_through": "2026-04-23"
+        }
+      ],
+      "carrier_diagnostics": {
+        "n_cutoffs": 255,
+        "spearman_vs_factor": {
+          "mean": -0.1982,
+          "min": -0.5626,
+          "max": 0.1831,
+          "share_negative": 0.8784,
+          "share_below_0.99": 1.0
+        },
+        "inversions": {
+          "total": 24364,
+          "cutoffs_with_any": 255
+        },
+        "runs_vs_factor": {
+          "median": 195,
+          "min": 115,
+          "max": 219
+        },
+        "distinct_scores": {
+          "median": 195,
+          "min": 115,
+          "max": 219
+        },
+        "cross_section": {
+          "min": 426,
+          "max": 502
+        },
+        "is_univariate_in_factor": true,
+        "collapsed_cutoffs": 0
+      },
+      "gates_are_diagnostic_here": "V2_2_PREREGISTRATION.md \u00a76.3 gates the *selected arm* on development. The nine V2.1 criteria below are the same arithmetic run on the same slice and decide nothing here; \u00a78 keeps the exam sealed either way.",
+      "diagnostic_gates_passed": false,
+      "diagnostic_failed_gates": [
+        "1_mean_ic",
+        "2_ic_hit_rate",
+        "3_top_minus_bottom",
+        "4_sign_stability",
+        "5_beats_12_1_momentum",
+        "6_beats_5d_reversal",
+        "7_no_regime_collapse",
+        "9_cost_adjusted_spread"
+      ]
+    },
+    "raw_level__rank": {
+      "protocol": "V2.1",
+      "arm": "raw_level__rank",
+      "n_cutoffs": 255,
+      "ic": {
+        "what": "raw_level__rank Spearman IC",
+        "n_cutoffs": 255,
+        "mean": 0.00225,
+        "median": 0.00426,
+        "sd": 0.05635,
+        "hit_rate": 0.5294,
+        "naive_se": 0.00353,
+        "nw_se": 0.00322,
+        "boot_lo": -0.00436,
+        "boot_hi": 0.00815,
+        "t": 0.7,
+        "p_nw": 0.48483,
+        "p_boot": 0.48835,
+        "excludes_null": false
+      },
+      "spread": {
+        "what": "raw_level__rank top-bottom spread",
+        "n_cutoffs": 255,
+        "mean": 0.00011,
+        "median": -0.00012,
+        "sd": 0.00862,
+        "hit_rate": 0.4902,
+        "naive_se": 0.00054,
+        "nw_se": 0.00044,
+        "boot_lo": -0.00078,
+        "boot_hi": 0.00091,
+        "t": 0.247,
+        "p_nw": 0.80529,
+        "p_boot": 0.80702,
+        "excludes_null": false
+      },
+      "top_quintile": {
+        "what": "raw_level__rank top quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00088,
+        "median": -0.00089,
+        "sd": 0.01067,
+        "hit_rate": 0.4667,
+        "naive_se": 0.00067,
+        "nw_se": 0.0006,
+        "boot_lo": -0.00211,
+        "boot_hi": 0.00022,
+        "t": -1.466,
+        "p_nw": 0.14387,
+        "p_boot": 0.14689,
+        "excludes_null": false
+      },
+      "bottom_quintile": {
+        "what": "raw_level__rank bottom quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00099,
+        "median": -0.00105,
+        "sd": 0.01091,
+        "hit_rate": 0.4431,
+        "naive_se": 0.00068,
+        "nw_se": 0.00062,
+        "boot_lo": -0.00218,
+        "boot_hi": 0.0002,
+        "t": -1.599,
+        "p_nw": 0.11101,
+        "p_boot": 0.10239,
+        "excludes_null": false
+      },
+      "net_spread": {
+        "what": "raw_level__rank net spread @5bps",
+        "n_cutoffs": 255,
+        "mean": -0.00062,
+        "median": -0.00084,
+        "sd": 0.00863,
+        "hit_rate": 0.4392,
+        "naive_se": 0.00054,
+        "nw_se": 0.00044,
+        "boot_lo": -0.00151,
+        "boot_hi": 0.00018,
+        "t": -1.408,
+        "p_nw": 0.16037,
+        "p_boot": 0.15878,
+        "excludes_null": false
+      },
+      "benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "12-1 momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02115,
+          "median": 0.03182,
+          "sd": 0.2354,
+          "hit_rate": 0.5647,
+          "naive_se": 0.01474,
+          "nw_se": 0.01331,
+          "boot_lo": -0.00469,
+          "boot_hi": 0.04808,
+          "t": 1.588,
+          "p_nw": 0.11346,
+          "p_boot": 0.10819,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "5-day reversal",
+          "n_cutoffs": 255,
+          "mean": 0.00872,
+          "median": 0.00166,
+          "sd": 0.18174,
+          "hit_rate": 0.5059,
+          "naive_se": 0.01138,
+          "nw_se": 0.01015,
+          "boot_lo": -0.01268,
+          "boot_hi": 0.02808,
+          "t": 0.859,
+          "p_nw": 0.39103,
+          "p_boot": 0.40886,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "regime-switched momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02836,
+          "median": 0.03279,
+          "sd": 0.22617,
+          "hit_rate": 0.5765,
+          "naive_se": 0.01416,
+          "nw_se": 0.01284,
+          "boot_lo": 0.00307,
+          "boot_hi": 0.05467,
+          "t": 2.209,
+          "p_nw": 0.02809,
+          "p_boot": 0.0283,
+          "excludes_null": true
+        }
+      },
+      "versus_benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "raw_level__rank IC - 12-1 momentum IC",
+          "n_cutoffs": 255,
+          "mean": -0.01889,
+          "median": -0.02809,
+          "sd": 0.24833,
+          "hit_rate": 0.4588,
+          "naive_se": 0.01555,
+          "nw_se": 0.01396,
+          "boot_lo": -0.04772,
+          "boot_hi": 0.00813,
+          "t": -1.353,
+          "p_nw": 0.1773,
+          "p_boot": 0.18358,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "raw_level__rank IC - 5-day reversal IC",
+          "n_cutoffs": 255,
+          "mean": -0.00647,
+          "median": 0.0047,
+          "sd": 0.1892,
+          "hit_rate": 0.5216,
+          "naive_se": 0.01185,
+          "nw_se": 0.0111,
+          "boot_lo": -0.02798,
+          "boot_hi": 0.01591,
+          "t": -0.583,
+          "p_nw": 0.56039,
+          "p_boot": 0.56944,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "raw_level__rank IC - regime-switched momentum IC",
+          "n_cutoffs": 255,
+          "mean": -0.02611,
+          "median": -0.03113,
+          "sd": 0.23722,
+          "hit_rate": 0.4431,
+          "naive_se": 0.01486,
+          "nw_se": 0.01351,
+          "boot_lo": -0.05403,
+          "boot_hi": 0.00016,
+          "t": -1.932,
+          "p_nw": 0.05448,
+          "p_boot": 0.05879,
+          "excludes_null": false
+        }
+      },
+      "regime_ic": {
+        "BEAR_TREND": {
+          "n_cutoffs": 27,
+          "mean_ic": -0.0012489592097020652,
+          "hit_rate": 0.5925925925925926
+        },
+        "BULL_TREND": {
+          "n_cutoffs": 204,
+          "mean_ic": 0.0022561121458930192,
+          "hit_rate": 0.5196078431372549
+        },
+        "SIDEWAYS": {
+          "n_cutoffs": 24,
+          "mean_ic": 0.006175683581338481,
+          "hit_rate": 0.5416666666666666
+        },
+        "HIGH_VOL": {
+          "n_cutoffs": 126,
+          "mean_ic": 0.0005689604214536736,
+          "hit_rate": 0.47619047619047616
+        },
+        "LOW_VOL": {
+          "n_cutoffs": 129,
+          "mean_ic": 0.0038996307903037273,
+          "hit_rate": 0.5813953488372093
+        }
+      },
+      "halves": {
+        "first": {
+          "n": 128,
+          "mean_ic": -0.00034,
+          "hit_rate": 0.5312,
+          "from": "2017-03-21",
+          "to": "2021-07-13"
+        },
+        "second": {
+          "n": 127,
+          "mean_ic": 0.00487,
+          "hit_rate": 0.5276,
+          "from": "2021-08-10",
+          "to": "2026-07-28"
+        }
+      },
+      "interval_sensitivity": {
+        "block_1": [
+          -0.00473,
+          0.00918
+        ],
+        "block_2": [
+          -0.00449,
+          0.00848
+        ],
+        "block_4": [
+          -0.00436,
+          0.00815
+        ],
+        "block_8": [
+          -0.00494,
+          0.00782
+        ],
+        "newey_west_se": 0.00322,
+        "naive_se": 0.00353
+      },
+      "criteria": {
+        "1_mean_ic": {
+          "value": 0.00225,
+          "threshold": "> 0.03, CI excludes 0",
+          "ci": [
+            -0.00436,
+            0.00815
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "2_ic_hit_rate": {
+          "value": 0.5294,
+          "threshold": "> 0.55, CI excludes 0.5",
+          "ci": [
+            0.4745,
+            0.5843
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "3_top_minus_bottom": {
+          "value": 0.00011,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.00078,
+            0.00091
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "4_sign_stability": {
+          "value": {
+            "hit_rate": 0.5294,
+            "first_half_mean_ic": -0.00034,
+            "second_half_mean_ic": 0.00487
+          },
+          "threshold": "IC > 0 in >= 60% of cutoffs AND mean IC > 0 in both halves",
+          "gate": true,
+          "passed": false
+        },
+        "5_beats_12_1_momentum": {
+          "value": -0.01889,
+          "benchmark": "12-1 momentum",
+          "benchmark_mean_ic": 0.02115,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.04772,
+            0.00813
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "6_beats_5d_reversal": {
+          "value": -0.00647,
+          "benchmark": "5-day reversal",
+          "benchmark_mean_ic": 0.00872,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.02798,
+            0.01591
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "7_no_regime_collapse": {
+          "value": {
+            "gating": {
+              "BEAR_TREND": {
+                "n_cutoffs": 27,
+                "mean_ic": -0.00125
+              },
+              "BULL_TREND": {
+                "n_cutoffs": 204,
+                "mean_ic": 0.00226
+              },
+              "SIDEWAYS": {
+                "n_cutoffs": 24,
+                "mean_ic": 0.00618
+              },
+              "HIGH_VOL": {
+                "n_cutoffs": 126,
+                "mean_ic": 0.00057
+              },
+              "LOW_VOL": {
+                "n_cutoffs": 129,
+                "mean_ic": 0.0039
+              }
+            },
+            "below_minimum_reported_only": {}
+          },
+          "threshold": "mean IC > 0 in every bucket with >= 8 cutoffs",
+          "gate": true,
+          "passed": false
+        },
+        "8_effective_sample": {
+          "value": 255,
+          "threshold": ">= 50 independent cutoffs",
+          "gate": true,
+          "passed": true
+        },
+        "9_cost_adjusted_spread": {
+          "value": -0.00062,
+          "threshold": "> 0 at 5 bps one-way, CI excludes 0",
+          "ci": [
+            -0.00151,
+            0.00018
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "10_turnover": {
+          "value": {
+            "mean_long": 0.7335,
+            "mean_short": 0.7323,
+            "mean_total": 1.4658,
+            "n_cutoffs": 255
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "11_cost_sensitivity": {
+          "value": {
+            "5bps": {
+              "mean": -0.00062,
+              "ci": [
+                -0.00151,
+                0.00018
+              ],
+              "excludes_zero": false
+            },
+            "10bps": {
+              "mean": -0.00136,
+              "ci": [
+                -0.00225,
+                -0.00055
+              ],
+              "excludes_zero": true
+            },
+            "20bps": {
+              "mean": -0.00282,
+              "ci": [
+                -0.00371,
+                -0.00201
+              ],
+              "excludes_zero": true
+            }
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12_independent_cutoffs": {
+          "value": 255,
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12b_versus_regime_switched": {
+          "value": -0.02611,
+          "benchmark": "regime-switched momentum",
+          "benchmark_mean_ic": 0.02836,
+          "threshold": "reported",
+          "ci": [
+            -0.05403,
+            0.00016
+          ],
+          "gate": false,
+          "passed": true
+        }
+      },
+      "production_weight": 0.0,
+      "production_weight_note": "Weight stays 0 until every gate passes on the frozen V2.1 exam set under this protocol with the Holm-Bonferroni correction applied across the arms run. This field is not a result.",
+      "preregistration": "alpha/V2_2_PREREGISTRATION.md",
+      "note": "the target effect alone: raw level in, within-cutoff rank out",
+      "n_features": 1,
+      "feature_columns": [
+        "ret_12_1"
+      ],
+      "train_target": "target_rank",
+      "output_combination": "prediction",
+      "lambda": null,
+      "monotone_increasing_on": null,
+      "scored_against": "alpha_5d",
+      "is_arm": false,
+      "seconds": 19.0,
+      "refits": [
+        {
+          "refit_at": "2017-03-21",
+          "train_rows": 24825,
+          "train_cutoffs": 60,
+          "trained_through": "2017-03-07"
+        },
+        {
+          "refit_at": "2017-06-22",
+          "train_rows": 30396,
+          "train_cutoffs": 73,
+          "trained_through": "2017-06-08"
+        },
+        {
+          "refit_at": "2017-09-25",
+          "train_rows": 36009,
+          "train_cutoffs": 86,
+          "trained_through": "2017-09-11"
+        },
+        {
+          "refit_at": "2018-01-11",
+          "train_rows": 41664,
+          "train_cutoffs": 99,
+          "trained_through": "2017-12-12"
+        },
+        {
+          "refit_at": "2018-04-17",
+          "train_rows": 44287,
+          "train_cutoffs": 105,
+          "trained_through": "2018-03-12"
+        },
+        {
+          "refit_at": "2018-07-19",
+          "train_rows": 47359,
+          "train_cutoffs": 112,
+          "trained_through": "2018-07-05"
+        },
+        {
+          "refit_at": "2018-11-09",
+          "train_rows": 50872,
+          "train_cutoffs": 120,
+          "trained_through": "2018-10-12"
+        },
+        {
+          "refit_at": "2019-02-15",
+          "train_rows": 53517,
+          "train_cutoffs": 126,
+          "trained_through": "2019-01-10"
+        },
+        {
+          "refit_at": "2019-05-21",
+          "train_rows": 56608,
+          "train_cutoffs": 133,
+          "trained_through": "2019-05-07"
+        },
+        {
+          "refit_at": "2019-09-13",
+          "train_rows": 60142,
+          "train_cutoffs": 141,
+          "trained_through": "2019-08-15"
+        },
+        {
+          "refit_at": "2019-12-16",
+          "train_rows": 62816,
+          "train_cutoffs": 147,
+          "trained_through": "2019-11-08"
+        },
+        {
+          "refit_at": "2020-03-20",
+          "train_rows": 65963,
+          "train_cutoffs": 154,
+          "trained_through": "2020-03-06"
+        },
+        {
+          "refit_at": "2020-07-15",
+          "train_rows": 69600,
+          "train_cutoffs": 162,
+          "trained_through": "2020-06-16"
+        },
+        {
+          "refit_at": "2020-10-15",
+          "train_rows": 72348,
+          "train_cutoffs": 168,
+          "trained_through": "2020-09-10"
+        },
+        {
+          "refit_at": "2021-01-20",
+          "train_rows": 75555,
+          "train_cutoffs": 175,
+          "trained_through": "2021-01-05"
+        },
+        {
+          "refit_at": "2021-05-14",
+          "train_rows": 79250,
+          "train_cutoffs": 183,
+          "trained_through": "2021-04-16"
+        },
+        {
+          "refit_at": "2021-08-17",
+          "train_rows": 82046,
+          "train_cutoffs": 189,
+          "trained_through": "2021-07-13"
+        },
+        {
+          "refit_at": "2021-11-17",
+          "train_rows": 85315,
+          "train_cutoffs": 196,
+          "trained_through": "2021-11-03"
+        },
+        {
+          "refit_at": "2022-03-15",
+          "train_rows": 89060,
+          "train_cutoffs": 204,
+          "trained_through": "2022-02-14"
+        },
+        {
+          "refit_at": "2022-06-16",
+          "train_rows": 91892,
+          "train_cutoffs": 210,
+          "trained_through": "2022-05-11"
+        },
+        {
+          "refit_at": "2022-09-20",
+          "train_rows": 95212,
+          "train_cutoffs": 217,
+          "trained_through": "2022-09-06"
+        },
+        {
+          "refit_at": "2023-01-13",
+          "train_rows": 99026,
+          "train_cutoffs": 225,
+          "trained_through": "2022-12-14"
+        },
+        {
+          "refit_at": "2023-04-19",
+          "train_rows": 101904,
+          "train_cutoffs": 231,
+          "trained_through": "2023-03-14"
+        },
+        {
+          "refit_at": "2023-07-24",
+          "train_rows": 105283,
+          "train_cutoffs": 238,
+          "trained_through": "2023-07-10"
+        },
+        {
+          "refit_at": "2023-11-14",
+          "train_rows": 109153,
+          "train_cutoffs": 246,
+          "trained_through": "2023-10-17"
+        },
+        {
+          "refit_at": "2024-02-20",
+          "train_rows": 112063,
+          "train_cutoffs": 252,
+          "trained_through": "2024-01-12"
+        },
+        {
+          "refit_at": "2024-05-22",
+          "train_rows": 115465,
+          "train_cutoffs": 259,
+          "trained_through": "2024-05-08"
+        },
+        {
+          "refit_at": "2024-09-17",
+          "train_rows": 119367,
+          "train_cutoffs": 267,
+          "trained_through": "2024-08-19"
+        },
+        {
+          "refit_at": "2024-12-18",
+          "train_rows": 122300,
+          "train_cutoffs": 273,
+          "trained_through": "2024-11-12"
+        },
+        {
+          "refit_at": "2025-03-26",
+          "train_rows": 125740,
+          "train_cutoffs": 280,
+          "trained_through": "2025-03-12"
+        },
+        {
+          "refit_at": "2025-07-22",
+          "train_rows": 129691,
+          "train_cutoffs": 288,
+          "trained_through": "2025-06-23"
+        },
+        {
+          "refit_at": "2025-10-22",
+          "train_rows": 132681,
+          "train_cutoffs": 294,
+          "trained_through": "2025-09-17"
+        },
+        {
+          "refit_at": "2026-01-27",
+          "train_rows": 136169,
+          "train_cutoffs": 301,
+          "trained_through": "2026-01-12"
+        },
+        {
+          "refit_at": "2026-05-21",
+          "train_rows": 140173,
+          "train_cutoffs": 309,
+          "trained_through": "2026-04-23"
+        }
+      ],
+      "carrier_diagnostics": {
+        "n_cutoffs": 255,
+        "spearman_vs_factor": {
+          "mean": 0.0294,
+          "min": -0.3769,
+          "max": 0.3518,
+          "share_negative": 0.4039,
+          "share_below_0.99": 1.0
+        },
+        "inversions": {
+          "total": 24316,
+          "cutoffs_with_any": 255
+        },
+        "runs_vs_factor": {
+          "median": 195,
+          "min": 116,
+          "max": 220
+        },
+        "distinct_scores": {
+          "median": 195,
+          "min": 116,
+          "max": 220
+        },
+        "cross_section": {
+          "min": 426,
+          "max": 502
+        },
+        "is_univariate_in_factor": true,
+        "collapsed_cutoffs": 0
+      },
+      "gates_are_diagnostic_here": "V2_2_PREREGISTRATION.md \u00a76.3 gates the *selected arm* on development. The nine V2.1 criteria below are the same arithmetic run on the same slice and decide nothing here; \u00a78 keeps the exam sealed either way.",
+      "diagnostic_gates_passed": false,
+      "diagnostic_failed_gates": [
+        "1_mean_ic",
+        "2_ic_hit_rate",
+        "3_top_minus_bottom",
+        "4_sign_stability",
+        "5_beats_12_1_momentum",
+        "6_beats_5d_reversal",
+        "7_no_regime_collapse",
+        "9_cost_adjusted_spread"
+      ]
+    },
+    "z_rank__winsorised_level": {
+      "protocol": "V2.1",
+      "arm": "z_rank__winsorised_level",
+      "n_cutoffs": 255,
+      "ic": {
+        "what": "z_rank__winsorised_level Spearman IC",
+        "n_cutoffs": 255,
+        "mean": -0.00551,
+        "median": -0.0069,
+        "sd": 0.07651,
+        "hit_rate": 0.4588,
+        "naive_se": 0.00479,
+        "nw_se": 0.00437,
+        "boot_lo": -0.01404,
+        "boot_hi": 0.00324,
+        "t": -1.26,
+        "p_nw": 0.20889,
+        "p_boot": 0.21048,
+        "excludes_null": false
+      },
+      "spread": {
+        "what": "z_rank__winsorised_level top-bottom spread",
+        "n_cutoffs": 255,
+        "mean": 0.00016,
+        "median": 0.00035,
+        "sd": 0.00823,
+        "hit_rate": 0.5451,
+        "naive_se": 0.00052,
+        "nw_se": 0.00049,
+        "boot_lo": -0.00081,
+        "boot_hi": 0.00113,
+        "t": 0.322,
+        "p_nw": 0.74761,
+        "p_boot": 0.74483,
+        "excludes_null": false
+      },
+      "top_quintile": {
+        "what": "z_rank__winsorised_level top quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.00084,
+        "median": -0.00081,
+        "sd": 0.01044,
+        "hit_rate": 0.4588,
+        "naive_se": 0.00065,
+        "nw_se": 0.00057,
+        "boot_lo": -0.00198,
+        "boot_hi": 0.00027,
+        "t": -1.458,
+        "p_nw": 0.14614,
+        "p_boot": 0.14109,
+        "excludes_null": false
+      },
+      "bottom_quintile": {
+        "what": "z_rank__winsorised_level bottom quintile alpha",
+        "n_cutoffs": 255,
+        "mean": -0.001,
+        "median": -0.00068,
+        "sd": 0.0105,
+        "hit_rate": 0.4549,
+        "naive_se": 0.00066,
+        "nw_se": 0.00059,
+        "boot_lo": -0.00215,
+        "boot_hi": 0.00011,
+        "t": -1.693,
+        "p_nw": 0.0916,
+        "p_boot": 0.09239,
+        "excludes_null": false
+      },
+      "net_spread": {
+        "what": "z_rank__winsorised_level net spread @5bps",
+        "n_cutoffs": 255,
+        "mean": -0.00057,
+        "median": -0.00035,
+        "sd": 0.00823,
+        "hit_rate": 0.4745,
+        "naive_se": 0.00052,
+        "nw_se": 0.00049,
+        "boot_lo": -0.00153,
+        "boot_hi": 0.0004,
+        "t": -1.169,
+        "p_nw": 0.24339,
+        "p_boot": 0.24688,
+        "excludes_null": false
+      },
+      "benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "12-1 momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02115,
+          "median": 0.03182,
+          "sd": 0.2354,
+          "hit_rate": 0.5647,
+          "naive_se": 0.01474,
+          "nw_se": 0.01331,
+          "boot_lo": -0.00469,
+          "boot_hi": 0.04808,
+          "t": 1.588,
+          "p_nw": 0.11346,
+          "p_boot": 0.10819,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "5-day reversal",
+          "n_cutoffs": 255,
+          "mean": 0.00872,
+          "median": 0.00166,
+          "sd": 0.18174,
+          "hit_rate": 0.5059,
+          "naive_se": 0.01138,
+          "nw_se": 0.01015,
+          "boot_lo": -0.01268,
+          "boot_hi": 0.02808,
+          "t": 0.859,
+          "p_nw": 0.39103,
+          "p_boot": 0.40886,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "regime-switched momentum",
+          "n_cutoffs": 255,
+          "mean": 0.02836,
+          "median": 0.03279,
+          "sd": 0.22617,
+          "hit_rate": 0.5765,
+          "naive_se": 0.01416,
+          "nw_se": 0.01284,
+          "boot_lo": 0.00307,
+          "boot_hi": 0.05467,
+          "t": 2.209,
+          "p_nw": 0.02809,
+          "p_boot": 0.0283,
+          "excludes_null": true
+        }
+      },
+      "versus_benchmarks": {
+        "b1_momentum_12_1": {
+          "what": "z_rank__winsorised_level IC - 12-1 momentum IC",
+          "n_cutoffs": 255,
+          "mean": -0.02665,
+          "median": -0.02001,
+          "sd": 0.29211,
+          "hit_rate": 0.4627,
+          "naive_se": 0.01829,
+          "nw_se": 0.0166,
+          "boot_lo": -0.05975,
+          "boot_hi": 0.00579,
+          "t": -1.605,
+          "p_nw": 0.10968,
+          "p_boot": 0.10649,
+          "excludes_null": false
+        },
+        "b2_reversal_5d": {
+          "what": "z_rank__winsorised_level IC - 5-day reversal IC",
+          "n_cutoffs": 255,
+          "mean": -0.01423,
+          "median": -0.01298,
+          "sd": 0.20349,
+          "hit_rate": 0.4784,
+          "naive_se": 0.01274,
+          "nw_se": 0.01177,
+          "boot_lo": -0.03626,
+          "boot_hi": 0.01038,
+          "t": -1.209,
+          "p_nw": 0.22765,
+          "p_boot": 0.24768,
+          "excludes_null": false
+        },
+        "b3_regime_switched": {
+          "what": "z_rank__winsorised_level IC - regime-switched momentum IC",
+          "n_cutoffs": 255,
+          "mean": -0.03387,
+          "median": -0.03196,
+          "sd": 0.27853,
+          "hit_rate": 0.4431,
+          "naive_se": 0.01744,
+          "nw_se": 0.0159,
+          "boot_lo": -0.06599,
+          "boot_hi": -0.00246,
+          "t": -2.129,
+          "p_nw": 0.03419,
+          "p_boot": 0.036,
+          "excludes_null": true
+        }
+      },
+      "regime_ic": {
+        "BEAR_TREND": {
+          "n_cutoffs": 27,
+          "mean_ic": -0.005281905894587046,
+          "hit_rate": 0.48148148148148145
+        },
+        "BULL_TREND": {
+          "n_cutoffs": 204,
+          "mean_ic": -0.005896526467833306,
+          "hit_rate": 0.44607843137254904
+        },
+        "SIDEWAYS": {
+          "n_cutoffs": 24,
+          "mean_ic": -0.0024368760541691094,
+          "hit_rate": 0.5416666666666666
+        },
+        "HIGH_VOL": {
+          "n_cutoffs": 126,
+          "mean_ic": -0.010804339146135987,
+          "hit_rate": 0.4603174603174603
+        },
+        "LOW_VOL": {
+          "n_cutoffs": 129,
+          "mean_ic": -0.00033055156185092603,
+          "hit_rate": 0.4573643410852713
+        }
+      },
+      "halves": {
+        "first": {
+          "n": 128,
+          "mean_ic": -0.00642,
+          "hit_rate": 0.4609,
+          "from": "2017-03-21",
+          "to": "2021-07-13"
+        },
+        "second": {
+          "n": 127,
+          "mean_ic": -0.00458,
+          "hit_rate": 0.4567,
+          "from": "2021-08-10",
+          "to": "2026-07-28"
+        }
+      },
+      "interval_sensitivity": {
+        "block_1": [
+          -0.01508,
+          0.00381
+        ],
+        "block_2": [
+          -0.0146,
+          0.00352
+        ],
+        "block_4": [
+          -0.01404,
+          0.00324
+        ],
+        "block_8": [
+          -0.01348,
+          0.00221
+        ],
+        "newey_west_se": 0.00437,
+        "naive_se": 0.00479
+      },
+      "criteria": {
+        "1_mean_ic": {
+          "value": -0.00551,
+          "threshold": "> 0.03, CI excludes 0",
+          "ci": [
+            -0.01404,
+            0.00324
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "2_ic_hit_rate": {
+          "value": 0.4588,
+          "threshold": "> 0.55, CI excludes 0.5",
+          "ci": [
+            0.4,
+            0.5176
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "3_top_minus_bottom": {
+          "value": 0.00016,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.00081,
+            0.00113
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "4_sign_stability": {
+          "value": {
+            "hit_rate": 0.4588,
+            "first_half_mean_ic": -0.00642,
+            "second_half_mean_ic": -0.00458
+          },
+          "threshold": "IC > 0 in >= 60% of cutoffs AND mean IC > 0 in both halves",
+          "gate": true,
+          "passed": false
+        },
+        "5_beats_12_1_momentum": {
+          "value": -0.02665,
+          "benchmark": "12-1 momentum",
+          "benchmark_mean_ic": 0.02115,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.05975,
+            0.00579
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "6_beats_5d_reversal": {
+          "value": -0.01423,
+          "benchmark": "5-day reversal",
+          "benchmark_mean_ic": 0.00872,
+          "threshold": "> 0, CI excludes 0",
+          "ci": [
+            -0.03626,
+            0.01038
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "7_no_regime_collapse": {
+          "value": {
+            "gating": {
+              "BEAR_TREND": {
+                "n_cutoffs": 27,
+                "mean_ic": -0.00528
+              },
+              "BULL_TREND": {
+                "n_cutoffs": 204,
+                "mean_ic": -0.0059
+              },
+              "SIDEWAYS": {
+                "n_cutoffs": 24,
+                "mean_ic": -0.00244
+              },
+              "HIGH_VOL": {
+                "n_cutoffs": 126,
+                "mean_ic": -0.0108
+              },
+              "LOW_VOL": {
+                "n_cutoffs": 129,
+                "mean_ic": -0.00033
+              }
+            },
+            "below_minimum_reported_only": {}
+          },
+          "threshold": "mean IC > 0 in every bucket with >= 8 cutoffs",
+          "gate": true,
+          "passed": false
+        },
+        "8_effective_sample": {
+          "value": 255,
+          "threshold": ">= 50 independent cutoffs",
+          "gate": true,
+          "passed": true
+        },
+        "9_cost_adjusted_spread": {
+          "value": -0.00057,
+          "threshold": "> 0 at 5 bps one-way, CI excludes 0",
+          "ci": [
+            -0.00153,
+            0.0004
+          ],
+          "gate": true,
+          "passed": false
+        },
+        "10_turnover": {
+          "value": {
+            "mean_long": 0.7275,
+            "mean_short": 0.7329,
+            "mean_total": 1.4604,
+            "n_cutoffs": 255
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "11_cost_sensitivity": {
+          "value": {
+            "5bps": {
+              "mean": -0.00057,
+              "ci": [
+                -0.00153,
+                0.0004
+              ],
+              "excludes_zero": false
+            },
+            "10bps": {
+              "mean": -0.0013,
+              "ci": [
+                -0.00226,
+                -0.00033
+              ],
+              "excludes_zero": true
+            },
+            "20bps": {
+              "mean": -0.00276,
+              "ci": [
+                -0.00371,
+                -0.00179
+              ],
+              "excludes_zero": true
+            }
+          },
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12_independent_cutoffs": {
+          "value": 255,
+          "threshold": "reported",
+          "gate": false,
+          "passed": true
+        },
+        "12b_versus_regime_switched": {
+          "value": -0.03387,
+          "benchmark": "regime-switched momentum",
+          "benchmark_mean_ic": 0.02836,
+          "threshold": "reported",
+          "ci": [
+            -0.06599,
+            -0.00246
+          ],
+          "gate": false,
+          "passed": true
+        }
+      },
+      "production_weight": 0.0,
+      "production_weight_note": "Weight stays 0 until every gate passes on the frozen V2.1 exam set under this protocol with the Holm-Bonferroni correction applied across the arms run. This field is not a result.",
+      "preregistration": "alpha/V2_2_PREREGISTRATION.md",
+      "note": "the input effect alone: rank in, winsorised level out",
+      "n_features": 1,
+      "feature_columns": [
+        "z__ret_12_1"
+      ],
+      "train_target": "target_train",
+      "output_combination": "prediction",
+      "lambda": null,
+      "monotone_increasing_on": null,
+      "scored_against": "alpha_5d",
+      "is_arm": false,
+      "seconds": 18.6,
+      "refits": [
+        {
+          "refit_at": "2017-03-21",
+          "train_rows": 24825,
+          "train_cutoffs": 60,
+          "trained_through": "2017-03-07"
+        },
+        {
+          "refit_at": "2017-06-22",
+          "train_rows": 30396,
+          "train_cutoffs": 73,
+          "trained_through": "2017-06-08"
+        },
+        {
+          "refit_at": "2017-09-25",
+          "train_rows": 36009,
+          "train_cutoffs": 86,
+          "trained_through": "2017-09-11"
+        },
+        {
+          "refit_at": "2018-01-11",
+          "train_rows": 41664,
+          "train_cutoffs": 99,
+          "trained_through": "2017-12-12"
+        },
+        {
+          "refit_at": "2018-04-17",
+          "train_rows": 44287,
+          "train_cutoffs": 105,
+          "trained_through": "2018-03-12"
+        },
+        {
+          "refit_at": "2018-07-19",
+          "train_rows": 47359,
+          "train_cutoffs": 112,
+          "trained_through": "2018-07-05"
+        },
+        {
+          "refit_at": "2018-11-09",
+          "train_rows": 50872,
+          "train_cutoffs": 120,
+          "trained_through": "2018-10-12"
+        },
+        {
+          "refit_at": "2019-02-15",
+          "train_rows": 53517,
+          "train_cutoffs": 126,
+          "trained_through": "2019-01-10"
+        },
+        {
+          "refit_at": "2019-05-21",
+          "train_rows": 56608,
+          "train_cutoffs": 133,
+          "trained_through": "2019-05-07"
+        },
+        {
+          "refit_at": "2019-09-13",
+          "train_rows": 60142,
+          "train_cutoffs": 141,
+          "trained_through": "2019-08-15"
+        },
+        {
+          "refit_at": "2019-12-16",
+          "train_rows": 62816,
+          "train_cutoffs": 147,
+          "trained_through": "2019-11-08"
+        },
+        {
+          "refit_at": "2020-03-20",
+          "train_rows": 65963,
+          "train_cutoffs": 154,
+          "trained_through": "2020-03-06"
+        },
+        {
+          "refit_at": "2020-07-15",
+          "train_rows": 69600,
+          "train_cutoffs": 162,
+          "trained_through": "2020-06-16"
+        },
+        {
+          "refit_at": "2020-10-15",
+          "train_rows": 72348,
+          "train_cutoffs": 168,
+          "trained_through": "2020-09-10"
+        },
+        {
+          "refit_at": "2021-01-20",
+          "train_rows": 75555,
+          "train_cutoffs": 175,
+          "trained_through": "2021-01-05"
+        },
+        {
+          "refit_at": "2021-05-14",
+          "train_rows": 79250,
+          "train_cutoffs": 183,
+          "trained_through": "2021-04-16"
+        },
+        {
+          "refit_at": "2021-08-17",
+          "train_rows": 82046,
+          "train_cutoffs": 189,
+          "trained_through": "2021-07-13"
+        },
+        {
+          "refit_at": "2021-11-17",
+          "train_rows": 85315,
+          "train_cutoffs": 196,
+          "trained_through": "2021-11-03"
+        },
+        {
+          "refit_at": "2022-03-15",
+          "train_rows": 89060,
+          "train_cutoffs": 204,
+          "trained_through": "2022-02-14"
+        },
+        {
+          "refit_at": "2022-06-16",
+          "train_rows": 91892,
+          "train_cutoffs": 210,
+          "trained_through": "2022-05-11"
+        },
+        {
+          "refit_at": "2022-09-20",
+          "train_rows": 95212,
+          "train_cutoffs": 217,
+          "trained_through": "2022-09-06"
+        },
+        {
+          "refit_at": "2023-01-13",
+          "train_rows": 99026,
+          "train_cutoffs": 225,
+          "trained_through": "2022-12-14"
+        },
+        {
+          "refit_at": "2023-04-19",
+          "train_rows": 101904,
+          "train_cutoffs": 231,
+          "trained_through": "2023-03-14"
+        },
+        {
+          "refit_at": "2023-07-24",
+          "train_rows": 105283,
+          "train_cutoffs": 238,
+          "trained_through": "2023-07-10"
+        },
+        {
+          "refit_at": "2023-11-14",
+          "train_rows": 109153,
+          "train_cutoffs": 246,
+          "trained_through": "2023-10-17"
+        },
+        {
+          "refit_at": "2024-02-20",
+          "train_rows": 112063,
+          "train_cutoffs": 252,
+          "trained_through": "2024-01-12"
+        },
+        {
+          "refit_at": "2024-05-22",
+          "train_rows": 115465,
+          "train_cutoffs": 259,
+          "trained_through": "2024-05-08"
+        },
+        {
+          "refit_at": "2024-09-17",
+          "train_rows": 119367,
+          "train_cutoffs": 267,
+          "trained_through": "2024-08-19"
+        },
+        {
+          "refit_at": "2024-12-18",
+          "train_rows": 122300,
+          "train_cutoffs": 273,
+          "trained_through": "2024-11-12"
+        },
+        {
+          "refit_at": "2025-03-26",
+          "train_rows": 125740,
+          "train_cutoffs": 280,
+          "trained_through": "2025-03-12"
+        },
+        {
+          "refit_at": "2025-07-22",
+          "train_rows": 129691,
+          "train_cutoffs": 288,
+          "trained_through": "2025-06-23"
+        },
+        {
+          "refit_at": "2025-10-22",
+          "train_rows": 132681,
+          "train_cutoffs": 294,
+          "trained_through": "2025-09-17"
+        },
+        {
+          "refit_at": "2026-01-27",
+          "train_rows": 136169,
+          "train_cutoffs": 301,
+          "trained_through": "2026-01-12"
+        },
+        {
+          "refit_at": "2026-05-21",
+          "train_rows": 140173,
+          "train_cutoffs": 309,
+          "trained_through": "2026-04-23"
+        }
+      ],
+      "carrier_diagnostics": {
+        "n_cutoffs": 255,
+        "spearman_vs_factor": {
+          "mean": -0.2506,
+          "min": -0.506,
+          "max": 0.0863,
+          "share_negative": 0.949,
+          "share_below_0.99": 1.0
+        },
+        "inversions": {
+          "total": 31615,
+          "cutoffs_with_any": 255
+        },
+        "runs_vs_factor": {
+          "median": 245,
+          "min": 225,
+          "max": 249
+        },
+        "distinct_scores": {
+          "median": 245,
+          "min": 225,
+          "max": 249
+        },
+        "cross_section": {
+          "min": 426,
+          "max": 502
+        },
+        "is_univariate_in_factor": true,
+        "collapsed_cutoffs": 0
+      },
+      "gates_are_diagnostic_here": "V2_2_PREREGISTRATION.md \u00a76.3 gates the *selected arm* on development. The nine V2.1 criteria below are the same arithmetic run on the same slice and decide nothing here; \u00a78 keeps the exam sealed either way.",
+      "diagnostic_gates_passed": false,
+      "diagnostic_failed_gates": [
+        "1_mean_ic",
+        "2_ic_hit_rate",
+        "3_top_minus_bottom",
+        "4_sign_stability",
+        "5_beats_12_1_momentum",
+        "6_beats_5d_reversal",
+        "7_no_regime_collapse",
+        "9_cost_adjusted_spread"
+      ]
+    }
+  },
+  "eligibility": {
+    "V2.2-A": {
+      "arm": "V2.2-A",
+      "g1_carrier_integrity": {
+        "rung": "S1-A",
+        "criterion": "paired mean per-cutoff IC of the one-feature rung minus S0",
+        "threshold": ">= -0.005",
+        "value": -0.02495,
+        "ci": [
+          -0.05273,
+          0.00233
+        ],
+        "n_cutoffs": 255,
+        "rung_mean_ic_on_paired_cutoffs": -0.00381,
+        "s0_mean_ic_on_paired_cutoffs": 0.02115,
+        "passed": false
+      },
+      "scored_cutoffs": {
+        "value": 255,
+        "threshold": ">= 200",
+        "passed": true
+      },
+      "eligible": false,
+      "consequence": "carrier-defective: reported in full, not eligible for selection whatever its IC (\u00a76.1)"
+    },
+    "V2.2-B": {
+      "arm": "V2.2-B",
+      "g1_carrier_integrity": {
+        "rung": "S1-B",
+        "criterion": "paired mean per-cutoff IC of the one-feature rung minus S0",
+        "threshold": ">= -0.005",
+        "value": -0.00018,
+        "ci": [
+          -0.0005,
+          0.00012
+        ],
+        "n_cutoffs": 255,
+        "rung_mean_ic_on_paired_cutoffs": 0.02097,
+        "s0_mean_ic_on_paired_cutoffs": 0.02115,
+        "passed": true
+      },
+      "scored_cutoffs": {
+        "value": 255,
+        "threshold": ">= 200",
+        "passed": true
+      },
+      "eligible": true,
+      "consequence": "eligible for selection"
+    },
+    "V2.2-C": {
+      "arm": "V2.2-C",
+      "g1_carrier_integrity": {
+        "rung": "S1-C",
+        "criterion": "paired mean per-cutoff IC of the one-feature rung minus S0",
+        "threshold": ">= -0.005",
+        "value": -0.00696,
+        "ci": [
+          -0.01467,
+          0.00164
+        ],
+        "n_cutoffs": 210,
+        "rung_mean_ic_on_paired_cutoffs": 0.00725,
+        "s0_mean_ic_on_paired_cutoffs": 0.01421,
+        "passed": false
+      },
+      "scored_cutoffs": {
+        "value": 255,
+        "threshold": ">= 200",
+        "passed": true
+      },
+      "eligible": false,
+      "consequence": "carrier-defective: reported in full, not eligible for selection whatever its IC (\u00a76.1)"
+    }
+  },
+  "holm_bonferroni_on_development": {
+    "V2.2-A": {
+      "p_raw": 0.0005,
+      "p_holm": 0.0015,
+      "significant": true
+    },
+    "V2.2-C": {
+      "p_raw": 0.0036,
+      "p_holm": 0.0072,
+      "significant": true
+    },
+    "V2.2-B": {
+      "p_raw": 0.06929,
+      "p_holm": 0.06929,
+      "significant": false
+    }
+  },
+  "selected_arm": "V2.2-B",
+  "gate": {
+    "arm": "V2.2-B",
+    "gates": {
+      "G2_beats_12_1_momentum": {
+        "threshold": "paired mean IC difference > 0, 95% block-bootstrap CI excludes 0",
+        "value": 0.00241,
+        "ci": [
+          0.00069,
+          0.00434
+        ],
+        "passed": true
+      },
+      "G3_beats_regime_switched_momentum": {
+        "threshold": "paired mean IC difference > 0, 95% block-bootstrap CI excludes 0",
+        "value": -0.0048,
+        "ci": [
+          -0.01682,
+          0.00534
+        ],
+        "passed": false
+      },
+      "G4_breadth": {
+        "threshold": "paired difference > 0 on >= 55% of scored cutoffs, against both benchmarks",
+        "value": {
+          "vs_b1": 0.5882,
+          "vs_b3": 0.5686
+        },
+        "passed": true
+      },
+      "G5_stability": {
+        "threshold": "paired mean difference > 0 in each chronological half, against both benchmarks",
+        "value": {
+          "vs_b1": {
+            "first": {
+              "n": 128,
+              "mean": 0.00378
+            },
+            "second": {
+              "n": 127,
+              "mean": 0.00103
+            }
+          },
+          "vs_b3": {
+            "first": {
+              "n": 128,
+              "mean": -0.00929
+            },
+            "second": {
+              "n": 127,
+              "mean": -0.00028
+            }
+          }
+        },
+        "passed": false
+      }
+    },
+    "passed": false,
+    "versus_benchmarks": {
+      "b1_momentum_12_1": {
+        "n_cutoffs": 255,
+        "mean": 0.00241,
+        "ci": [
+          0.00069,
+          0.00434
+        ],
+        "share_positive": 0.5882,
+        "halves": {
+          "first": {
+            "n": 128,
+            "mean": 0.00378
+          },
+          "second": {
+            "n": 127,
+            "mean": 0.00103
+          }
+        },
+        "beats": true,
+        "breadth": true,
+        "stable": true
+      },
+      "b3_regime_switched": {
+        "n_cutoffs": 255,
+        "mean": -0.0048,
+        "ci": [
+          -0.01682,
+          0.00534
+        ],
+        "share_positive": 0.5686,
+        "halves": {
+          "first": {
+            "n": 128,
+            "mean": -0.00929
+          },
+          "second": {
+            "n": 127,
+            "mean": -0.00028
+          }
+        },
+        "beats": false,
+        "breadth": true,
+        "stable": false
+      }
+    },
+    "consequence": "the gate is closed. The carrier diagnosis is V2.2's contribution; production stays at weight 0 / HOLD (\u00a79.1)"
+  },
+  "regime_ic": {
+    "S1-A": {
+      "BEAR_TREND": -0.01114,
+      "BULL_TREND": -0.00431,
+      "SIDEWAYS": 0.00872,
+      "HIGH_VOL": -0.00169,
+      "LOW_VOL": -0.00587
+    },
+    "S1-B": {
+      "BEAR_TREND": -0.03345,
+      "BULL_TREND": 0.02531,
+      "SIDEWAYS": 0.0453,
+      "HIGH_VOL": 0.05224,
+      "LOW_VOL": -0.00957
+    },
+    "S1-C": {
+      "BEAR_TREND": -0.03825,
+      "BULL_TREND": 0.01102,
+      "SIDEWAYS": 0.03348,
+      "HIGH_VOL": 0.03142,
+      "LOW_VOL": -0.02145
+    },
+    "raw_level__winsorised_level": {
+      "BEAR_TREND": 0.0167,
+      "BULL_TREND": -0.00109,
+      "SIDEWAYS": -0.00381,
+      "HIGH_VOL": -0.00561,
+      "LOW_VOL": 0.00654
+    },
+    "raw_level__rank": {
+      "BEAR_TREND": -0.00125,
+      "BULL_TREND": 0.00226,
+      "SIDEWAYS": 0.00618,
+      "HIGH_VOL": 0.00057,
+      "LOW_VOL": 0.0039
+    },
+    "z_rank__winsorised_level": {
+      "BEAR_TREND": -0.00528,
+      "BULL_TREND": -0.0059,
+      "SIDEWAYS": -0.00244,
+      "HIGH_VOL": -0.0108,
+      "LOW_VOL": -0.00033
+    },
+    "V2.2-A": {
+      "BEAR_TREND": 0.06288,
+      "BULL_TREND": 0.02703,
+      "SIDEWAYS": 0.04385,
+      "HIGH_VOL": 0.04378,
+      "LOW_VOL": 0.02129
+    },
+    "V2.2-B": {
+      "BEAR_TREND": -0.02602,
+      "BULL_TREND": 0.02702,
+      "SIDEWAYS": 0.0499,
+      "HIGH_VOL": 0.05566,
+      "LOW_VOL": -0.00779
+    },
+    "V2.2-C": {
+      "BEAR_TREND": 0.06286,
+      "BULL_TREND": 0.02403,
+      "SIDEWAYS": 0.01432,
+      "HIGH_VOL": 0.03422,
+      "LOW_VOL": 0.02039
+    }
+  },
+  "regime_note": "\u00a77: diagnostic only. Regime breakdowns may not select an arm, explain a failure, restrict a conclusion to a bucket or justify an interaction. V2's development edge lived in BEAR_TREND and inverted to SIDEWAYS on its exam, so a V2.2 arm that concentrates in BEAR_TREND is a warning signal, not evidence of robustness.",
+  "exam_may_be_opened": false,
+  "exam_note": "\u00a78: the V2.1 exam is not opened by this stage even if every gate passes. V2_2_EXAM_DECISION.md has to be written first, and it has to answer whether a paper frozen for a V2.1 arm tests a V2.2 arm at all, what the family size for the exam correction is, and the resolution problem \u2014 the 72-cutoff exam's half-width against B1 is ~0.065, three times V2.1-D's edge.",
+  "production_weight": 0.0,
+  "production_weight_note": "Unchanged and not a result of this stage. \u00a71.4 fixes it at 0 / HOLD and nothing in V2.2 can move it; alpha/adapter.py is not modified."
+}

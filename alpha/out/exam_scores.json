@@ -1,0 +1,327 @@
+{
+  "written_at": "2026-08-08T09:45:26",
+  "predictions_written_at": "2026-08-08T09:45:19",
+  "configuration": {
+    "experiment": "V2-F",
+    "tiers": [
+      "absolute",
+      "relative",
+      "context"
+    ],
+    "train_target": "target_vol_scaled",
+    "baseline_factor": "mom_5d",
+    "baseline_sign": -1,
+    "chosen_by": "highest mean development IC, frozen before the exam"
+  },
+  "n_cutoffs": 12,
+  "n_predictions": 5899,
+  "ic": {
+    "what": "V2-F Spearman IC",
+    "n_cutoffs": 12,
+    "mean": 0.05769,
+    "median": 0.0204,
+    "sd": 0.25673,
+    "hit_rate": 0.5833,
+    "naive_se": 0.07411,
+    "nw_se": 0.06221,
+    "boot_lo": -0.06328,
+    "boot_hi": 0.23886,
+    "t": 0.927,
+    "p_nw": 0.37361,
+    "p_boot": 0.49825,
+    "excludes_null": false
+  },
+  "spread": {
+    "what": "V2-F top-bottom spread",
+    "n_cutoffs": 12,
+    "mean": 0.00462,
+    "median": -0.00636,
+    "sd": 0.03614,
+    "hit_rate": 0.4167,
+    "naive_se": 0.01043,
+    "nw_se": 0.00897,
+    "boot_lo": -0.01225,
+    "boot_hi": 0.02926,
+    "t": 0.515,
+    "p_nw": 0.61693,
+    "p_boot": 0.65523,
+    "excludes_null": false
+  },
+  "top_quintile": {
+    "what": "V2-F top quintile alpha",
+    "n_cutoffs": 12,
+    "mean": -0.00202,
+    "median": -0.00622,
+    "sd": 0.02394,
+    "hit_rate": 0.4167,
+    "naive_se": 0.00691,
+    "nw_se": 0.00522,
+    "boot_lo": -0.01153,
+    "boot_hi": 0.01265,
+    "t": -0.387,
+    "p_nw": 0.70642,
+    "p_boot": 0.76072,
+    "excludes_null": false
+  },
+  "bottom_quintile": {
+    "what": "V2-F bottom quintile alpha",
+    "n_cutoffs": 12,
+    "mean": -0.00664,
+    "median": -0.00487,
+    "sd": 0.01861,
+    "hit_rate": 0.3333,
+    "naive_se": 0.00537,
+    "nw_se": 0.0053,
+    "boot_lo": -0.01885,
+    "boot_hi": 0.00597,
+    "t": -1.252,
+    "p_nw": 0.23659,
+    "p_boot": 0.32897,
+    "excludes_null": false
+  },
+  "baseline": {
+    "name": "A\u2032 mom_5d(-1)",
+    "ic": {
+      "what": "A\u2032 mom_5d(-1)",
+      "n_cutoffs": 12,
+      "mean": -0.01209,
+      "median": -0.03493,
+      "sd": 0.19238,
+      "hit_rate": 0.4167,
+      "naive_se": 0.05553,
+      "nw_se": 0.06658,
+      "boot_lo": -0.16708,
+      "boot_hi": 0.04258,
+      "t": -0.182,
+      "p_nw": 0.85918,
+      "p_boot": 0.91051,
+      "excludes_null": false
+    }
+  },
+  "versus_simple_factor": {
+    "what": "V2-F IC \u2212 A\u2032 mom_5d(-1) IC",
+    "n_cutoffs": 12,
+    "mean": 0.06979,
+    "median": -0.03535,
+    "sd": 0.35903,
+    "hit_rate": 0.3333,
+    "naive_se": 0.10364,
+    "nw_se": 0.12214,
+    "boot_lo": -0.09162,
+    "boot_hi": 0.39877,
+    "t": 0.571,
+    "p_nw": 0.57924,
+    "p_boot": 0.63514,
+    "excludes_null": false
+  },
+  "regime_ic": {
+    "BEAR_TREND": {
+      "n_cutoffs": 1,
+      "mean_ic": 0.03999777468087533,
+      "hit_rate": 1.0
+    },
+    "BULL_TREND": {
+      "n_cutoffs": 8,
+      "mean_ic": -0.08154441313254132,
+      "hit_rate": 0.375
+    },
+    "SIDEWAYS": {
+      "n_cutoffs": 3,
+      "mean_ic": 0.4348953820620438,
+      "hit_rate": 1.0
+    },
+    "HIGH_VOL": {
+      "n_cutoffs": 8,
+      "mean_ic": 0.08317492486371414,
+      "hit_rate": 0.5
+    },
+    "LOW_VOL": {
+      "n_cutoffs": 4,
+      "mean_ic": 0.006732304224240756,
+      "hit_rate": 0.75
+    }
+  },
+  "per_cutoff": {
+    "2022-03-08": {
+      "ic": 0.2718975746564346,
+      "top": 0.009902628185026097,
+      "bottom": -0.02224630836411116,
+      "spread": 0.03214893654913726,
+      "n": 471.0,
+      "trend": "SIDEWAYS",
+      "vol": "HIGH_VOL"
+    },
+    "2022-10-10": {
+      "ic": 0.03999777468087533,
+      "top": -0.010509578769967847,
+      "bottom": -0.004695627288857827,
+      "spread": -0.005813951481110019,
+      "n": 476.0,
+      "trend": "BEAR_TREND",
+      "vol": "HIGH_VOL"
+    },
+    "2024-08-13": {
+      "ic": -0.19734519616020768,
+      "top": -0.014723731294098897,
+      "bottom": -0.0009514793175112781,
+      "spread": -0.013772251976587619,
+      "n": 488.0,
+      "trend": "BULL_TREND",
+      "vol": "HIGH_VOL"
+    },
+    "2024-09-05": {
+      "ic": -0.1280182788839826,
+      "top": -0.01963911243700233,
+      "bottom": -0.005034728608120789,
+      "spread": -0.014604383828881542,
+      "n": 489.0,
+      "trend": "BULL_TREND",
+      "vol": "HIGH_VOL"
+    },
+    "2024-12-10": {
+      "ic": 0.062043233696712365,
+      "top": -0.01871310026130276,
+      "bottom": -0.025018987353548378,
+      "spread": 0.006305887092245617,
+      "n": 490.0,
+      "trend": "BULL_TREND",
+      "vol": "LOW_VOL"
+    },
+    "2025-03-27": {
+      "ic": 0.6291527619516121,
+      "top": 0.06169361377252277,
+      "bottom": -0.03268415084093766,
+      "spread": 0.09437776461346042,
+      "n": 493.0,
+      "trend": "SIDEWAYS",
+      "vol": "HIGH_VOL"
+    },
+    "2025-06-23": {
+      "ic": 0.40363580957808465,
+      "top": 0.009549437732463533,
+      "bottom": -0.028525034735911444,
+      "spread": 0.038074472468374976,
+      "n": 495.0,
+      "trend": "SIDEWAYS",
+      "vol": "HIGH_VOL"
+    },
+    "2025-11-28": {
+      "ic": 0.001525280716557409,
+      "top": -0.0019238488828600636,
+      "bottom": 0.004972293616191061,
+      "spread": -0.006896142499051124,
+      "n": 497.0,
+      "trend": "BULL_TREND",
+      "vol": "LOW_VOL"
+    },
+    "2026-02-06": {
+      "ic": -0.14930864137914382,
+      "top": 0.009028399681524918,
+      "bottom": 0.031778380533706324,
+      "spread": -0.022749980852181405,
+      "n": 499.0,
+      "trend": "BULL_TREND",
+      "vol": "HIGH_VOL"
+    },
+    "2026-05-07": {
+      "ic": -0.07591353555584063,
+      "top": -0.022358718342697533,
+      "bottom": 0.004318200870557853,
+      "spread": -0.026676919213255386,
+      "n": 502.0,
+      "trend": "BULL_TREND",
+      "vol": "LOW_VOL"
+    },
+    "2026-07-07": {
+      "ic": 0.03927423803953388,
+      "top": 0.00012784016843275014,
+      "bottom": -0.011534218965914467,
+      "spread": 0.011662059134347218,
+      "n": 500.0,
+      "trend": "BULL_TREND",
+      "vol": "LOW_VOL"
+    },
+    "2026-07-24": {
+      "ic": -0.20461240553395943,
+      "top": -0.026655211556976397,
+      "bottom": 0.009975074221938822,
+      "spread": -0.03663028577891522,
+      "n": 499.0,
+      "trend": "BULL_TREND",
+      "vol": "HIGH_VOL"
+    }
+  },
+  "criteria": {
+    "1_mean_ic": {
+      "value": 0.05769,
+      "threshold": "> 0.03",
+      "ci": [
+        -0.06328,
+        0.23886
+      ],
+      "passed": false
+    },
+    "2_ic_hit_rate": {
+      "value": 0.5833,
+      "threshold": "> 0.55",
+      "ci": [
+        0.4167,
+        0.8333
+      ],
+      "passed": false
+    },
+    "3_top_minus_bottom": {
+      "value": 0.00462,
+      "threshold": "> 0, CI excludes 0",
+      "ci": [
+        -0.01225,
+        0.02926
+      ],
+      "passed": false
+    },
+    "4_sign_stability": {
+      "value": 0.5833,
+      "threshold": ">= 0.6",
+      "passed": false
+    },
+    "5_beats_simple_factor": {
+      "value": 0.06979,
+      "threshold": "> 0, CI excludes 0",
+      "ci": [
+        -0.09162,
+        0.39877
+      ],
+      "passed": false
+    },
+    "6_no_regime_collapse": {
+      "value": {
+        "BEAR_TREND": 0.04,
+        "BULL_TREND": -0.0815,
+        "SIDEWAYS": 0.4349,
+        "HIGH_VOL": 0.0832,
+        "LOW_VOL": 0.0067
+      },
+      "threshold": "mean IC > 0 in every regime",
+      "passed": false
+    },
+    "7_effective_sample": {
+      "value": 12,
+      "threshold": ">= 50 cutoffs",
+      "passed": false
+    }
+  },
+  "passed_all_seven": false,
+  "failed_criteria": [
+    "1_mean_ic",
+    "2_ic_hit_rate",
+    "3_top_minus_bottom",
+    "4_sign_stability",
+    "5_beats_simple_factor",
+    "6_no_regime_collapse",
+    "7_effective_sample"
+  ],
+  "passed_six_excluding_sample_size": false,
+  "criterion_7_note": "Criterion 7 requires >= 50 cutoffs; the exam paper is 12. It cannot pass on this set. Under \u00a79 that holds production weight at 0 by construction. Reported, not relaxed: the twelve dates were frozen by V1 and cannot be extended without un-freezing them. The other six criteria are still reported on their own terms, and the development set is where criterion 7 was actually testable.",
+  "production_weight": 0.0,
+  "production_weight_note": "0 under \u00a79 in every branch reachable from a 12-date exam. Raising it would require a larger frozen exam set, agreed in advance."
+}

@@ -13,5 +13,18 @@ app/runs/
 # Secrets never are.
 .streamlit/secrets.toml
 
-# Personal financial data — real positions and cost basis. Never commit.
+# Personal financial data — real positions, cost basis, and every trade
+# ever entered against them. Never commit.
 app/holdings.json
+app/transactions.json
+
+# --- V2 alpha research: derived data, deliberately not versioned. ---
+# Excluded at programme closure because each is regenerable from committed code
+# and too large to version (alpha/cache/ ~171 MB of vendor CSVs; panel.pkl 212 MB).
+# The SHA-256 of every excluded artefact is recorded in
+# reports/V2_3_EVIDENCE_MANIFEST.md, so an excluded file stays identifiable even
+# though it is not stored here. Rebuild path is in
+# reports/V2_3_REPRODUCTION_CHECKLIST.md.
+alpha/cache/
+alpha/out/panel.pkl
+alpha/out/run1_dead_ret_12_1/development.pkl
