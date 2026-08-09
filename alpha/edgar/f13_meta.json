@@ -1,0 +1,27 @@
+{
+  "built_at": "2026-08-09T23:04:00",
+  "seconds": 479.3,
+  "archives": 45,
+  "map_sample_archives": [
+    "01dec2024-28feb2025_form13f.zip",
+    "01mar2025-31may2025_form13f.zip",
+    "2015q4_form13f.zip",
+    "2017q2_form13f.zip",
+    "2018q4_form13f.zip",
+    "2020q2_form13f.zip",
+    "2021q4_form13f.zip",
+    "2023q2_form13f.zip",
+    "2023q4_form13f.zip"
+  ],
+  "issuers_mapped": 573,
+  "issuers_in_universe": 619,
+  "map_rate": 0.9257,
+  "event_rows": 20687226,
+  "distinct_filers": 11661,
+  "issuers_with_holdings": 572,
+  "periods": 80,
+  "first_period": "1987-03-31",
+  "last_period": "2026-03-31",
+  "first_filed": "2015-04-01",
+  "last_filed": "2026-05-29"
+}

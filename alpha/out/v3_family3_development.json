@@ -1,0 +1,586 @@
+{
+  "protocol": "V3",
+  "family": "3 - 13F institutional holdings",
+  "stage": "Phase 5 information-only",
+  "preregistration": "alpha/V3_FAMILY3_PREREGISTRATION.md",
+  "amendment": "A1 830aafc62274c6cac29574f3bf2e7458090ed0c8",
+  "budget_slot_spent": 3,
+  "written_at": "2026-08-09T23:05:49",
+  "exam_set_digest": "b55e065f4c9f91737b7a56fd715f0913cf8f41207bdb24d91452c10bc1c98ab0",
+  "exam_contamination": 0,
+  "development_cutoffs": 316,
+  "rows": 143675,
+  "lambda": 0.25,
+  "feature_sign": 1,
+  "winsor": null,
+  "target": "alpha_5d",
+  "horizon_sessions": 5,
+  "feature_defined": 0.8556,
+  "arms": {
+    "Arm0_holdings_rank": {
+      "ic": {
+        "what": "Arm0_holdings_rank IC",
+        "n_cutoffs": 316,
+        "mean": -0.00659,
+        "median": -0.00815,
+        "sd": 0.07039,
+        "hit_rate": 0.4747,
+        "boot_lo": -0.01465,
+        "boot_hi": 0.00051,
+        "half_width": 0.00758,
+        "nw_se": 0.00385,
+        "p_boot": 0.09159,
+        "excludes_null": false
+      },
+      "spread": {
+        "what": "Arm0_holdings_rank top-bottom spread",
+        "n_cutoffs": 316,
+        "mean": -0.00064,
+        "median": -0.00033,
+        "sd": 0.00762,
+        "hit_rate": 0.4715,
+        "boot_lo": -0.00141,
+        "boot_hi": 0.00014,
+        "half_width": 0.00078,
+        "nw_se": 0.00038,
+        "p_boot": 0.09989,
+        "excludes_null": false
+      },
+      "turnover": 0.116,
+      "halves_ic": {
+        "first": {
+          "n": 158,
+          "mean": -0.00174,
+          "from": "2016-01-04",
+          "to": "2020-04-27"
+        },
+        "second": {
+          "n": 158,
+          "mean": -0.01144,
+          "from": "2020-05-04",
+          "to": "2026-07-28"
+        },
+        "both_positive": false
+      },
+      "versus": {
+        "b1_momentum_12_1": {
+          "what": "Arm0_holdings_rank vs b1_momentum_12_1",
+          "n_cutoffs": 316,
+          "mean": -0.01659,
+          "median": -0.02655,
+          "sd": 0.23376,
+          "hit_rate": 0.462,
+          "boot_lo": -0.04109,
+          "boot_hi": 0.00652,
+          "half_width": 0.0238,
+          "nw_se": 0.01194,
+          "p_boot": 0.17658,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": -0.00487,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": -0.0283,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": -0.02491
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": 0.04973
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": -0.02435
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": -0.02485,
+              "median": -0.03421,
+              "sd": 0.23036,
+              "hit_rate": 0.4413,
+              "boot_lo": -0.05066,
+              "boot_hi": -0.00106,
+              "half_width": 0.0248,
+              "nw_se": 0.01224,
+              "p_boot": 0.0476,
+              "excludes_null": true
+            }
+          }
+        },
+        "b2_reversal_5d": {
+          "what": "Arm0_holdings_rank vs b2_reversal_5d",
+          "n_cutoffs": 316,
+          "mean": -0.01334,
+          "median": -0.00808,
+          "sd": 0.19686,
+          "hit_rate": 0.481,
+          "boot_lo": -0.03532,
+          "boot_hi": 0.00584,
+          "half_width": 0.02058,
+          "nw_se": 0.01022,
+          "p_boot": 0.19808,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": -0.00835,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": -0.01832,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": -0.0095
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": -0.06236
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": 0.01103
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": -0.00723,
+              "median": -0.00356,
+              "sd": 0.19709,
+              "hit_rate": 0.4982,
+              "boot_lo": -0.02992,
+              "boot_hi": 0.01274,
+              "half_width": 0.02133,
+              "nw_se": 0.01083,
+              "p_boot": 0.51415,
+              "excludes_null": false
+            }
+          }
+        },
+        "b3_regime_switched": {
+          "what": "Arm0_holdings_rank vs b3_regime_switched",
+          "n_cutoffs": 316,
+          "mean": -0.029,
+          "median": -0.03438,
+          "sd": 0.22635,
+          "hit_rate": 0.4304,
+          "boot_lo": -0.05188,
+          "boot_hi": -0.00656,
+          "half_width": 0.02266,
+          "nw_se": 0.01123,
+          "p_boot": 0.0136,
+          "excludes_null": true,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": -0.03,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": -0.02801,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": -0.02491
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": -0.06236
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": -0.02435
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": -0.02485,
+              "median": -0.03421,
+              "sd": 0.23036,
+              "hit_rate": 0.4413,
+              "boot_lo": -0.05066,
+              "boot_hi": -0.00106,
+              "half_width": 0.0248,
+              "nw_se": 0.01224,
+              "p_boot": 0.0476,
+              "excludes_null": true
+            }
+          }
+        }
+      },
+      "net_of_cost": {
+        "gross_spread_advantage": {
+          "what": "Arm0_holdings_rank gross spread vs B3",
+          "n_cutoffs": 316,
+          "mean": -0.00262,
+          "median": -0.00355,
+          "sd": 0.02515,
+          "hit_rate": 0.4209,
+          "boot_lo": -0.00506,
+          "boot_hi": -9e-05,
+          "half_width": 0.00248,
+          "nw_se": 0.00125,
+          "p_boot": 0.0388,
+          "excludes_null": true
+        },
+        "extra_turnover": -0.1148,
+        "cost_drag_per_cutoff": 0.0,
+        "net_spread_advantage": -0.002617
+      }
+    },
+    "Arm1_b3_plus_holdings": {
+      "ic": {
+        "what": "Arm1_b3_plus_holdings IC",
+        "n_cutoffs": 316,
+        "mean": 0.01903,
+        "median": 0.01839,
+        "sd": 0.22536,
+        "hit_rate": 0.5411,
+        "boot_lo": -0.00477,
+        "boot_hi": 0.04259,
+        "half_width": 0.02368,
+        "nw_se": 0.01187,
+        "p_boot": 0.10929,
+        "excludes_null": false
+      },
+      "spread": {
+        "what": "Arm1_b3_plus_holdings top-bottom spread",
+        "n_cutoffs": 316,
+        "mean": 0.00183,
+        "median": 0.00236,
+        "sd": 0.02433,
+        "hit_rate": 0.5665,
+        "boot_lo": -0.00073,
+        "boot_hi": 0.00432,
+        "half_width": 0.00253,
+        "nw_se": 0.00131,
+        "p_boot": 0.15768,
+        "excludes_null": false
+      },
+      "turnover": 0.2336,
+      "halves_ic": {
+        "first": {
+          "n": 158,
+          "mean": 0.02573,
+          "from": "2016-01-04",
+          "to": "2020-04-27"
+        },
+        "second": {
+          "n": 158,
+          "mean": 0.01233,
+          "from": "2020-05-04",
+          "to": "2026-07-28"
+        },
+        "both_positive": true
+      },
+      "versus": {
+        "b1_momentum_12_1": {
+          "what": "Arm1_b3_plus_holdings vs b1_momentum_12_1",
+          "n_cutoffs": 316,
+          "mean": 0.00903,
+          "median": -0.00243,
+          "sd": 0.1049,
+          "hit_rate": 0.462,
+          "boot_lo": -0.00362,
+          "boot_hi": 0.02359,
+          "half_width": 0.0136,
+          "nw_se": 0.00711,
+          "p_boot": 0.18478,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": 0.02259,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": -0.00454,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": -0.00417
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": 0.11178
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": -0.00059
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": -0.00377,
+              "median": -0.00309,
+              "sd": 0.02756,
+              "hit_rate": 0.4413,
+              "boot_lo": -0.00678,
+              "boot_hi": -0.00109,
+              "half_width": 0.00284,
+              "nw_se": 0.00143,
+              "p_boot": 0.0114,
+              "excludes_null": true
+            }
+          }
+        },
+        "b2_reversal_5d": {
+          "what": "Arm1_b3_plus_holdings vs b2_reversal_5d",
+          "n_cutoffs": 316,
+          "mean": 0.01227,
+          "median": 0.00443,
+          "sd": 0.27167,
+          "hit_rate": 0.5158,
+          "boot_lo": -0.01518,
+          "boot_hi": 0.03802,
+          "half_width": 0.0266,
+          "nw_se": 0.01358,
+          "p_boot": 0.36346,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": 0.01911,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": 0.00544,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": true
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": 0.01124
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": -0.00031
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": 0.03479
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": 0.01384,
+              "median": 0.01843,
+              "sd": 0.28796,
+              "hit_rate": 0.516,
+              "boot_lo": -0.01649,
+              "boot_hi": 0.0429,
+              "half_width": 0.0297,
+              "nw_se": 0.0148,
+              "p_boot": 0.36376,
+              "excludes_null": false
+            }
+          }
+        },
+        "b3_regime_switched": {
+          "what": "Arm1_b3_plus_holdings vs b3_regime_switched",
+          "n_cutoffs": 316,
+          "mean": -0.00339,
+          "median": -0.00263,
+          "sd": 0.02745,
+          "hit_rate": 0.4494,
+          "boot_lo": -0.00631,
+          "boot_hi": -0.00073,
+          "half_width": 0.00279,
+          "nw_se": 0.00139,
+          "p_boot": 0.0169,
+          "excludes_null": true,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": -0.00253,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": -0.00424,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": -0.00417
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": -0.00031
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": -0.00059
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": -0.00377,
+              "median": -0.00309,
+              "sd": 0.02756,
+              "hit_rate": 0.4413,
+              "boot_lo": -0.00678,
+              "boot_hi": -0.00109,
+              "half_width": 0.00284,
+              "nw_se": 0.00143,
+              "p_boot": 0.0114,
+              "excludes_null": true
+            }
+          }
+        }
+      },
+      "net_of_cost": {
+        "gross_spread_advantage": {
+          "what": "Arm1_b3_plus_holdings gross spread vs B3",
+          "n_cutoffs": 316,
+          "mean": -0.00015,
+          "median": -0.00048,
+          "sd": 0.00403,
+          "hit_rate": 0.4399,
+          "boot_lo": -0.00054,
+          "boot_hi": 0.00026,
+          "half_width": 0.0004,
+          "nw_se": 0.0002,
+          "p_boot": 0.47055,
+          "excludes_null": false
+        },
+        "extra_turnover": 0.0029,
+        "cost_drag_per_cutoff": 3e-06,
+        "net_spread_advantage": -0.000148
+      }
+    }
+  },
+  "benchmarks": {
+    "b1_momentum_12_1": {
+      "what": "b1_momentum_12_1",
+      "n_cutoffs": 316,
+      "mean": 0.01,
+      "median": 0.01623,
+      "sd": 0.23535,
+      "hit_rate": 0.5316,
+      "boot_lo": -0.01342,
+      "boot_hi": 0.0343,
+      "half_width": 0.02386,
+      "nw_se": 0.01195,
+      "p_boot": 0.40576,
+      "excludes_null": false
+    },
+    "b2_reversal_5d": {
+      "what": "b2_reversal_5d",
+      "n_cutoffs": 316,
+      "mean": 0.00675,
+      "median": 0.00379,
+      "sd": 0.17835,
+      "hit_rate": 0.5095,
+      "boot_lo": -0.01062,
+      "boot_hi": 0.0261,
+      "half_width": 0.01836,
+      "nw_se": 0.00923,
+      "p_boot": 0.47065,
+      "excludes_null": false
+    },
+    "b3_regime_switched": {
+      "what": "b3_regime_switched",
+      "n_cutoffs": 316,
+      "mean": 0.02241,
+      "median": 0.02975,
+      "sd": 0.22698,
+      "hit_rate": 0.5601,
+      "boot_lo": -0.00086,
+      "boot_hi": 0.0457,
+      "half_width": 0.02328,
+      "nw_se": 0.0116,
+      "p_boot": 0.05829,
+      "excludes_null": false
+    }
+  },
+  "primary": {
+    "contrast": "Arm1_b3_plus_holdings - b3_regime_switched",
+    "n_cutoffs": 316,
+    "mean": -0.00339,
+    "ci": [
+      -0.00631,
+      -0.00073
+    ],
+    "half_width": 0.00279,
+    "breadth": 0.4494,
+    "threshold": 0.01,
+    "criterion_2_rule": "A1: bool(lo > 0.0) - favourable side only",
+    "criteria": {
+      "1_effect_at_least_0.010": false,
+      "2_ci_excludes_zero_favourably": false,
+      "3_breadth_and_halves": false,
+      "4_survives_ex_bear": false
+    },
+    "all_passed": false,
+    "decision": "REJECT"
+  },
+  "noise_control": {
+    "draws": 30,
+    "paired": true,
+    "median": -0.00142,
+    "mean": -0.00126,
+    "sd": 0.00118,
+    "share_above_threshold": 0.0,
+    "median_limit": 0.002,
+    "exceedance_limit": 0.1,
+    "passed": true
+  },
+  "holm_bonferroni": {
+    "Arm0_holdings_rank": {
+      "p_raw": 0.0136,
+      "p_holm": 0.0272,
+      "significant": true
+    },
+    "Arm1_b3_plus_holdings": {
+      "p_raw": 0.0169,
+      "p_holm": 0.0272,
+      "significant": true
+    }
+  },
+  "seconds": 10.7
+}

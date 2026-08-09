@@ -12,6 +12,42 @@ unfalsifiable.
 
 ## The one thing that matters if you read nothing else
 
+**ALL THREE budget slots are spent. All three families were REJECTED. Under §21 the
+V3 family-testing programme is CLOSED** - no fourth family, no Family 1'/2'/3', no
+re-test at another horizon. The comparative diagnosis §21 requires is in
+`alpha/V3_FAMILY3_REPORT.md` §8 and summarised below.
+
+| Family | Information | Own IC | Arm 1 - B3 | Decision |
+|---|---|---|---|---|
+| 1 | EDGAR fundamentals, time-series SUE | **+0.01305, CI excludes zero** | +0.00090 | REJECT |
+| 2 | Form 4 insider open-market purchases | -0.00547, CI spans zero | -0.00096 | REJECT |
+| 3 | 13F institutional holdings change | -0.00659, CI spans zero | **-0.00339** | REJECT |
+
+**What failed, and what did not.** Not power - every family resolved 2-25x better than
+its +0.007 MDE. Not point-in-time quality - three tested doors, and Family 3's cannot
+leak by construction. Not coverage - 93%, 13.6% and 85.6% failed alike. Not the target -
+the same IC resolves B3 at +0.02241.
+
+**The information failed, in three distinguishable ways:** Family 1 was **real but not
+incremental**; Family 2 was **absent and structurally untradeable** (86% tied at zero, so
+no name reached the bottom quintile at any of 316 cutoffs); Family 3 was **absent and
+orthogonal** (|rho| 0.0726 against momentum - the cleanest test of the three, and still
+nothing).
+
+**Two formulation-level faults the evidence points to.** First, every family was tested as
+a bounded tilt at lambda 0.25, which is 0.97-0.99 correlated with B3 *by construction* -
+the design bought resolution by surrendering the authority needed to move anything, and
+the binding constraint is the ~500-cutoff history rather than the choice of information.
+Second, §27B's free-data constraint and TARGET_DESIGN §4.2's 5D/10D cap were set
+independently and **jointly select for a mismatch**: free filing-timestamped data is
+quarterly-to-event and 45-135 days stale, and it was tested against a 5-session horizon.
+**Whether the horizon was wrong is now unresolvable** - §2.9/§21 bar re-testing any
+rejected family at 10D or 20D.
+
+---
+
+### The earlier reading, superseded
+
 **Two of the three budget slots are now spent, both on rejections. One remains.**
 Family 1 (reported fundamentals / SUE) and Family 2 (Form 4 insider open-market
 purchases) were each tested and REJECTED on their pre-registered rules. **If Family 3
@@ -68,7 +104,9 @@ Legend: **[x]** done · **[ ]** not started · **[–]** not reached yet (blocke
 | **[x]** | §7 | Phase 5 information-only tests, 7 test types | `V3_FAMILY1_REPORT.md` → **REJECT** |
 | **[x]** | §2.6 | Power gate, Family 2 — gate only | `FAMILY2_POWER_GATE.md` → **PASS** |
 | **[x]** | §7 | Phase 5 information-only test, Family 2 | `V3_FAMILY2_REPORT.md` → **REJECT** |
-| **[–]** | §8 | Phase 6, first model | blocked: requires a Phase 5 **CONTINUE**. Families 1 and 2 both returned REJECT |
+| **[x]** | §2.6 | Power gate, Family 3 | `alpha/out/f13_gate.json` → **PASS** |
+| **[x]** | §7 | Phase 5 information-only test, Family 3 | `V3_FAMILY3_REPORT.md` → **REJECT** |
+| **[–]** | §8 | Phase 6, first model | **permanently blocked**: requires a Phase 5 CONTINUE. All three families returned REJECT and the budget is exhausted |
 | **[–]** | §9 | Phase 7 walk-forward | blocked upstream |
 | **[–]** | §9b | Phase 7b single-name re-validation | blocked upstream; harness decisions already recorded |
 | **[–]** | §10 | Working Model gate | blocked upstream |
@@ -95,7 +133,7 @@ Legend: **[x]** done · **[ ]** not started · **[–]** not reached yet (blocke
 | **[=]** | §2.11 | Controls powered as gates | 30 paired draws, sd 0.00096 |
 | **[=]** | §2.12 | Free power gain read as a warning | oracle-ceiling check performed, not assumed |
 | **[=]** | §2.13 | Never reason from a post-processed number | no post-processing anywhere in V3 |
-| **[=]** | §21 | 3 families, no fourth | **2 spent, 1 remains**; no Family 1′ or 2′ opened |
+| **[=]** | §21 | 3 families, no fourth | **3 spent, 0 remain. PROGRAMME CLOSED**; no Family 1′/2′/3′, no fourth |
 | **[=]** | §25 | No `research/` tree | used `alpha/` + `reports/` |
 | **[=]** | §27A | No push | 10 local commits, `origin` untouched |
 | **[=]** | §27B | No data spend | all sources free; FRED key flagged, not bought |
@@ -123,6 +161,8 @@ governed by §21: Family 2 or Family 3, or the termination condition.
 | §2.6 power gate, Family 2 | §2.6 | **DONE — PASS**, gate only — commit `c274982` |
 | Family 2 admissibility + rulings | §2.10 | **DONE** — commits `bd0c7aa`, `65c0039` |
 | 5 — information-only test, Family 2 | §7 | **DONE — REJECT**, slot 2 spent |
+| Family 3 prereg + §2.6 gate | §2.6 | **DONE — PASS** — commit `5cb409f` |
+| 5 — information-only test, Family 3 | §7 | **DONE — REJECT**, slot 3 spent. **PROGRAMME CLOSED** |
 | 6 onward | §8+ | **not started.** Blocked: Phase 6 requires a Phase 5 CONTINUE |
 
 ### Phase 1 — the three deltas (§3)
@@ -316,6 +356,58 @@ changes.
 **Recommended for Family 3, to be fixed BEFORE its data is touched:** criterion 2 should
 read "the CI excludes zero **on the favourable side**". Never as an amendment to a
 pre-registration that has already been run.
+
+---
+
+## Family 3 - 13F institutional holdings: REJECT (2026-08-09)
+
+Ran on explicit authorization. **Budget slot 3 of 3 SPENT. All three slots spent, none
+remain.** Full record in `alpha/V3_FAMILY3_REPORT.md`; artefacts in
+`alpha/out/v3_family3_development.{json,pkl}`. Pre-registration committed at `5cb409f`
+**before any measurement**; §2.6 power gate at the same commit.
+
+Ingest: 45 archives (2.7 GB), **20,687,226 holdings events, 11,661 filers, 572 issuers**,
+map rate 0.926. The CUSIP bridge failed validation three times before passing - stripped
+leading zeros, issuer-overwriting collisions that put **Meta on JPMorgan's CUSIP**, and a
+left-shifted CUSIP that only the **check digit** caught. Final validation **14/14
+hand-checked mega-caps correct**, and the build refuses to emit a feature if it fails.
+
+Feature defined **0.8556**, median **394 names** per cutoff, continuous with no tie block.
+Staleness of the newest usable quarter: **median 92 days, p90 128**.
+
+**§2.10 clause 3 PASS by the widest margin of the three families:** mean |rho| **0.0726**
+vs `z__ret_12_1` (ceiling 0.30), highest **0.0780** of the 34-column set (ceiling 0.50).
+Genuinely orthogonal information - and still no signal.
+
+| | mean IC | half-width | 95% CI | hit |
+|---|---|---|---|---|
+| b3 regime rule (incumbent) | +0.02241 | 0.02328 | [-0.00086, +0.04570] | 0.560 |
+| **Arm 0 - raw holdings rank** | **-0.00659** | 0.00758 | **[-0.01465, +0.00051]** | 0.475 |
+| Arm 1 - B3 + 0.25 tilt | +0.01903 | 0.02368 | [-0.00477, +0.04259] | 0.541 |
+
+**Primary contrast, Arm 1 - B3: -0.00339, half-width 0.00279, CI [-0.00631, -0.00073],
+breadth 0.4494, n = 316.**
+
+| Pre-registered CONTINUE criterion | |
+|---|---|
+| 1 - effect >= +0.010 | **FAIL** (-0.00339) |
+| 2 - CI excludes zero **on the favourable side** (A1, `bool(lo > 0.0)`) | **FAIL** (lo = -0.00631) |
+| 3 - breadth > 0.50 and both halves positive | **FAIL** (0.4494; halves -0.00253 / -0.00424) |
+| 4 - survives with BEAR removed | **FAIL** (-0.00377) |
+
+**Amendment A1 did exactly what it was written for, on its first use.** Under the old
+direction-blind wording criterion 2 would have recorded **PASS** here - the interval
+excludes zero, entirely below it. A1 turns that into the FAIL it always was.
+
+**Noise control PASSED** - 30 paired permutations, median -0.00142, 0.0% above threshold.
+**Holm-Bonferroni: both arms significant** (p_holm 0.0272) - and both significantly
+**negative**, so significance is evidence against. **Net of costs:** Arm 1 gross -0.00015,
+net **-0.000148** on +0.3 pp extra turnover - the seventh consecutive tilt that fails to
+pay for its own trading. Regimes negative everywhere: BULL -0.00417, BEAR -0.00031,
+SIDEWAYS -0.00059.
+
+**§2.12 confirmed a third time:** Spearman(Arm 1, B3) = **0.9725**. A bounded tilt on a
+strong base buys resolution by surrendering authority.
 
 ---
 

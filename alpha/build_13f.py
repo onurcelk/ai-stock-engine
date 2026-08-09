@@ -85,13 +85,45 @@ def token_key(name) -> str:
     return " ".join(sorted(set(n.split()))) if n else ""
 
 
+def cusip_check_digit(s: str) -> str | None:
+    """The standard CUSIP modulus-10 double-add-double check character."""
+    total = 0
+    for i, ch in enumerate(s[:8]):
+        if ch.isdigit():
+            value = int(ch)
+        elif ch.isalpha():
+            value = ord(ch) - 55
+        else:
+            return None
+        if i % 2:
+            value *= 2
+        total += value // 10 + value % 10
+    return str((10 - total % 10) % 10)
+
+
 def cusip6(raw) -> str | None:
+    """The 6-character issuer key, or None if the CUSIP is not well formed.
+
+    Two guards, both load-bearing:
+
+    * **zero-padding.** Filers strip leading zeros, so Abbott's `002824109`
+      arrives as `2824109`; slicing that raw yields `282410`, a different
+      issuer.
+    * **the check digit.** Some filers left-justify into a 9-wide field, so
+      Berkshire's `084670702` arrives as `846707020` - which zero-pads to
+      itself and slices to a plausible-looking `846707`. Padding cannot catch
+      that; the check digit can, and does. Without this guard the map put
+      Berkshire on a CUSIP that does not exist.
+    """
     if not isinstance(raw, str):
         return None
     s = re.sub(r"[^A-Za-z0-9]", "", raw).upper()
-    if len(s) < 6 or len(s) > 9 or set(s) <= {"0"}:
+    if len(s) < 8 or len(s) > 9 or set(s) <= {"0"}:
         return None
-    return s.zfill(9)[:6]
+    s = s.zfill(9)
+    if cusip_check_digit(s) != s[8]:
+        return None
+    return s[:6]
 
 
 def universe():
@@ -159,44 +191,97 @@ KNOWN_CUSIP6 = {
 
 
 def build_map(paths, cik_names) -> dict[str, int]:
-    """CUSIP6 -> CIK, pooled over archives spanning the whole era."""
-    exact, tokens = defaultdict(set), defaultdict(set)
-    filer_count = defaultdict(int)
+    """CUSIP6 -> CIK, pooled over archives spanning the whole era.
+
+    Three rules keep the fuzz out, each fixing a way a name matcher goes wrong:
+
+    1. **Only a CUSIP's MODAL name is indexed.** Filers typo and mislabel, so
+       indexing every name ever paired with a CUSIP lets one bad row attach a
+       mega-cap's CUSIP to an unrelated issuer.
+    2. **Popularity is distinct filings, not rows**, so a widely held name does
+       not win a tie merely by being listed many times per filing.
+    3. **The assignment is strictly one-to-one**, resolved globally by
+       confidence. Keying the result by CUSIP silently lets a later issuer
+       overwrite an earlier one, which is how a first attempt mapped Meta onto
+       JPMorgan's CUSIP and dropped Apple and Microsoft entirely.
+    """
+    name_rows = defaultdict(lambda: defaultdict(int))     # cusip6 -> name -> rows
+    filings = defaultdict(set)                            # cusip6 -> accessions
     for path in paths:
         with zipfile.ZipFile(path) as archive:
-            reader = pd.read_csv(archive.open(member(archive, "INFOTABLE.tsv")), sep="\t",
-                                 encoding="latin-1",
-                                 usecols=["NAMEOFISSUER", "CUSIP"], dtype=str,
-                                 chunksize=1_000_000, low_memory=False)
+            reader = pd.read_csv(archive.open(member(archive, "INFOTABLE.tsv")),
+                                 sep="\t", encoding="latin-1",
+                                 usecols=["ACCESSION_NUMBER", "NAMEOFISSUER", "CUSIP"],
+                                 dtype=str, chunksize=1_000_000, low_memory=False)
             for chunk in reader:
-                for name, raw in zip(chunk["NAMEOFISSUER"], chunk["CUSIP"]):
+                for accn, name, raw in zip(chunk["ACCESSION_NUMBER"],
+                                           chunk["NAMEOFISSUER"], chunk["CUSIP"]):
                     key = cusip6(raw)
                     if key is None:
                         continue
-                    filer_count[key] += 1
+                    filings[key].add(accn)
                     n = norm(name)
                     if n:
-                        exact[n].add(key)
-                        tokens[token_key(name)].add(key)
+                        name_rows[key][n] += 1
         print("  map pass: %-42s cusip6 so far %d"
-              % (os.path.basename(path), len(filer_count)))
+              % (os.path.basename(path), len(filings)))
 
-    mapping: dict[str, int] = {}
-    matched = ambiguous = 0
+    # rule 1 - the modal name only
+    modal: dict[str, set[str]] = defaultdict(set)
+    modal_tokens: dict[str, set[str]] = defaultdict(set)
+    modal_tight: dict[str, set[str]] = defaultdict(set)
+    modal_name: dict[str, str] = {}
+    for key, counts in name_rows.items():
+        best_name = max(counts.items(), key=lambda kv: kv[1])[0]
+        modal_name[key] = best_name
+        modal[best_name].add(key)
+        modal_tokens[" ".join(sorted(set(best_name.split())))].add(key)
+        modal_tight[best_name.replace(" ", "")].add(key)
+
+    # Containment index: EDGAR's tokens as a subset of the modal name's tokens.
+    # EDGAR writes "BERKSHIRE HATHAWAY INC" while 13F's modal name is
+    # "BERKSHIRE HATHAWAY DEL" - the state qualifier as a bare word, which no
+    # amount of suffix stripping catches.
+    modal_sets = {key: frozenset(name.split()) for key, name in modal_name.items()}
+
+    scored = []
     for cik, variants in cik_names.items():
-        candidates = set()
+        seen = {}
         for variant in variants:
-            candidates |= exact.get(norm(variant), set())
-        if not candidates:                       # fall back to order-insensitive
-            for variant in variants:
-                candidates |= tokens.get(token_key(variant), set())
-        if not candidates:
+            n = norm(variant)
+            if not n:
+                continue
+            for key in modal.get(n, ()):
+                seen[key] = max(seen.get(key, 0), 3)
+            for key in modal_tight.get(n.replace(" ", ""), ()):
+                seen[key] = max(seen.get(key, 0), 3)
+            for key in modal_tokens.get(token_key(variant), ()):
+                seen[key] = max(seen.get(key, 0), 1)
+            mine = frozenset(n.split())
+            if len(mine) >= 2:
+                for key, theirs in modal_sets.items():
+                    if mine < theirs or theirs < mine:
+                        seen[key] = max(seen.get(key, 0), 2)
+        for key, tier in seen.items():
+            scored.append((len(filings[key]), tier, key, cik))
+
+    # rule 3 - strict one-to-one. Ranked by how widely the CUSIP is actually
+    # held, with the name-match tier breaking ties: among names that match at
+    # all, a CUSIP in 29,592 filings is the S&P constituent and one in 7 is a
+    # typo. Name matching decides candidacy; popularity decides between
+    # candidates.
+    scored.sort(reverse=True)
+    mapping: dict[str, int] = {}
+    taken_cik: set[int] = set()
+    matched = ambiguous = 0
+    for _, tier, key, cik in scored:
+        if key in mapping or cik in taken_cik:
             continue
-        best = max(candidates, key=lambda k: filer_count[k])
-        if len(candidates) > 1:
-            ambiguous += 1
-        mapping[best] = cik
+        mapping[key] = cik
+        taken_cik.add(cik)
         matched += 1
+        if tier == 1:
+            ambiguous += 1
     print("  mapped %d issuers (%d had >1 candidate, most-held taken)"
           % (matched, ambiguous))
 
@@ -204,6 +289,10 @@ def build_map(paths, cik_names) -> dict[str, int]:
     cik_to_cusip = {v: k for k, v in mapping.items()}
     right = wrong = absent = 0
     for cik, expected in KNOWN_CUSIP6.items():
+        if cik not in cik_names:
+            # Not in this universe at all - checking it would test the
+            # validation list, not the map. Exxon (34088) is such a case.
+            continue
         got = cik_to_cusip.get(cik)
         if got is None:
             absent += 1
