@@ -36,3 +36,7 @@ alpha/out/run1_dead_ret_12_1/development.pkl
 # fingerprint) IS committed, like panel_meta.json.
 alpha/edgar/*.zip
 alpha/edgar/facts.parquet
+# company_tickers.json is re-fetched by the build when absent, and the mapping
+# it actually produced is pinned in filings_meta.json's symbol_to_cik - which
+# is the reproducibility-relevant record, since the SEC's live map changes.
+alpha/edgar/company_tickers.json
