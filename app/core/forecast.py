@@ -247,6 +247,24 @@ def max_folds(n_rows: int, horizon: int, min_train: int = 120) -> int:
     return max(0, (n_rows - min_train) // horizon)
 
 
+# Seconds per unit of (folds + 1) x epochs x bars, measured on this repo's CPU
+# stack: 1,250 daily bars over 3 folds at 30 epochs plus a projection took 35s,
+# and 2,514 bars the same way took 74s. Training cost is linear in all three
+# because every epoch walks the whole training slice once.
+SECONDS_PER_UNIT = 1 / 4_250
+
+
+def estimate_train_seconds(folds: int, epochs: int, bars: int) -> float:
+    """Roughly how long a walk-forward plus a projection will take.
+
+    Only ever used to set expectations before a wait, so being out by a third
+    is fine. Being out by a factor of a thousand is not — the first version of
+    this lived in the UI with the wrong constant and told the user a
+    fifty-second job would take "roughly 0s".
+    """
+    return max(0.0, (folds + 1) * epochs * bars * SECONDS_PER_UNIT)
+
+
 def walk_forward(
     close: pd.Series,
     dates: pd.Series,
@@ -437,6 +455,80 @@ def run(
         naive_accuracy=accuracy(actual, naive),
         naive=naive,
         anchor=anchor_price,
+    )
+
+
+@dataclasses.dataclass
+class Projection:
+    """A forecast of bars that have not happened yet.
+
+    Both `run()` and `walk_forward()` predict windows that already exist —
+    that is what makes them scoreable, and it is also why neither of them is
+    a forecast in the sense a trader means. This trains on the entire series
+    and rolls forward past the last bar, so it produces a real prediction and
+    no accuracy at all. Its credibility has to come from somewhere else:
+    `walk_forward()` measures the same model on windows it did not see, and
+    `ultimate.ModelEvidence` pairs the two.
+    """
+
+    model: str
+    path: np.ndarray
+    horizon: int
+    last_price: float
+    last_date: pd.Timestamp
+
+    @property
+    def final(self) -> float:
+        return float(self.path[-1])
+
+    @property
+    def move_pct(self) -> float:
+        if not self.last_price:
+            return 0.0
+        return (self.final - self.last_price) / self.last_price * 100
+
+    @property
+    def direction(self) -> int:
+        return int(np.sign(self.move_pct))
+
+
+def project(
+    close: pd.Series,
+    dates: pd.Series,
+    *,
+    model: str = "LSTM",
+    num_layers: int = 1,
+    size_layer: int = 128,
+    timestamp: int = 5,
+    epochs: int = 150,
+    dropout: float = 0.8,
+    learning_rate: float = 0.01,
+    horizon: int = 5,
+    progress: ProgressFn | None = None,
+) -> Projection:
+    """Train on every bar available, then predict `horizon` bars beyond the last.
+
+    There is no held-out window here on purpose, so scaling on the full series
+    carries no look-ahead: every bar the scaler sees is a bar the model is
+    entitled to train on. That is the one context in this module where fitting
+    on everything is the correct thing to do.
+    """
+    tf = _load_tf()
+
+    values = close.to_numpy(dtype="float32").reshape(-1, 1)
+    minmax = MinMaxScaler().fit(values)
+    scaled = pd.DataFrame(minmax.transform(values))
+
+    path = _train_once(
+        tf, scaled, minmax, model=model, num_layers=num_layers,
+        size_layer=size_layer, timestamp=timestamp, epochs=epochs,
+        dropout=dropout, learning_rate=learning_rate, horizon=horizon,
+        progress=progress, slot=0,
+    )
+
+    return Projection(
+        model=model, path=np.asarray(path, dtype=float), horizon=horizon,
+        last_price=float(close.iloc[-1]), last_date=dates.iloc[-1],
     )
 
 

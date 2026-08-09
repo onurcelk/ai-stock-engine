@@ -58,6 +58,28 @@ PERIOD_DAYS = {
 }
 
 
+def period_days(period: str) -> float:
+    """Calendar days a period covers. "max" is unbounded, so it sorts last."""
+    return PERIOD_DAYS.get(period, float("inf"))
+
+
+def is_wider(period: str, than: str) -> bool:
+    """Does `period` ask for more history than `than` did?
+
+    The cache is keyed by (symbol, interval) and holds the widest range ever
+    downloaded, but freshness alone used to decide whether to go back to
+    Yahoo. That meant a 1y fetch this morning answered a 10y request this
+    afternoon out of the cache — silently, with a tenth of the bars. Anything
+    that sizes itself to the history it was handed (the walk-forward folds,
+    and every calibration in ultimate.py) would quietly work on the wrong
+    amount of data. Recording the period each fetch asked for is what lets a
+    wider request go back to the network exactly once.
+    """
+    if not than:
+        return True
+    return period_days(period) > period_days(than) + 1
+
+
 def periods_for(interval: str) -> list[str]:
     """History lengths Yahoo will actually serve at this interval."""
     return INTRADAY_PERIODS if interval in INTRADAY else DAILY_PERIODS
@@ -115,6 +137,7 @@ class CacheEntry:
     start: dt.date
     end: dt.date
     fetched_at: dt.datetime
+    period: str = ""          # widest period ever requested for this file
 
     @property
     def age(self) -> dt.timedelta:
@@ -144,6 +167,15 @@ def _paths(symbol: str, interval: str) -> tuple[pathlib.Path, pathlib.Path]:
     return CACHE_DIR / f"{stem}.csv", CACHE_DIR / f"{stem}.meta.json"
 
 
+def cache_path(symbol: str, interval: str = "1d") -> pathlib.Path:
+    """Where this symbol's bars live on disk, whether or not they're there yet.
+
+    Public because quotes.py reads two columns off the end of these files for
+    the watchlist, which read_cache() would make it parse the whole history for.
+    """
+    return _paths(symbol, interval)[0]
+
+
 def read_cache(symbol: str, interval: str = "1d") -> tuple[pd.DataFrame, CacheEntry] | None:
     """Return the cached frame and its metadata, or None if absent/corrupt."""
     csv_path, meta_path = _paths(symbol, interval)
@@ -159,6 +191,7 @@ def read_cache(symbol: str, interval: str = "1d") -> tuple[pd.DataFrame, CacheEn
             start=frame["date"].iloc[0].date(),
             end=frame["date"].iloc[-1].date(),
             fetched_at=dt.datetime.fromisoformat(meta["fetched_at"]),
+            period=meta.get("period", ""),
         )
         return frame, entry
     except Exception:
@@ -166,7 +199,8 @@ def read_cache(symbol: str, interval: str = "1d") -> tuple[pd.DataFrame, CacheEn
         return None
 
 
-def _write_cache(symbol: str, interval: str, frame: pd.DataFrame) -> None:
+def _write_cache(symbol: str, interval: str, frame: pd.DataFrame,
+                 period: str = "") -> None:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     csv_path, meta_path = _paths(symbol, interval)
     frame.to_csv(csv_path, index=False)
@@ -177,6 +211,7 @@ def _write_cache(symbol: str, interval: str, frame: pd.DataFrame) -> None:
                 "interval": interval,
                 "fetched_at": dt.datetime.now().isoformat(timespec="seconds"),
                 "rows": len(frame),
+                "period": period,
             },
             indent=2,
         ),
@@ -234,12 +269,17 @@ def fetch(
     interval: str = "1d",
     force: bool = False,
 ) -> tuple[pd.DataFrame, CacheEntry]:
-    """Daily bars for `symbol`, from cache when possible.
+    """Bars for `symbol` over `period`, from cache when possible.
 
     Returns the frame plus the cache metadata so the UI can show how old the
     data is. Raises FetchError (or UnknownSymbol) with a message fit to
     display; on a network failure a usable cached copy is preferred over
     raising, so the app keeps working offline.
+
+    The cache is only trusted when it is both fresh *and* at least as wide as
+    what was asked for — see `is_wider`. What comes back is then trimmed to
+    the requested period, because the file on disk holds the widest range ever
+    downloaded and callers read the frame directly.
     """
     symbol = symbol.strip().upper()
     if not symbol:
@@ -249,8 +289,8 @@ def fetch(
 
     if cached and not force:
         frame, entry = cached
-        if entry.is_fresh:
-            return frame, entry
+        if entry.is_fresh and not is_wider(period, entry.period):
+            return _trimmed(frame, entry, period)
 
     try:
         frame = _download(symbol, period, interval)
@@ -260,25 +300,46 @@ def fetch(
         raise
     except FetchError:
         if cached:
-            return cached  # offline, but we have something to show
+            # Offline, but we have something to show. Trimming it would be a
+            # lie about coverage when the cache is narrower than the request.
+            return cached
         raise
 
+    widest = period
     if cached:
         # Keep the widest range we've ever seen: a "1y" fetch shouldn't
         # discard a "max" pull from yesterday.
         merged = pd.concat([cached[0], frame], ignore_index=True)
         merged = merged.drop_duplicates(subset="date", keep="last")
         frame = merged.sort_values("date").reset_index(drop=True)
+        if not is_wider(period, cached[1].period):
+            widest = cached[1].period or period
 
-    _write_cache(symbol, interval, frame)
+    _write_cache(symbol, interval, frame, period=widest)
     result = read_cache(symbol, interval)
     if result is None:  # pragma: no cover - only if the disk write failed
-        return frame, CacheEntry(
+        result = frame, CacheEntry(
             symbol=symbol, interval=interval, rows=len(frame),
             start=frame["date"].iloc[0].date(), end=frame["date"].iloc[-1].date(),
-            fetched_at=dt.datetime.now(),
+            fetched_at=dt.datetime.now(), period=widest,
         )
-    return result
+    return _trimmed(*result, period)
+
+
+def _trimmed(frame: pd.DataFrame, entry: CacheEntry,
+             period: str) -> tuple[pd.DataFrame, CacheEntry]:
+    """Cut the stored frame back to the requested period, entry included.
+
+    The entry has to be rewritten alongside it or the sidebar reports the
+    cache's row count next to a chart drawn from a tenth of those rows.
+    """
+    cut = slice_to_period(frame, period)
+    if len(cut) == len(frame):
+        return frame, entry
+    return cut, dataclasses.replace(
+        entry, rows=len(cut), start=cut["date"].iloc[0].date(),
+        end=cut["date"].iloc[-1].date(),
+    )
 
 
 def cache_entries() -> list[CacheEntry]:

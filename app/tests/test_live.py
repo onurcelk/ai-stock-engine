@@ -209,3 +209,68 @@ def test_clear_cache_removes_files(temp_cache, daily_frame):
 
     live.clear_cache()
     assert live.cache_entries() == []
+
+
+# ------------------------------------------------------------- cache width
+#
+# The cache is keyed by (symbol, interval) and holds the widest range ever
+# downloaded, but freshness alone used to decide whether to go back to Yahoo.
+# So a "1y" fetch this morning answered a "10y" request this afternoon out of
+# the cache, silently, with a tenth of the bars — and everything that sizes
+# itself to the history it was handed worked on the wrong amount of data.
+
+
+@pytest.mark.parametrize("period,than,wider", [
+    ("10y", "1y", True), ("1y", "10y", False), ("5y", "5y", False),
+    ("max", "10y", True), ("10y", "max", False), ("1y", "", True),
+])
+def test_is_wider_orders_the_periods(period, than, wider):
+    assert live.is_wider(period, than) is wider
+
+
+def test_a_wider_request_goes_back_to_the_network(temp_cache, daily_frame,
+                                                  monkeypatch):
+    live._write_cache("AAPL", "1d", daily_frame.head(30), period="1y")
+
+    calls = []
+
+    def download(symbol, period, interval):
+        calls.append(period)
+        return daily_frame
+
+    monkeypatch.setattr(live, "_download", download)
+
+    live.fetch("AAPL", period="1y", interval="1d")
+    assert calls == [], "a same-width request should be served from cache"
+
+    live.fetch("AAPL", period="10y", interval="1d")
+    assert calls == ["10y"], "a wider request must re-download"
+
+    live.fetch("AAPL", period="10y", interval="1d")
+    assert calls == ["10y"], "and only once — the meta now records 10y"
+
+
+def test_the_returned_frame_is_trimmed_to_what_was_asked_for(temp_cache,
+                                                             daily_frame,
+                                                             monkeypatch):
+    """The file holds the widest range; callers read the frame directly."""
+    monkeypatch.setattr(live, "_download", lambda *a, **k: daily_frame)
+    live.fetch("AAPL", period="max", interval="1d")
+
+    trimmed, entry = live.fetch("AAPL", period="1mo", interval="1d")
+    assert len(trimmed) < len(daily_frame)
+    # The entry has to be rewritten with it, or the sidebar reports the
+    # cache's row count beside a chart drawn from a tenth of those rows.
+    assert entry.rows == len(trimmed)
+    assert entry.start == trimmed["date"].iloc[0].date()
+
+    # The file itself keeps everything.
+    stored, _ = live.read_cache("AAPL", "1d")
+    assert len(stored) == len(daily_frame)
+
+
+def test_an_offline_fallback_is_not_trimmed(temp_cache, daily_frame, offline):
+    """Cutting a narrow cache to a wide request would overstate its coverage."""
+    live._write_cache("AAPL", "1d", daily_frame, period="1y")
+    frame, _ = live.fetch("AAPL", period="10y", interval="1d")
+    assert len(frame) == len(daily_frame)
