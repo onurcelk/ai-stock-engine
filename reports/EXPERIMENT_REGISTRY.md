@@ -435,6 +435,37 @@ and the slot is spent honestly.
 | Family slot | **Slot 1 of 3 — SPENT.** No Family 1′; not re-tested with a learner, feature or horizon (§2.9, §21) |
 | Artefacts | `alpha/out/v3_family1_development.json` / `.pkl`, `v3_family1_ceiling.json`, `alpha/V3_FAMILY1_REPORT.md`, prereg at `5a8b92e` |
 
-**Family budget after V3-1: 3 slots, 1 spent, 2 remaining.** Next is Family 2 (Form 4),
-whose §2.6 power gate has **not** been computed — under §2.6 it may not be implemented
-until it is.
+**Family budget after V3-1: 3 slots, 1 spent, 2 remaining.**
+
+### 6.3 Family 2 (Form 4) — §2.6 power gate computed 2026-08-09. **PASS. Slot 2 UNSPENT.**
+
+Gate-only. **Family 2 is not implemented and not run; no slot was spent; no
+pre-registered criterion, threshold, abandonment rule or budget was modified.** Full
+record: `reports/FAMILY2_POWER_GATE.md`.
+
+| §2.6 step | Value |
+|---|---|
+| 1 — smallest effect worth acting on | **+0.007 IC vs B3**, carried unchanged from §6.1 |
+| 2 — achievable half-width, 316 cutoffs, Form 4 universe, paired vs B3 | **0.00205** (90d availability; 0.00388 at 30d, 0.00185 at 180d) |
+| 3 — half-width exceeds effect sought? | **No** → **PASS** |
+
+Universe measured from the filing **index only** (912,564 Form 4 filings, 614 of 619
+issuers; 65.5% accepted after the 16:00 ET close). Availability is 0.959 of the
+cross-section at a 90-day lookback — not the binding constraint. No Form 4 XML was
+parsed and no transaction content was read.
+
+**Two findings that constrain any future Family 2 preregistration:**
+
+* **The design must be the bounded combination against B3.** A **standalone-factor**
+  formulation resolves only **0.01949** — Family 1's measured Arm 0 half-width on the
+  same cutoffs — which **exceeds the +0.007 MDE by 2.8× and therefore FAILS §2.6.**
+* **The §2.12 "free power gain" warning was checked and does not apply.** An oracle tilt
+  (perfect foresight) through the same arm attains **+0.21230** over B3 at λ = 0.25, so
+  the design has ~30× headroom and the narrow half-width is genuine power, not
+  collinearity. A real feature would need to be 3.3% as good as perfect foresight to
+  clear the floor. *This also retroactively confirms Family 1's +0.00090 was an
+  information null, not an arm that could not express an effect.*
+
+**Still outstanding before Family 2 could run:** §2.10 clause-3 admissibility (not
+evaluated here), the feature construction and lookback window, its turnover — and
+explicit authorization. **A passed power gate authorizes nothing.**
