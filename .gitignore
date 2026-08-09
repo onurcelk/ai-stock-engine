@@ -28,3 +28,11 @@ app/transactions.json
 alpha/cache/
 alpha/out/panel.pkl
 alpha/out/run1_dead_ret_12_1/development.pkl
+
+# --- V3 filings research: raw EDGAR bulk archives and the derived facts
+# table. Regenerable: the zips re-download from sec.gov (URLs in
+# alpha/build_filings.py) and facts.parquet rebuilds from them via
+# `python -m alpha.build_filings`. filings_meta.json (small, the build's
+# fingerprint) IS committed, like panel_meta.json.
+alpha/edgar/*.zip
+alpha/edgar/facts.parquet
