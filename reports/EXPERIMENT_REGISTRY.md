@@ -408,5 +408,33 @@ and the slot is spent honestly.
 
 ### 6.2 Registered V3 studies
 
-*None yet. Phase 4 (pipeline) has not begun. The first registration happens at the
-Family 1 preregistration, before its first fit.*
+#### V3-1 — Family 1: point-in-time reported fundamentals (time-series SUE)
+
+| Field | |
+|---|---|
+| ID / date | `V3-1` · 2026-08-09 |
+| Hypothesis | PIT reported earnings, timestamped at EDGAR acceptance, contain incremental cross-sectional information over 12-1 momentum **and over B3**, of a size this history can resolve |
+| Information source | SEC EDGAR XBRL `companyfacts` joined to `submissions` acceptance times. §2.10: clause 1 **pass**, clause 2 **pass** (87 facts without a timestamp dropped, not approximated), clause 3 **pass** (ρ̄ 0.2533 vs momentum, threshold 0.30, fixed before measurement), clause 4 **pass conditionally** |
+| Target / horizon | Target A, `alpha_5d`, **5 sessions** — the single primary horizon, fixed on priors |
+| Universe | PIT index membership, median cross-section 465; SUE coverage **0.930** |
+| Features | `sue` — seasonal difference of `NetIncomeLoss` vs the year-ago quarter, scaled by the sd of the last 8 surprises (min 4); Q4 derived; winsorised 1%/99% per cutoff. `staleness_days` diagnostic only, never an input |
+| Model / seeds | **none — information-only test** (§2.9). Noise control seed 20260809 |
+| Periods | 316 development cutoffs, 2016-01-04 … 2026-07-28. **Exam contamination 0**, asserted in code |
+| Baselines | B3 (incumbent), B1 12-1 momentum, B2 reversal, and the raw factor alone |
+| Arms declared | **2**, before the first fit. λ = 0.25 fixed, not scanned as an arm |
+| **Resolution / MDE (§2.6)** | MDE +0.007 (economic floor); hypothesized ≥ +0.010; **achieved half-width 0.00229** — 3× better than the 0.0074 predicted, itself the §2.12 collinearity warning |
+| Primary metric | paired per-cutoff IC difference, Arm 1 − B3 |
+| **Result** | **+0.00090, CI [−0.00140, +0.00317], half-width 0.00229, breadth 0.5032, n 316.** Coverage-matched: +0.00124. λ curve maximum anywhere: **+0.00127** |
+| Secondary | **Arm 0 raw SUE: IC +0.01305, CI [+0.00263, +0.02339] — excludes zero**, hit 0.576, halves both positive, turnover 0.091. But vs B3 **−0.00937**, and spread +0.00051 CI [−0.00081, +0.00158] |
+| Stability | halves −0.00005 / +0.00185 (**not both positive**); vs-B1 advantage **+0.11317 in BEAR** against +0.00075 BULL — disqualifying concentration (§2.5) |
+| Net of costs | Arm 1 **−0.000065**, Arm 0 −0.001461. Both negative; turnover *fell* |
+| Noise control | **PASS** — 30 paired draws, median −0.00045, sd 0.00096, 0.0% above threshold |
+| Multiplicity | Holm across 2 arms: p_holm 0.678 both |
+| **Decision** | **REJECT** — all four CONTINUE criteria failed |
+| Reason | **The information failed**, not the power, the PIT quality or the implementation. SUE is a genuine standalone factor but is **not incremental to a regime-switched momentum rule** and does not rank the tradeable tails |
+| Family slot | **Slot 1 of 3 — SPENT.** No Family 1′; not re-tested with a learner, feature or horizon (§2.9, §21) |
+| Artefacts | `alpha/out/v3_family1_development.json` / `.pkl`, `v3_family1_ceiling.json`, `alpha/V3_FAMILY1_REPORT.md`, prereg at `5a8b92e` |
+
+**Family budget after V3-1: 3 slots, 1 spent, 2 remaining.** Next is Family 2 (Form 4),
+whose §2.6 power gate has **not** been computed — under §2.6 it may not be implemented
+until it is.

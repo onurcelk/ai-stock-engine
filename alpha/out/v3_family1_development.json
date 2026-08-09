@@ -1,0 +1,583 @@
+{
+  "protocol": "V3",
+  "family": "1 - reported fundamentals (time-series SUE)",
+  "stage": "Phase 5 information-only",
+  "preregistration": "alpha/V3_PREREGISTRATION.md",
+  "written_at": "2026-08-09T02:09:26",
+  "exam_set_digest": "b55e065f4c9f91737b7a56fd715f0913cf8f41207bdb24d91452c10bc1c98ab0",
+  "exam_contamination": 0,
+  "development_cutoffs": 316,
+  "rows": 143675,
+  "lambda": 0.25,
+  "sue_sign": 1,
+  "winsor": 0.01,
+  "target": "alpha_5d",
+  "horizon_sessions": 5,
+  "sue_coverage": 0.9303,
+  "arms": {
+    "Arm0_sue_rank": {
+      "ic": {
+        "what": "Arm0_sue_rank IC",
+        "n_cutoffs": 316,
+        "mean": 0.01305,
+        "median": 0.01682,
+        "sd": 0.09955,
+        "hit_rate": 0.5759,
+        "boot_lo": 0.00263,
+        "boot_hi": 0.02339,
+        "half_width": 0.01038,
+        "nw_se": 0.005,
+        "p_boot": 0.0116,
+        "excludes_null": true
+      },
+      "spread": {
+        "what": "Arm0_sue_rank top-bottom spread",
+        "n_cutoffs": 316,
+        "mean": 0.00051,
+        "median": 0.00121,
+        "sd": 0.01164,
+        "hit_rate": 0.5411,
+        "boot_lo": -0.00081,
+        "boot_hi": 0.00158,
+        "half_width": 0.0012,
+        "nw_se": 0.00058,
+        "p_boot": 0.39386,
+        "excludes_null": false
+      },
+      "turnover": 0.0908,
+      "halves_ic": {
+        "first": {
+          "n": 158,
+          "mean": 0.011,
+          "from": "2016-01-04",
+          "to": "2020-04-27"
+        },
+        "second": {
+          "n": 158,
+          "mean": 0.01509,
+          "from": "2020-05-04",
+          "to": "2026-07-28"
+        },
+        "both_positive": true
+      },
+      "versus": {
+        "b1_momentum_12_1": {
+          "what": "Arm0_sue_rank vs b1_momentum_12_1",
+          "n_cutoffs": 316,
+          "mean": 0.00305,
+          "median": -0.00787,
+          "sd": 0.18236,
+          "hit_rate": 0.4778,
+          "boot_lo": -0.01598,
+          "boot_hi": 0.02193,
+          "half_width": 0.01895,
+          "nw_se": 0.00976,
+          "p_boot": 0.74513,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": 0.00786,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": -0.00177,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": -0.00491
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": 0.06604
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": -0.00391
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": -0.0048,
+              "median": -0.01557,
+              "sd": 0.17498,
+              "hit_rate": 0.4626,
+              "boot_lo": -0.02482,
+              "boot_hi": 0.01385,
+              "half_width": 0.01934,
+              "nw_se": 0.00972,
+              "p_boot": 0.61554,
+              "excludes_null": false
+            }
+          }
+        },
+        "b2_reversal_5d": {
+          "what": "Arm0_sue_rank vs b2_reversal_5d",
+          "n_cutoffs": 316,
+          "mean": 0.00629,
+          "median": 0.01379,
+          "sd": 0.19784,
+          "hit_rate": 0.5348,
+          "boot_lo": -0.01558,
+          "boot_hi": 0.02567,
+          "half_width": 0.02063,
+          "nw_se": 0.01026,
+          "p_boot": 0.54825,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": 0.00438,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": 0.00821,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": true
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": 0.0105
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": -0.04606
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": 0.03147
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": 0.01281,
+              "median": 0.01604,
+              "sd": 0.19741,
+              "hit_rate": 0.548,
+              "boot_lo": -0.00856,
+              "boot_hi": 0.03216,
+              "half_width": 0.02036,
+              "nw_se": 0.01019,
+              "p_boot": 0.22708,
+              "excludes_null": false
+            }
+          }
+        },
+        "b3_regime_switched": {
+          "what": "Arm0_sue_rank vs b3_regime_switched",
+          "n_cutoffs": 316,
+          "mean": -0.00937,
+          "median": -0.01832,
+          "sd": 0.17761,
+          "hit_rate": 0.4589,
+          "boot_lo": -0.0291,
+          "boot_hi": 0.00987,
+          "half_width": 0.01949,
+          "nw_se": 0.00996,
+          "p_boot": 0.33877,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": -0.01726,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": -0.00148,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": -0.00491
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": -0.04606
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": -0.00391
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": -0.0048,
+              "median": -0.01557,
+              "sd": 0.17498,
+              "hit_rate": 0.4626,
+              "boot_lo": -0.02482,
+              "boot_hi": 0.01385,
+              "half_width": 0.01934,
+              "nw_se": 0.00972,
+              "p_boot": 0.61554,
+              "excludes_null": false
+            }
+          }
+        }
+      },
+      "net_of_cost": {
+        "gross_spread_advantage": {
+          "what": "Arm0_sue_rank gross spread vs B3",
+          "n_cutoffs": 316,
+          "mean": -0.00146,
+          "median": -0.00179,
+          "sd": 0.01883,
+          "hit_rate": 0.4304,
+          "boot_lo": -0.00355,
+          "boot_hi": 0.00045,
+          "half_width": 0.002,
+          "nw_se": 0.00103,
+          "p_boot": 0.14729,
+          "excludes_null": false
+        },
+        "extra_turnover": -0.14,
+        "cost_drag_per_cutoff": 0.0,
+        "net_spread_advantage": -0.001461
+      }
+    },
+    "Arm1_b3_plus_sue": {
+      "ic": {
+        "what": "Arm1_b3_plus_sue IC",
+        "n_cutoffs": 316,
+        "mean": 0.02331,
+        "median": 0.02239,
+        "sd": 0.22496,
+        "hit_rate": 0.5633,
+        "boot_lo": 8e-05,
+        "boot_hi": 0.04648,
+        "half_width": 0.0232,
+        "nw_se": 0.01151,
+        "p_boot": 0.047,
+        "excludes_null": true
+      },
+      "spread": {
+        "what": "Arm1_b3_plus_sue top-bottom spread",
+        "n_cutoffs": 316,
+        "mean": 0.00191,
+        "median": 0.00334,
+        "sd": 0.02487,
+        "hit_rate": 0.5791,
+        "boot_lo": -0.00063,
+        "boot_hi": 0.00437,
+        "half_width": 0.0025,
+        "nw_se": 0.00127,
+        "p_boot": 0.12939,
+        "excludes_null": false
+      },
+      "turnover": 0.227,
+      "halves_ic": {
+        "first": {
+          "n": 158,
+          "mean": 0.02822,
+          "from": "2016-01-04",
+          "to": "2020-04-27"
+        },
+        "second": {
+          "n": 158,
+          "mean": 0.01841,
+          "from": "2020-05-04",
+          "to": "2026-07-28"
+        },
+        "both_positive": true
+      },
+      "versus": {
+        "b1_momentum_12_1": {
+          "what": "Arm1_b3_plus_sue vs b1_momentum_12_1",
+          "n_cutoffs": 316,
+          "mean": 0.01332,
+          "median": 0.00212,
+          "sd": 0.10115,
+          "hit_rate": 0.5253,
+          "boot_lo": 0.00167,
+          "boot_hi": 0.02714,
+          "half_width": 0.01274,
+          "nw_se": 0.00665,
+          "p_boot": 0.0352,
+          "excludes_null": true,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": 0.02508,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": 0.00155,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": true
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": 0.00075
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": 0.11317
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": 0.00189
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": 0.00088,
+              "median": 0.00029,
+              "sd": 0.01989,
+              "hit_rate": 0.5125,
+              "boot_lo": -0.0015,
+              "boot_hi": 0.00324,
+              "half_width": 0.00237,
+              "nw_se": 0.00121,
+              "p_boot": 0.46405,
+              "excludes_null": false
+            }
+          }
+        },
+        "b2_reversal_5d": {
+          "what": "Arm1_b3_plus_sue vs b2_reversal_5d",
+          "n_cutoffs": 316,
+          "mean": 0.01656,
+          "median": 0.00507,
+          "sd": 0.26981,
+          "hit_rate": 0.5158,
+          "boot_lo": -0.01012,
+          "boot_hi": 0.04211,
+          "half_width": 0.02611,
+          "nw_se": 0.01322,
+          "p_boot": 0.21078,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": 0.0216,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": 0.01153,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": true
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": 0.01616
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": 0.00107
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": 0.03727
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": 0.01849,
+              "median": 0.01988,
+              "sd": 0.28603,
+              "hit_rate": 0.5267,
+              "boot_lo": -0.01134,
+              "boot_hi": 0.04744,
+              "half_width": 0.02939,
+              "nw_se": 0.01451,
+              "p_boot": 0.21678,
+              "excludes_null": false
+            }
+          }
+        },
+        "b3_regime_switched": {
+          "what": "Arm1_b3_plus_sue vs b3_regime_switched",
+          "n_cutoffs": 316,
+          "mean": 0.0009,
+          "median": 4e-05,
+          "sd": 0.01986,
+          "hit_rate": 0.5032,
+          "boot_lo": -0.0014,
+          "boot_hi": 0.00317,
+          "half_width": 0.00229,
+          "nw_se": 0.00116,
+          "p_boot": 0.43616,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": -5e-05,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": 0.00185,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": 0.00075
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": 0.00107
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": 0.00189
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": 0.00088,
+              "median": 0.00029,
+              "sd": 0.01989,
+              "hit_rate": 0.5125,
+              "boot_lo": -0.0015,
+              "boot_hi": 0.00324,
+              "half_width": 0.00237,
+              "nw_se": 0.00121,
+              "p_boot": 0.46405,
+              "excludes_null": false
+            }
+          }
+        }
+      },
+      "net_of_cost": {
+        "gross_spread_advantage": {
+          "what": "Arm1_b3_plus_sue gross spread vs B3",
+          "n_cutoffs": 316,
+          "mean": -6e-05,
+          "median": 0.00026,
+          "sd": 0.00361,
+          "hit_rate": 0.5285,
+          "boot_lo": -0.00046,
+          "boot_hi": 0.0003,
+          "half_width": 0.00038,
+          "nw_se": 0.0002,
+          "p_boot": 0.74573,
+          "excludes_null": false
+        },
+        "extra_turnover": -0.0038,
+        "cost_drag_per_cutoff": 0.0,
+        "net_spread_advantage": -6.5e-05
+      }
+    }
+  },
+  "benchmarks": {
+    "b1_momentum_12_1": {
+      "what": "b1_momentum_12_1",
+      "n_cutoffs": 316,
+      "mean": 0.01,
+      "median": 0.01623,
+      "sd": 0.23535,
+      "hit_rate": 0.5316,
+      "boot_lo": -0.01342,
+      "boot_hi": 0.0343,
+      "half_width": 0.02386,
+      "nw_se": 0.01195,
+      "p_boot": 0.40576,
+      "excludes_null": false
+    },
+    "b2_reversal_5d": {
+      "what": "b2_reversal_5d",
+      "n_cutoffs": 316,
+      "mean": 0.00675,
+      "median": 0.00379,
+      "sd": 0.17835,
+      "hit_rate": 0.5095,
+      "boot_lo": -0.01062,
+      "boot_hi": 0.0261,
+      "half_width": 0.01836,
+      "nw_se": 0.00923,
+      "p_boot": 0.47065,
+      "excludes_null": false
+    },
+    "b3_regime_switched": {
+      "what": "b3_regime_switched",
+      "n_cutoffs": 316,
+      "mean": 0.02241,
+      "median": 0.02975,
+      "sd": 0.22698,
+      "hit_rate": 0.5601,
+      "boot_lo": -0.00086,
+      "boot_hi": 0.0457,
+      "half_width": 0.02328,
+      "nw_se": 0.0116,
+      "p_boot": 0.05829,
+      "excludes_null": false
+    }
+  },
+  "primary": {
+    "contrast": "Arm1_b3_plus_sue - b3_regime_switched",
+    "n_cutoffs": 316,
+    "mean": 0.0009,
+    "ci": [
+      -0.0014,
+      0.00317
+    ],
+    "half_width": 0.00229,
+    "breadth": 0.5032,
+    "threshold": 0.01,
+    "criteria": {
+      "1_effect_at_least_0.010": false,
+      "2_ci_excludes_zero": false,
+      "3_breadth_and_halves": false,
+      "4_survives_ex_bear": false
+    },
+    "all_passed": false,
+    "decision": "REJECT"
+  },
+  "noise_control": {
+    "draws": 30,
+    "paired": true,
+    "median": -0.00045,
+    "mean": -0.00039,
+    "sd": 0.00096,
+    "share_above_threshold": 0.0,
+    "median_limit": 0.002,
+    "exceedance_limit": 0.1,
+    "passed": true
+  },
+  "holm_bonferroni": {
+    "Arm0_sue_rank": {
+      "p_raw": 0.33877,
+      "p_holm": 0.67754,
+      "significant": false
+    },
+    "Arm1_b3_plus_sue": {
+      "p_raw": 0.43616,
+      "p_holm": 0.67754,
+      "significant": false
+    }
+  },
+  "seconds": 10.9
+}
