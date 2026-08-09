@@ -251,11 +251,33 @@ ceiling. **Slot 2 remains UNSPENT and Family 2 is not implemented.**
 
 A passed power gate authorizes nothing. Before Family 2 could run it needs, in order:
 
-1. **explicit human authorization** to spend slot 2 of 3;
-2. **§2.10 clause-3 admissibility** — not evaluated, and its ceilings must be fixed
-   before the correlation is read;
-3. a **preregistration** fixing the feature construction, lookback window, arms and
-   thresholds before the first fit — and it **must** use the bounded-combination design,
-   because a standalone-factor formulation resolves only 0.01949 and **fails §2.6**.
+1. **explicit human authorization** to spend slot 2 of 3 — **still outstanding**;
+2. ~~**§2.10 clause-3 admissibility**~~ — **done 2026-08-09, PASS.** mean |ρ| **0.1313**
+   vs `z__ret_12_1` (ceiling 0.30) and **0.1432** highest against the 34-column set
+   (ceiling 0.50). Ceilings were fixed in the preregistration before the correlation was
+   read. `reports/FAMILY2_ADMISSIBILITY.md` §4;
+3. a **preregistration** — **written and frozen on §1–§5** by the account holder
+   (`alpha/V3_FAMILY2_PREREGISTRATION.md`), using the bounded-combination design as
+   required. **§6, the primary prediction horizon, is unresolved** and a preregistration
+   with an open element is not valid.
 
-**This remains the place for human review.**
+**Turnover, the last blocked input, is also measured:** extra turnover of Arm 1 over B3 is
+**+0.3 pp** against a 30 pp allowance, so the **+0.007 MDE stands** as a measurement
+rather than an assumption.
+
+**Two facts found while measuring, both reported and neither repaired:**
+
+* **Coverage is 13.6%, not 95.9%.** The gate's 0.959 was the share of names with *any*
+  Form 4; the frozen feature admits **open-market purchases only**, so a median of 62
+  names of ~455 carry a non-zero value and ~86% are tied at zero by §5. Measured
+  consequence: **Spearman(Arm 1, B3) = 0.9896** and the tilt replaces **5.4%** of the
+  traded book. The §2.6 PASS is unaffected — a weaker tilt resolves *more* tightly, and
+  the gate blocks only on half-width exceeding the effect — but §2.12 requires that a free
+  power gain be read as a warning, so it is on the record **before** the study.
+* **The dev-set tail is truncated.** The bulk archives end at transaction date
+  **2026-03-30**; `2026q2`/`2026q3` are unpublished (HTTP 404 on 2026-08-09). Ten of 316
+  cutoffs are affected and four are empty, so effective **n = 312**. This is the opposite
+  of a leak. The front boundary was closed by fetching `2015q4`.
+
+**This remains the place for human review**, and the review needed is now exactly one
+decision: **§6, the horizon.** Everything else is measured and passing.

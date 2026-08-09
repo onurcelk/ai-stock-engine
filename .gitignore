@@ -40,3 +40,11 @@ alpha/edgar/facts.parquet
 # it actually produced is pinned in filings_meta.json's symbol_to_cik - which
 # is the reproducibility-relevant record, since the SEC's live map changes.
 alpha/edgar/company_tickers.json
+
+# --- V3 Family 2: the SEC insider-transaction bulk archives (426 MB) and the
+# derived purchase table. Regenerable exactly like the filings ones: the zips
+# re-download from sec.gov (URL in reports/FAMILY2_ADMISSIBILITY.md) and the
+# parquet rebuilds via `python -m alpha.build_insider`. insider_meta.json
+# (small, the build's fingerprint) IS committed, like filings_meta.json.
+alpha/edgar/insider/
+alpha/edgar/insider_purchases.parquet
