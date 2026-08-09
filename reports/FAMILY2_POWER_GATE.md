@@ -85,7 +85,14 @@ at cutoff *T* only if accepted (ET) < 16:00 ET on *T*.
 |---|---|
 | Issuers scanned / with any Form 4 | 619 / **614** |
 | Form 4 filings indexed | **912,564**, 1996-03 → 2026-08 |
-| **Accepted after the 16:00 ET close** | **65.5%** — higher than the 51.8% measured for 10-K/10-Q |
+| **Accepted after the 16:00 ET close** | **65.5%** over all indexed filings (1996→) — higher than the 51.8% measured for 10-K/10-Q |
+
+> **Clarification added 2026-08-09**, after the eligibility pass measured the same
+> quantity on the study era rather than on all history: **within 2016+ the after-close
+> share is 77.3%**, rising monotonically from 68.4% (2016) to 82.9% (2025). The 65.5%
+> above is correct for its stated basis (all 912,564 indexed filings back to 1996) but
+> the era figure is the one that governs the panel. Neither figure affects the gate — the
+> half-width and coverage results are unchanged. See `FAMILY2_ELIGIBILITY.md` §2.
 
 Share of the point-in-time cross-section with ≥1 Form 4 in the trailing window:
 

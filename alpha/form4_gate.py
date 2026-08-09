@@ -277,7 +277,108 @@ def ceiling() -> dict:
     return payload
 
 
-COMMANDS = {"coverage": coverage, "halfwidth": halfwidth, "ceiling": ceiling}
+# ---------------------------------------------------------------------------
+# pit — timestamp semantics and independence from Family 1
+# ---------------------------------------------------------------------------
+
+def pit() -> dict:
+    """Form 4 timestamp semantics (§2.1) and independence from Family 1 (§2.10/§21).
+
+    Index-only, like `coverage`: form type, `reportDate` (the period of report,
+    i.e. the transaction date for a Form 4), `filingDate`, `acceptanceDateTime`.
+    No Form 4 XML, no transaction code, direction, size, price or owner.
+    """
+    started = time.time()
+    meta = json.load(open(f"{EDGAR_DIR}/filings_meta.json"))
+    ciks = sorted({int(c) for c in meta["symbol_to_cik"].values()})
+    archive = zipfile.ZipFile(f"{EDGAR_DIR}/submissions.zip")
+
+    records, periodic = [], {}
+    for count, cik in enumerate(ciks, 1):
+        try:
+            head = json.loads(archive.read("CIK%010d.json" % cik))
+        except KeyError:
+            continue
+        shards = [head["filings"]["recent"]]
+        for extra in head["filings"].get("files", ()):
+            try:
+                shards.append(json.loads(archive.read(extra["name"])))
+            except KeyError:
+                continue
+        quarterly = []
+        for shard in shards:
+            forms, accepted = shard["form"], shard["acceptanceDateTime"]
+            report, filed = shard["reportDate"], shard["filingDate"]
+            for j in range(len(forms)):
+                if not accepted[j]:
+                    continue
+                if forms[j] == "4":
+                    records.append((cik, report[j], filed[j],
+                                    filings.et_from_utc(accepted[j])))
+                elif forms[j] in ("10-K", "10-Q"):
+                    quarterly.append(filings.et_from_utc(accepted[j]))
+        if quarterly:
+            periodic[cik] = np.array(sorted(quarterly), dtype="datetime64[ns]")
+        if count % 200 == 0:
+            print("  ... %d/%d issuers, %d form 4s" % (count, len(ciks), len(records)))
+
+    frame = pd.DataFrame(records, columns=["cik", "reportDate", "filingDate", "accepted"])
+    frame["accepted"] = pd.to_datetime(frame["accepted"])
+    frame["reportDate"] = pd.to_datetime(frame["reportDate"], errors="coerce")
+    era = frame[frame["accepted"] >= pd.Timestamp("2016-01-01")].copy()
+    print("\nForm 4 records %d, with reportDate %.3f; study era (2016+) %d"
+          % (len(frame), frame["reportDate"].notna().mean(), len(era)))
+
+    era["lag_days"] = (era["accepted"].dt.normalize() - era["reportDate"]).dt.days
+    lag = era["lag_days"].dropna()
+    lag = lag[(lag >= 0) & (lag <= 400)]
+    print("\n=== transaction date -> acceptance lag (calendar days) ===")
+    print("  p10 %.0f  p25 %.0f  median %.0f  p75 %.0f  p90 %.0f  p99 %.0f"
+          % tuple(lag.quantile(q) for q in (.1, .25, .5, .75, .9, .99)))
+    print("  <=2d %.3f   <=4d %.3f   >10d %.3f"
+          % ((lag <= 2).mean(), (lag <= 4).mean(), (lag > 10).mean()))
+
+    era["after_close"] = era["accepted"].dt.hour >= 16
+    by_year = era.groupby(era["accepted"].dt.year)["after_close"].mean()
+    print("\n=== accepted after the 16:00 ET close ===")
+    print("  study era overall %.3f" % era["after_close"].mean())
+    print("  by year: " + "  ".join("%d:%.3f" % (y, v) for y, v in by_year.items()))
+
+    distances = []
+    for cik, group in era.groupby("cik"):
+        marks = periodic.get(cik)
+        if marks is None or not len(marks):
+            continue
+        accepted = group["accepted"].to_numpy(dtype="datetime64[ns]")
+        idx = np.clip(np.searchsorted(marks, accepted), 1, len(marks) - 1)
+        distances.append(np.minimum(
+            np.abs((accepted - marks[idx - 1]) / np.timedelta64(1, "D")),
+            np.abs((accepted - marks[idx]) / np.timedelta64(1, "D"))))
+    gap = np.concatenate(distances)
+    print("\n=== independence: distance to the issuer's nearest 10-K/10-Q ===")
+    print("  n %d   median %.1f days" % (len(gap), np.median(gap)))
+    for window in (2, 5, 10, 21, 45):
+        expected = min(1.0, window / 45.5)     # uniform across a ~91-day quarter
+        print("  within %2dd: %.3f   (uniform would give %.3f, ratio %.2fx)"
+              % (window, (gap <= window).mean(), expected,
+                 (gap <= window).mean() / expected))
+
+    payload = {
+        "n_form4_total": int(len(frame)), "n_form4_era": int(len(era)),
+        "lag_quantiles": {str(q): float(lag.quantile(q)) for q in (.1, .25, .5, .75, .9, .99)},
+        "lag_le_2": float((lag <= 2).mean()), "lag_le_4": float((lag <= 4).mean()),
+        "after_close_era": float(era["after_close"].mean()),
+        "after_close_by_year": {int(y): float(v) for y, v in by_year.items()},
+        "gap_median_days": float(np.median(gap)),
+        "gap_within": {int(w): float((gap <= w).mean()) for w in (2, 5, 10, 21, 45)},
+    }
+    pickle.dump(payload, open(f"{OUT_DIR}/form4_pit_semantics.pkl", "wb"))
+    print("\nwrote form4_pit_semantics.pkl   %.1fs" % (time.time() - started))
+    return payload
+
+
+COMMANDS = {"coverage": coverage, "halfwidth": halfwidth, "ceiling": ceiling,
+            "pit": pit}
 
 
 def main(argv: list[str]) -> int:
