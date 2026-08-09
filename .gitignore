@@ -48,3 +48,10 @@ alpha/edgar/company_tickers.json
 # (small, the build's fingerprint) IS committed, like filings_meta.json.
 alpha/edgar/insider/
 alpha/edgar/insider_purchases.parquet
+
+# --- V3 Family 3: the SEC Form 13F bulk data sets (2.7 GB) and the derived
+# holdings-event table. Regenerable: `python -m alpha.fetch_13f` then
+# `python -m alpha.build_13f`. f13_meta.json and f13_cusip_map.json (small,
+# the build's fingerprint and the mapping actually used) ARE committed.
+alpha/edgar/f13/
+alpha/edgar/f13_events.parquet
