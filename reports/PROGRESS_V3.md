@@ -30,6 +30,68 @@ load-bearing.
 
 ---
 
+## Roadmap conformance checklist — section by section
+
+Legend: **[x]** done · **[ ]** not started · **[–]** not reached yet (blocked upstream) ·
+**[=]** standing rule, held continuously.
+
+### Phases
+
+| | § | Requirement | Evidence |
+|---|---|---|---|
+| **[x]** | §3.1 | Checks 1–6, do not re-audit | all six reproduce; `EXPERIMENT_REGISTRY.md` §1 |
+| **[x]** | §3.2 | Decide `validation/` — preserve, reuse, don't merge | `VALIDATION_EVIDENCE_MANIFEST.md`; harness decisions §6 |
+| **[x]** | §3.3 | Open + seed the registry | `EXPERIMENT_REGISTRY.md`, 13 arms + PIT-1 |
+| **[x]** | §4 | Information audit, free-only, ≤3 families | `INFORMATION_AUDIT.md`; 3 families frozen |
+| **[x]** | §4.5 | Scoring table, struck list, verified timestamps | audit §2–§4 |
+| **[x]** | §5 | Target design + power implication per target | `TARGET_DESIGN.md` |
+| **[x]** | §2.6 | Power gate, Family 1 — **before** implementation | registry §6.1 |
+| **[x]** | §6, §6.1 | Pipeline; one-door design mirrored; filing-date door | `alpha/filings.py` |
+| **[x]** | §6.2 | Required test categories incl. **restatements** | `test_alpha_filings*.py`, 26 tests |
+| **[x]** | §2.10 | Admissibility, all four clauses | prereg §2; ceilings fixed before measurement |
+| **[x]** | §7 | Phase 5 information-only tests, 7 test types | `V3_FAMILY1_REPORT.md` → **REJECT** |
+| **[x]** | §2.6 | Power gate, Family 2 — gate only | `FAMILY2_POWER_GATE.md` → **PASS** |
+| **[–]** | §8 | Phase 6, first model | blocked: requires a Phase 5 **CONTINUE**. Family 1 returned REJECT |
+| **[–]** | §9 | Phase 7 walk-forward | blocked upstream |
+| **[–]** | §9b | Phase 7b single-name re-validation | blocked upstream; harness decisions already recorded |
+| **[–]** | §10 | Working Model gate | blocked upstream |
+| **[–]** | §11–§20 | Ensemble → retraining | blocked upstream |
+| **[–]** | §15 | Final untouched exam | **not reached.** Exam still sealed |
+
+### Standing rules — held throughout, not one-off steps
+
+| | § | Rule | Held? |
+|---|---|---|---|
+| **[=]** | §0.1 | Exam never opened/scored/modified | digest `b55e065f…` re-verified after every commit |
+| **[=]** | §0.1 | Production weight not raised; adapter untouched | weight `0.0`, all seven criteria False |
+| **[=]** | §0.1 | No threshold lowered, no benchmark swapped, no B3 modified | Family 1 rejected **on** its thresholds, not around them |
+| **[=]** | §0.1 | No rung/λ/control promoted to an arm | λ curve reported as diagnostic only |
+| **[=]** | §0.1 | **No V2.4** | V3 changed the *information*, not the model |
+| **[=]** | §2.1 | No source without a publication timestamp | 87 facts dropped, not approximated |
+| **[=]** | §2.2 | Walk-forward only | 5-session spacing, non-overlapping |
+| **[=]** | §2.3 | All mandatory baselines | B3, B1, B2, and the raw factor alone |
+| **[=]** | §2.4 | No metric shopping | metrics fixed in prereg §6.2 before any result |
+| **[=]** | §2.5 | Regime concentration **disqualifies** | criterion 4 fired on the BEAR concentration |
+| **[=]** | §2.7 | Arms declared before first fit; nothing discarded | 2 arms declared; Holm applied |
+| **[=]** | §2.8 | Frozen evidence, hashed | manifests + per-cutoff `.pkl` committed |
+| **[=]** | §2.9 | No architecture escalation | Phase 5 fitted **no learner** |
+| **[=]** | §2.11 | Controls powered as gates | 30 paired draws, sd 0.00096 |
+| **[=]** | §2.12 | Free power gain read as a warning | oracle-ceiling check performed, not assumed |
+| **[=]** | §2.13 | Never reason from a post-processed number | no post-processing anywhere in V3 |
+| **[=]** | §21 | 3 families, no fourth | **1 spent, 2 remain**; no Family 1′ opened |
+| **[=]** | §25 | No `research/` tree | used `alpha/` + `reports/` |
+| **[=]** | §27A | No push | 10 local commits, `origin` untouched |
+| **[=]** | §27B | No data spend | all sources free; FRED key flagged, not bought |
+
+### The one §29 step not yet done
+
+**[ ] §29.5 — "implement only the highest-priority dimension and run the first V3
+information-only experiment"** is **done for Family 1** and returned REJECT. The roadmap's
+§29 sequence is therefore complete through its last numbered step. What follows is
+governed by §21: Family 2 or Family 3, or the termination condition.
+
+---
+
 ## Status by roadmap phase
 
 | Phase | § | State |
@@ -40,7 +102,8 @@ load-bearing.
 | §2.6 power gate, Family 1 | §29.4 | **DONE** — commit `7eba2c1` |
 | 4 — filings pipeline | §6 | **DONE** — commit `9a0bec7` |
 | Pre-registration + §2.10 admissibility | §2.10 | **DONE** — commit `5a8b92e` |
-| 5 — information-only test, Family 1 | §7 | **DONE — REJECT** |
+| 5 — information-only test, Family 1 | §7 | **DONE — REJECT** — commit `7ab3c8f` |
+| §2.6 power gate, Family 2 | §2.6 | **DONE — PASS**, gate only — commit `c274982` |
 | 6 onward | §8+ | **not started.** Blocked: Phase 6 requires a Phase 5 CONTINUE |
 
 ### Phase 1 — the three deltas (§3)
@@ -181,8 +244,18 @@ sentence about V2.3-B.
 
 ## Next decision point
 
-Family 2 is **Form 4 insider transactions**. It is the largest ingest of the three
-(~470k filings/year) and its §2.6 power gate has **not** been computed. Under §2.6 it
-may not be implemented until that gate is passed and recorded.
+Family 2 is **Form 4 insider transactions**. Its **§2.6 power gate was computed
+2026-08-09 and PASSED** (`reports/FAMILY2_POWER_GATE.md`): MDE +0.007 against an
+achievable half-width of 0.00205, with ~30× design headroom confirmed by an oracle
+ceiling. **Slot 2 remains UNSPENT and Family 2 is not implemented.**
 
-**This is a natural place for human review before spending slot 2 of 3.**
+A passed power gate authorizes nothing. Before Family 2 could run it needs, in order:
+
+1. **explicit human authorization** to spend slot 2 of 3;
+2. **§2.10 clause-3 admissibility** — not evaluated, and its ceilings must be fixed
+   before the correlation is read;
+3. a **preregistration** fixing the feature construction, lookback window, arms and
+   thresholds before the first fit — and it **must** use the bounded-combination design,
+   because a standalone-factor formulation resolves only 0.01949 and **fails §2.6**.
+
+**This remains the place for human review.**
