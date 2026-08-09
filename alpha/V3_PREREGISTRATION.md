@@ -155,7 +155,10 @@ built only if §6.3 says CONTINUE.
 ### 6.3 Decision rule — CONTINUE requires all four
 
 1. **Arm 1 − B3 ≥ +0.010** in mean paired IC, **and**
-2. its **95% block-bootstrap CI excludes zero**, **and**
+2. its **95% block-bootstrap CI excludes zero on the favourable side**, **and**
+   *(**Amendment A1**, 2026-08-09 — see §10. Original wording, which remains the wording
+   Families 1 and 2 were evaluated under: "its **95% block-bootstrap CI excludes zero**".
+   **A1 is prospective from Family 3 onward and changes no completed result.**)*
 3. **breadth > 0.50** and **both chronological halves positive** (the G5 sign-flip
    failure that killed V2.3 must not repeat), **and**
 4. the effect is **not concentrated in one regime bucket** — specifically, it must
@@ -229,3 +232,66 @@ The diagnosis recorded on rejection must distinguish: did the *information* fail
 target, the horizon, the point-in-time quality, the coverage, the economic significance,
 or the **power**? A family killed by insufficient resolution was never tested — and it
 still spends its slot.
+
+---
+
+## 10. Amendment A1 — Criterion 2 wording. **Prospective only.**
+
+**Dated 2026-08-09.** Made **after** Family 2 returned REJECT and **before** any Family 3
+data was fetched, preprocessed, inspected or tested. This is the **only** amendment to
+this document.
+
+### 10.1 The change, in full
+
+| | |
+|---|---|
+| **Original wording (§6.3 clause 2)** | "its **95% block-bootstrap CI excludes zero**" |
+| **Amended wording (§6.3 clause 2)** | "its **95% block-bootstrap CI excludes zero on the favourable side**" |
+
+The original wording is preserved verbatim in the table above **and** inline at §6.3
+itself, so the text Families 1 and 2 were judged under stays readable in place.
+
+### 10.2 Why
+
+The rule as originally written is **direction-blind**. Family 2's primary contrast came in
+at **−0.00096 with a CI of [−0.00187, −0.00004]** — an interval that excludes zero
+*entirely below it*. A mechanical evaluation therefore recorded criterion 2 as **PASS**
+for what was in fact that study's clearest evidence **against** the family. The overall
+decision was REJECT regardless, because criteria 1, 3 and 4 all failed, so **nothing about
+Family 2's outcome turned on this defect** — but a future reader seeing a "3 FAIL / 1
+PASS" tally could mistake a four-way failure for a near miss.
+
+"On the favourable side" means: for a contrast whose CONTINUE direction is positive, the
+**entire** interval must lie **above** zero. An interval lying entirely below zero is a
+**FAIL** of criterion 2, not a pass.
+
+### 10.3 What this amendment does NOT do
+
+* It does **not** change Family 2's result, tally, decision, commit, artefacts, or
+  eligibility. **Family 2 remains REJECTED and its four-criterion tally stands exactly as
+  recorded** in `alpha/V3_FAMILY2_REPORT.md` and
+  `alpha/out/v3_family2_development.json`. Neither file is touched by this amendment.
+* It does **not** change Family 1's result or tally. Family 1 is likewise judged under the
+  original wording.
+* It does **not** change any threshold (+0.010 stands), the MDE (+0.007 stands), the
+  horizon, λ, the noise-control procedure, the Holm–Bonferroni procedure, sample handling,
+  any other clause of the CONTINUE rule, any feature definition, any learner, or the
+  three-family budget rule. **Criteria 1, 3 and 4 are untouched.**
+* It does **not** re-open, re-run or re-interpret any completed study. §21 still bars a
+  Family 1′ or Family 2′, and **budget slots stand at 2 spent, 1 remaining.**
+* It does **not** touch the exam, which remains sealed at `b55e065f4c9f9173`, or the
+  production weight, which remains `0.0`.
+
+### 10.4 Implementation note for Family 3
+
+`alpha/v3_family1.py` and `alpha/v3_family2.py` encode criterion 2 as
+`bool(lo > 0.0 or hi < 0.0)`. **Those two modules are deliberately left unmodified**, so
+that re-running either family reproduces its recorded result exactly. Family 3's study
+module must instead encode the amended rule directly:
+
+```python
+"2_ci_excludes_zero_favourably": bool(lo > 0.0)
+```
+
+Copying Family 2's inline criteria block without applying this change would silently
+reintroduce the direction-blind test.
