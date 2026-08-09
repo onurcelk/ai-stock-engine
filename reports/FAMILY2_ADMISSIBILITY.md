@@ -16,6 +16,11 @@
 > The **only** remaining blocker is **§6 of the pre-registration — the primary prediction
 > horizon**, which is the account holder's to resolve. Everything in this document is
 > horizon-independent, which is why it could be measured while §6 is open.
+>
+> **Update, same day (§10):** §6 was resolved — **5D** — and the two open data rulings
+> (§6, §7 of this document) were taken. The pre-registration is now **IN FORCE**. The
+> remaining gate is no longer a design question: it is **explicit authorization to spend
+> budget slot 2 of 3**, which is still outstanding.
 
 ---
 
@@ -207,7 +212,32 @@ pre-registered.
 | Family 2 study run | **No** |
 | **Slot 2 of 3** | **UNSPENT** — 1 spent (Family 1), **2 remaining** |
 | Thresholds / criteria / budget / stopping rules modified | **None** |
-| Family 2 **authorized to run** | **NO** — blocked on §6 (horizon) alone |
+| Family 2 **authorized to run** | **NO** — §6 now resolved (§10); blocked only on slot-2 authorization |
 | Exam | sealed, `b55e065f…`, never opened |
 | Production | weight 0, HOLD, `alpha/adapter.py` untouched |
 | Pushed | **No** |
+
+---
+
+## 10. Account-holder rulings, 2026-08-09
+
+All three were taken **before any performance measurement**, and none modified a
+threshold, criterion, family budget or stopping rule. Recorded in full as §10 of
+`alpha/V3_FAMILY2_PREREGISTRATION.md`.
+
+| Open item | Ruling |
+|---|---|
+| §6 primary horizon | **5D**, under `TARGET_DESIGN.md` §4.2 **as written** — §4.2 is not amended, and the 90-trading-day instruction is withdrawn rather than overridden |
+| Denominator (§6 above) | **Accept as measured.** No cleaning rule is added; §1.1 and §2 of the pre-registration stand exactly as frozen |
+| Truncated tail (§7 above) | **Accept n = 312.** The ten cutoffs are recorded, not excluded; nothing is waited for and no second ingest path is built |
+
+**Two things pre-committed by 10.1 and 10.3, so they cannot be re-decided after a result:**
+
+* 5D is the **shortest** permitted horizon and the economic prior for insider buying is a
+  *slow* signal. If Family 2 returns a null, "the horizon was too short" is a live
+  diagnosis — and §2.9/§21 mean the family may **not** then be re-tested at 10D or 20D.
+* If the result is a null, the truncation may **not** be offered as the explanation; if it
+  is positive, the ten truncated cutoffs may **not** be dropped to strengthen it.
+
+**Still outstanding: explicit authorization to spend budget slot 2 of 3.** The
+pre-registration being valid does not authorize the study. Slot 2 is **UNSPENT**.

@@ -7,15 +7,26 @@ result exists; corrections are appended, dated, and leave the original wording v
 Family 2 of the three frozen in `reports/INFORMATION_AUDIT.md` §5.
 **This would spend budget slot 2 of 3 (§21) — and it has not been spent.**
 
-> # STATUS: NOT IN FORCE. NOT AUTHORIZED TO RUN.
+> # STATUS: IN FORCE as of 2026-08-09. NOT YET AUTHORIZED TO RUN.
 >
-> **§6 (primary prediction horizon) conflicts with a pre-registered rule already in
-> force** — `reports/TARGET_DESIGN.md` §4.2, committed at `9532d87` before any Family 2
+> **§6 was resolved by the account holder on 2026-08-09 — the primary horizon is 5D.**
+> See **§10, the resolution appendix**. The original conflict text at §6 is left standing
+> word for word; nothing in it was rewritten.
+>
+> Every element is now fixed and the document is a valid preregistration. **One gate
+> remains, and it is not a design question:** `reports/PROGRESS_V3.md` requires
+> **explicit human authorization to spend budget slot 2 of 3** before the study runs.
+> Slot 2 is **UNSPENT**.
+>
+> ---
+>
+> *Original status, superseded, kept visible:* **NOT IN FORCE. NOT AUTHORIZED TO RUN.**
+> §6 (primary prediction horizon) conflicts with a pre-registered rule already in
+> force — `reports/TARGET_DESIGN.md` §4.2, committed at `9532d87` before any Family 2
 > work existed. The conflict is reported at §6 below and **has not been silently
-> overridden**. Every other decision is frozen as written.
->
-> A preregistration with an unresolved element is not a valid preregistration. Family 2
-> may not run until §6 is resolved by the account holder.
+> overridden**. Every other decision is frozen as written. A preregistration with an
+> unresolved element is not a valid preregistration. Family 2 may not run until §6 is
+> resolved by the account holder.
 
 ---
 
@@ -181,7 +192,7 @@ post-hoc transformations, and any second horizon.
 | Noise control (§2.11) | 30 paired within-cutoff permutations; fails if median > +0.002 or >10% of draws clear the threshold |
 | CONTINUE rule | the four-part rule of `V3_PREREGISTRATION.md` §6.3, unchanged, **with its threshold to be restated once §6 is resolved** |
 
-## 9. Prohibitions
+## 9. Prohibitions (as originally written)
 
 Carried from §0.1 and the roadmap. The exam is never opened, scored or inspected.
 Production weight is not raised and `alpha/adapter.py` is not modified. No threshold is
@@ -189,3 +200,76 @@ lowered, no benchmark swapped, no B3 modified. No λ point, rung or control is p
 an arm. No result is restricted to a regime bucket to make it survive. Development
 numbers are never reported as alpha. **If Family 2 is rejected, no Family 2′ is opened** —
 the next study is Family 3 or the programme stops (§21).
+
+---
+
+## 10. Resolution appendix — 2026-08-09
+
+**Appended, not substituted.** §1–§9 above stand as originally written. Three decisions
+were put to the account holder and are recorded here verbatim in effect. All three were
+taken **before any Family 2 performance measurement**, and no threshold, criterion, family
+budget or stopping rule was modified by any of them.
+
+### 10.1 §6, the primary prediction horizon — **RESOLVED: 5D**
+
+> **The primary forward horizon is 5 sessions (`alpha_5d`).**
+
+This selects the first of the three routes §6 offered — 5D under `TARGET_DESIGN.md` §4.2
+**as written**. §4.2 is not amended, and the 90-trading-day instruction §6 reported as
+conflicting is **withdrawn, not overridden**.
+
+Consequences, all favourable and none of them the reason for the choice (§2.4 forbids
+selecting a design on power, and this choice was made on rule-conformance and on keeping
+the Family 1 comparison honest):
+
+* the panel already carries `alpha_5d`; **no rebuild**, so §0.4's warning that re-running
+  overwrites frozen evidence is not engaged;
+* `panel_meta.json`'s `horizon_sessions 5`, `spacing_sessions 5`, `embargo_sessions 5`
+  remain correct, so the §2.2 purge and embargo need no widening and `alpha/stats.py`'s
+  `BLOCK_LENGTH = 4` still spans the induced dependence;
+* Family 1 measured at the same horizon, so **Arm 1 − B3 here is directly comparable** to
+  Family 1's +0.00090 ± 0.00229.
+
+**The one honest cost, stated rather than buried:** the economic prior for insider buying
+is a *slow* signal, and 5D is the shortest permitted horizon. If Family 2 returns a null,
+"the horizon was too short for the information" is a live diagnosis — and §2.9/§21 mean it
+may **not** then be re-tested at 10D or 20D. That is the price of the three-slot budget and
+it is accepted knowingly.
+
+### 10.2 The denominator — **RESOLVED: accept as measured**
+
+`dei:EntityCommonStockSharesOutstanding` carries placeholder values for 3 of 561 issuers
+(FOX/FOXA share a CIK, plus PSA and VTRS), which makes 105 of 19,347 non-zero rows imply
+insider purchases exceeding 100% of the company. Measured in
+`reports/FAMILY2_ADMISSIBILITY.md` §6.
+
+> **No cleaning rule is added. §1.1's normalisation stands exactly as frozen, and §2's
+> "no winsorisation" stands exactly as frozen.**
+
+Both arms consume the feature as a within-cutoff **rank**, which bounds the damage
+structurally: a wrong denominator can place a name at the top of the ranking but not by an
+unbounded amount. Declining to invent a post-hoc cleaning rule is the point — it is
+precisely the retrofit this protocol exists to prevent.
+
+### 10.3 The truncated tail — **RESOLVED: accept n = 312**
+
+The SEC has not published the `2026q2`/`2026q3` insider bulk archives (both HTTP 404 on
+2026-08-09), so the last available transaction date is **2026-03-30**. Ten of the 316
+development cutoffs have a 90-day window running past it and **four carry no purchase data
+at all**. Measured in `reports/FAMILY2_ADMISSIBILITY.md` §7.
+
+> **The study runs on the development set as it stands. The four empty cutoffs drop out of
+> any IC automatically for want of cross-sectional variation, giving an effective
+> n = 312. The ten truncated cutoffs are recorded, not excluded.**
+
+This is the **opposite of a leak** — those cutoffs see less than was knowable at the time.
+Nothing is waited for and no second ingest path is built. **Pre-committed so it cannot be
+re-decided later: if the result is a null, the truncation may not be offered as the
+explanation, and if the result is positive, the ten cutoffs may not be dropped to
+strengthen it.**
+
+### 10.4 What is still not authorized
+
+**Budget slot 2 of 3 is UNSPENT.** This document being valid does not authorize the study;
+`reports/PROGRESS_V3.md` requires explicit human authorization to spend the slot, and that
+authorization is separate from the design decisions recorded above.

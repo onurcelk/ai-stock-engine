@@ -256,10 +256,13 @@ A passed power gate authorizes nothing. Before Family 2 could run it needs, in o
    vs `z__ret_12_1` (ceiling 0.30) and **0.1432** highest against the 34-column set
    (ceiling 0.50). Ceilings were fixed in the preregistration before the correlation was
    read. `reports/FAMILY2_ADMISSIBILITY.md` §4;
-3. a **preregistration** — **written and frozen on §1–§5** by the account holder
-   (`alpha/V3_FAMILY2_PREREGISTRATION.md`), using the bounded-combination design as
-   required. **§6, the primary prediction horizon, is unresolved** and a preregistration
-   with an open element is not valid.
+3. ~~a **preregistration**~~ — **done. `alpha/V3_FAMILY2_PREREGISTRATION.md` is IN FORCE
+   as of 2026-08-09**, using the bounded-combination design as required. **§6 was resolved
+   by the account holder: the primary horizon is 5D**, under `TARGET_DESIGN.md` §4.2 *as
+   written* — §4.2 is not amended and the 90-trading-day instruction is withdrawn, not
+   overridden. The two open data rulings were taken with it: the denominator is **accepted
+   as measured** (no cleaning rule added) and the truncated tail is **accepted at
+   n = 312** (the ten cutoffs recorded, not excluded). See §10 of the preregistration.
 
 **Turnover, the last blocked input, is also measured:** extra turnover of Arm 1 over B3 is
 **+0.3 pp** against a 30 pp allowance, so the **+0.007 MDE stands** as a measurement
@@ -279,5 +282,14 @@ rather than an assumption.
   cutoffs are affected and four are empty, so effective **n = 312**. This is the opposite
   of a leak. The front boundary was closed by fetching `2015q4`.
 
-**This remains the place for human review**, and the review needed is now exactly one
-decision: **§6, the horizon.** Everything else is measured and passing.
+**Two consequences pre-committed with those rulings, so they cannot be re-decided after a
+result:** 5D is the *shortest* permitted horizon against a slow-signal prior, and §2.9/§21
+mean a null may **not** be answered by re-testing Family 2 at 10D or 20D; and the
+truncation may **not** be offered as the explanation for a null, nor the ten cutoffs
+dropped to strengthen a positive.
+
+**This remains the place for human review, and exactly one gate is left — and it is not a
+design question: explicit authorization to spend budget slot 2 of 3.** Every check is
+measured and passing; the preregistration is valid; slot 2 is **UNSPENT**. Spending it is
+irreversible under §21 — the family may never be re-tested with another feature, learner or
+horizon — which is why it is a separate decision from the design ones above.
