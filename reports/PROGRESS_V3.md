@@ -12,6 +12,22 @@ unfalsifiable.
 
 ## The one thing that matters if you read nothing else
 
+**Two of the three budget slots are now spent, both on rejections. One remains.**
+Family 1 (reported fundamentals / SUE) and Family 2 (Form 4 insider open-market
+purchases) were each tested and REJECTED on their pre-registered rules. **If Family 3
+also fails, §21 requires concluding the *formulation* is wrong and stopping — not
+opening a fourth.**
+
+The two failed differently, and the difference is the most useful thing V3 has produced.
+**Family 1's factor was real but not incremental** — SUE's own IC cleared zero and it
+still could not add to B3. **Family 2's factor was not there at all** — insider purchase
+intensity scores IC −0.00547 with a CI spanning zero, the opposite sign to its
+pre-registered prior, and it cannot even form a short book (§ below). A family can fail
+because its information is redundant, or because its information is absent; V3 has now
+seen one of each.
+
+### Family 1, in detail
+
 **Family 1 (reported fundamentals / time-series SUE) was tested and REJECTED on its
 pre-registered rule. Budget slot 1 of 3 is spent.** The primary contrast — B3 plus a
 bounded SUE tilt, versus B3 — measured **+0.00090 with a half-width of 0.00229**. All
@@ -51,7 +67,8 @@ Legend: **[x]** done · **[ ]** not started · **[–]** not reached yet (blocke
 | **[x]** | §2.10 | Admissibility, all four clauses | prereg §2; ceilings fixed before measurement |
 | **[x]** | §7 | Phase 5 information-only tests, 7 test types | `V3_FAMILY1_REPORT.md` → **REJECT** |
 | **[x]** | §2.6 | Power gate, Family 2 — gate only | `FAMILY2_POWER_GATE.md` → **PASS** |
-| **[–]** | §8 | Phase 6, first model | blocked: requires a Phase 5 **CONTINUE**. Family 1 returned REJECT |
+| **[x]** | §7 | Phase 5 information-only test, Family 2 | `V3_FAMILY2_REPORT.md` → **REJECT** |
+| **[–]** | §8 | Phase 6, first model | blocked: requires a Phase 5 **CONTINUE**. Families 1 and 2 both returned REJECT |
 | **[–]** | §9 | Phase 7 walk-forward | blocked upstream |
 | **[–]** | §9b | Phase 7b single-name re-validation | blocked upstream; harness decisions already recorded |
 | **[–]** | §10 | Working Model gate | blocked upstream |
@@ -78,7 +95,7 @@ Legend: **[x]** done · **[ ]** not started · **[–]** not reached yet (blocke
 | **[=]** | §2.11 | Controls powered as gates | 30 paired draws, sd 0.00096 |
 | **[=]** | §2.12 | Free power gain read as a warning | oracle-ceiling check performed, not assumed |
 | **[=]** | §2.13 | Never reason from a post-processed number | no post-processing anywhere in V3 |
-| **[=]** | §21 | 3 families, no fourth | **1 spent, 2 remain**; no Family 1′ opened |
+| **[=]** | §21 | 3 families, no fourth | **2 spent, 1 remains**; no Family 1′ or 2′ opened |
 | **[=]** | §25 | No `research/` tree | used `alpha/` + `reports/` |
 | **[=]** | §27A | No push | 10 local commits, `origin` untouched |
 | **[=]** | §27B | No data spend | all sources free; FRED key flagged, not bought |
@@ -104,6 +121,8 @@ governed by §21: Family 2 or Family 3, or the termination condition.
 | Pre-registration + §2.10 admissibility | §2.10 | **DONE** — commit `5a8b92e` |
 | 5 — information-only test, Family 1 | §7 | **DONE — REJECT** — commit `7ab3c8f` |
 | §2.6 power gate, Family 2 | §2.6 | **DONE — PASS**, gate only — commit `c274982` |
+| Family 2 admissibility + rulings | §2.10 | **DONE** — commits `bd0c7aa`, `65c0039` |
+| 5 — information-only test, Family 2 | §7 | **DONE — REJECT**, slot 2 spent |
 | 6 onward | §8+ | **not started.** Blocked: Phase 6 requires a Phase 5 CONTINUE |
 
 ### Phase 1 — the three deltas (§3)
@@ -241,6 +260,64 @@ sentence about V2.3-B.
   horizon, or one more carrier (§2.9, §21). No Family 1′.
 * If Families 2 and 3 also fail, §21 requires concluding that the *formulation* is
   wrong and stopping — not opening a fourth family. That is a §27F reporting stop.
+
+## Family 2 - Form 4 insider open-market purchases: REJECT (2026-08-09)
+
+Ran on explicit authorization. **Budget slot 2 of 3 is SPENT. Spent: 2. Remaining: 1.**
+Full record in `alpha/V3_FAMILY2_REPORT.md`; artefacts in
+`alpha/out/v3_family2_development.{json,pkl}`.
+
+316 development cutoffs, 143,675 rows, feature non-zero 0.135 (median 62 names),
+**exam contamination 0**.
+
+| | mean IC | half-width | 95% CI | hit |
+|---|---|---|---|---|
+| b3 regime rule (incumbent) | +0.02241 | 0.02328 | [-0.00086, +0.04570] | 0.560 |
+| **Arm 0 - raw insider rank** | **-0.00547** | 0.00714 | **[-0.01278, +0.00151]** | 0.478 |
+| Arm 1 - B3 + 0.25 tilt | +0.02146 | 0.02306 | [-0.00154, +0.04457] | 0.551 |
+
+**Primary contrast, Arm 1 - B3: -0.00096, half-width 0.00092, CI [-0.00187, -0.00004],
+breadth 0.4177, n = 316.**
+
+| Pre-registered CONTINUE criterion | |
+|---|---|
+| 1 - effect >= +0.010 | **FAIL** (-0.00096) |
+| 2 - CI excludes zero | **"PASS" - entirely BELOW zero.** The rule is direction-blind; the honest count is four failures, one disguised |
+| 3 - breadth > 0.50 and both halves positive | **FAIL** (0.4177; halves -0.00094 / -0.00097) |
+| 4 - survives with BEAR removed | **FAIL** (-0.00115) |
+
+**Noise control PASSED** - 30 paired permutations, median -0.00046, 0.0% above threshold.
+**Holm-Bonferroni:** neither arm significant (p_holm 0.0752 both). **Net of costs:** Arm 1
+gross -0.00006, net -0.000058 - the sixth time a tilt has failed to pay for its trading.
+
+**Three findings that outlast the rejection:**
+
+1. **This failed at the root, unlike Family 1.** SUE cleared zero standalone and lost only
+   when asked to add to B3. This feature does not clear zero at all, and its point estimate
+   is the **opposite sign to the pre-registered +1 prior** - with a CI spanning zero, so the
+   reading is "no signal", not "an inverted signal". **The sign may not be flipped and
+   re-run**; that is a Family 2' and is barred.
+2. **The feature cannot form a short book.** The lowest percentile rank any name receives
+   is a median of **0.4308** - the 86% tied at zero land mid-cross-section. **No name
+   reaches the bottom quintile at any of the 316 cutoffs**, so Arm 0's long-short spread is
+   undefined everywhere (n = 0 of 316). A consequence of the pre-registered design, which
+   recorded the tie block in advance - not a defect in it.
+3. **The +-0.00092 half-width, the tightest ever produced here, was predicted before the
+   run and warned about.** `FAMILY2_ADMISSIBILITY.md` §8 measured Spearman(Arm 1, B3) =
+   0.9896 and a 5.4% book change beforehand. §2.12's "a free power gain is a warning" was
+   correct twice over.
+
+**One correction to a pre-commitment:** §10.3 pre-committed effective n = 312. That holds
+for Arm 0's own IC but **not** for the primary contrast, which ran at **n = 316** - at an
+all-zero cutoff Arm 1 collapses to exactly B3 and contributes an exact zero rather than
+dropping. Rescaling to 312 moves the primary from -0.00096 to -0.00097; no criterion
+changes.
+
+**Recommended for Family 3, to be fixed BEFORE its data is touched:** criterion 2 should
+read "the CI excludes zero **on the favourable side**". Never as an amendment to a
+pre-registration that has already been run.
+
+---
 
 ## Next decision point
 

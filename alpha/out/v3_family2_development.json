@@ -1,0 +1,586 @@
+{
+  "protocol": "V3",
+  "family": "2 - Form 4 insider open-market purchases",
+  "stage": "Phase 5 information-only",
+  "preregistration": "alpha/V3_FAMILY2_PREREGISTRATION.md",
+  "budget_slot_spent": 2,
+  "written_at": "2026-08-09T22:13:14",
+  "exam_set_digest": "b55e065f4c9f91737b7a56fd715f0913cf8f41207bdb24d91452c10bc1c98ab0",
+  "exam_contamination": 0,
+  "development_cutoffs": 316,
+  "rows": 143675,
+  "lambda": 0.25,
+  "feature_sign": 1,
+  "winsor": null,
+  "target": "alpha_5d",
+  "horizon_sessions": 5,
+  "feature_defined": 0.9952,
+  "feature_nonzero_share": 0.1351,
+  "feature_nonzero_per_cutoff_median": 62,
+  "arms": {
+    "Arm0_insider_rank": {
+      "ic": {
+        "what": "Arm0_insider_rank IC",
+        "n_cutoffs": 312,
+        "mean": -0.00547,
+        "median": -0.00405,
+        "sd": 0.06807,
+        "hit_rate": 0.4776,
+        "boot_lo": -0.01278,
+        "boot_hi": 0.00151,
+        "half_width": 0.00714,
+        "nw_se": 0.00365,
+        "p_boot": 0.12669,
+        "excludes_null": false
+      },
+      "spread": {
+        "what": "Arm0_insider_rank top-bottom spread",
+        "n_cutoffs": 0,
+        "mean": NaN,
+        "median": NaN,
+        "sd": NaN,
+        "hit_rate": NaN,
+        "boot_lo": NaN,
+        "boot_hi": NaN,
+        "half_width": NaN,
+        "nw_se": NaN,
+        "p_boot": NaN,
+        "excludes_null": false
+      },
+      "turnover": 0.1126,
+      "halves_ic": {
+        "first": {
+          "n": 156,
+          "mean": -0.00725,
+          "from": "2016-01-04",
+          "to": "2020-03-20"
+        },
+        "second": {
+          "n": 156,
+          "mean": -0.00368,
+          "from": "2020-04-20",
+          "to": "2026-06-05"
+        },
+        "both_positive": false
+      },
+      "versus": {
+        "b1_momentum_12_1": {
+          "what": "Arm0_insider_rank vs b1_momentum_12_1",
+          "n_cutoffs": 312,
+          "mean": -0.01604,
+          "median": -0.01651,
+          "sd": 0.27611,
+          "hit_rate": 0.4615,
+          "boot_lo": -0.04284,
+          "boot_hi": 0.01257,
+          "half_width": 0.0277,
+          "nw_se": 0.01407,
+          "p_boot": 0.25707,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 156,
+              "mean": -0.01425,
+              "from": "2016-01-04",
+              "to": "2020-03-20"
+            },
+            "second": {
+              "n": 156,
+              "mean": -0.01783,
+              "from": "2020-04-20",
+              "to": "2026-06-05"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 246,
+              "mean": -0.02519
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": 0.06854
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": -0.03899
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 277,
+              "mean": -0.02673,
+              "median": -0.02673,
+              "sd": 0.27212,
+              "hit_rate": 0.4368,
+              "boot_lo": -0.05417,
+              "boot_hi": 0.00372,
+              "half_width": 0.02895,
+              "nw_se": 0.01454,
+              "p_boot": 0.07679,
+              "excludes_null": false
+            }
+          }
+        },
+        "b2_reversal_5d": {
+          "what": "Arm0_insider_rank vs b2_reversal_5d",
+          "n_cutoffs": 312,
+          "mean": -0.01109,
+          "median": -0.00653,
+          "sd": 0.18841,
+          "hit_rate": 0.4744,
+          "boot_lo": -0.03146,
+          "boot_hi": 0.00743,
+          "half_width": 0.01944,
+          "nw_se": 0.00979,
+          "p_boot": 0.25887,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 156,
+              "mean": -0.01283,
+              "from": "2016-01-04",
+              "to": "2020-03-20"
+            },
+            "second": {
+              "n": 156,
+              "mean": -0.00935,
+              "from": "2020-04-20",
+              "to": "2026-06-05"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 246,
+              "mean": -0.00741
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": -0.04355
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": -0.00361
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 277,
+              "mean": -0.00699,
+              "median": -0.00204,
+              "sd": 0.18847,
+              "hit_rate": 0.4838,
+              "boot_lo": -0.02905,
+              "boot_hi": 0.01285,
+              "half_width": 0.02095,
+              "nw_se": 0.01029,
+              "p_boot": 0.51475,
+              "excludes_null": false
+            }
+          }
+        },
+        "b3_regime_switched": {
+          "what": "Arm0_insider_rank vs b3_regime_switched",
+          "n_cutoffs": 312,
+          "mean": -0.02862,
+          "median": -0.03574,
+          "sd": 0.26379,
+          "hit_rate": 0.4327,
+          "boot_lo": -0.05505,
+          "boot_hi": -0.00122,
+          "half_width": 0.02691,
+          "nw_se": 0.01352,
+          "p_boot": 0.0376,
+          "excludes_null": true,
+          "halves": {
+            "first": {
+              "n": 156,
+              "mean": -0.03475,
+              "from": "2016-01-04",
+              "to": "2020-03-20"
+            },
+            "second": {
+              "n": 156,
+              "mean": -0.02249,
+              "from": "2020-04-20",
+              "to": "2026-06-05"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 246,
+              "mean": -0.02519
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": -0.04355
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": -0.03899
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 277,
+              "mean": -0.02673,
+              "median": -0.02673,
+              "sd": 0.27212,
+              "hit_rate": 0.4368,
+              "boot_lo": -0.05417,
+              "boot_hi": 0.00372,
+              "half_width": 0.02895,
+              "nw_se": 0.01454,
+              "p_boot": 0.07679,
+              "excludes_null": false
+            }
+          }
+        }
+      },
+      "net_of_cost": {
+        "gross_spread_advantage": {
+          "what": "Arm0_insider_rank gross spread vs B3",
+          "n_cutoffs": 0,
+          "mean": NaN,
+          "median": NaN,
+          "sd": NaN,
+          "hit_rate": NaN,
+          "boot_lo": NaN,
+          "boot_hi": NaN,
+          "half_width": NaN,
+          "nw_se": NaN,
+          "p_boot": NaN,
+          "excludes_null": false
+        },
+        "extra_turnover": -0.1182,
+        "cost_drag_per_cutoff": 0.0,
+        "net_spread_advantage": NaN
+      }
+    },
+    "Arm1_b3_plus_insider": {
+      "ic": {
+        "what": "Arm1_b3_plus_insider IC",
+        "n_cutoffs": 316,
+        "mean": 0.02146,
+        "median": 0.02688,
+        "sd": 0.22446,
+        "hit_rate": 0.5506,
+        "boot_lo": -0.00154,
+        "boot_hi": 0.04457,
+        "half_width": 0.02306,
+        "nw_se": 0.01147,
+        "p_boot": 0.06539,
+        "excludes_null": false
+      },
+      "spread": {
+        "what": "Arm1_b3_plus_insider top-bottom spread",
+        "n_cutoffs": 316,
+        "mean": 0.00192,
+        "median": 0.00304,
+        "sd": 0.02462,
+        "hit_rate": 0.5665,
+        "boot_lo": -0.0006,
+        "boot_hi": 0.00436,
+        "half_width": 0.00248,
+        "nw_se": 0.00127,
+        "p_boot": 0.13049,
+        "excludes_null": false
+      },
+      "turnover": 0.2333,
+      "halves_ic": {
+        "first": {
+          "n": 158,
+          "mean": 0.02732,
+          "from": "2016-01-04",
+          "to": "2020-04-27"
+        },
+        "second": {
+          "n": 158,
+          "mean": 0.01559,
+          "from": "2020-05-04",
+          "to": "2026-07-28"
+        },
+        "both_positive": true
+      },
+      "versus": {
+        "b1_momentum_12_1": {
+          "what": "Arm1_b3_plus_insider vs b1_momentum_12_1",
+          "n_cutoffs": 316,
+          "mean": 0.01146,
+          "median": -0.00155,
+          "sd": 0.10277,
+          "hit_rate": 0.4304,
+          "boot_lo": -0.00035,
+          "boot_hi": 0.02566,
+          "half_width": 0.013,
+          "nw_se": 0.00673,
+          "p_boot": 0.07579,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": 0.02419,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": -0.00127,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": -0.00118
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": 0.11269
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": -0.0009
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": -0.00115,
+              "median": -0.00174,
+              "sd": 0.0093,
+              "hit_rate": 0.4057,
+              "boot_lo": -0.00216,
+              "boot_hi": -0.00016,
+              "half_width": 0.001,
+              "nw_se": 0.0005,
+              "p_boot": 0.0249,
+              "excludes_null": true
+            }
+          }
+        },
+        "b2_reversal_5d": {
+          "what": "Arm1_b3_plus_insider vs b2_reversal_5d",
+          "n_cutoffs": 316,
+          "mean": 0.01471,
+          "median": 0.00614,
+          "sd": 0.26978,
+          "hit_rate": 0.5348,
+          "boot_lo": -0.01184,
+          "boot_hi": 0.03994,
+          "half_width": 0.02589,
+          "nw_se": 0.01316,
+          "p_boot": 0.26597,
+          "excludes_null": false,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": 0.0207,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": 0.00871,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": true
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": 0.01423
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": 0.0006
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": 0.03447
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": 0.01646,
+              "median": 0.01749,
+              "sd": 0.28608,
+              "hit_rate": 0.5374,
+              "boot_lo": -0.01308,
+              "boot_hi": 0.04513,
+              "half_width": 0.0291,
+              "nw_se": 0.01442,
+              "p_boot": 0.26617,
+              "excludes_null": false
+            }
+          }
+        },
+        "b3_regime_switched": {
+          "what": "Arm1_b3_plus_insider vs b3_regime_switched",
+          "n_cutoffs": 316,
+          "mean": -0.00096,
+          "median": -0.00167,
+          "sd": 0.00945,
+          "hit_rate": 0.4177,
+          "boot_lo": -0.00187,
+          "boot_hi": -4e-05,
+          "half_width": 0.00092,
+          "nw_se": 0.00047,
+          "p_boot": 0.0451,
+          "excludes_null": true,
+          "halves": {
+            "first": {
+              "n": 158,
+              "mean": -0.00094,
+              "from": "2016-01-04",
+              "to": "2020-04-27"
+            },
+            "second": {
+              "n": 158,
+              "mean": -0.00097,
+              "from": "2020-05-04",
+              "to": "2026-07-28"
+            },
+            "both_positive": false
+          },
+          "regimes": {
+            "BULL_TREND": {
+              "n": 250,
+              "mean": -0.00118
+            },
+            "BEAR_TREND": {
+              "n": 35,
+              "mean": 0.0006
+            },
+            "SIDEWAYS": {
+              "n": 31,
+              "mean": -0.0009
+            },
+            "EX_BEAR": {
+              "what": "ex-bear",
+              "n_cutoffs": 281,
+              "mean": -0.00115,
+              "median": -0.00174,
+              "sd": 0.0093,
+              "hit_rate": 0.4057,
+              "boot_lo": -0.00216,
+              "boot_hi": -0.00016,
+              "half_width": 0.001,
+              "nw_se": 0.0005,
+              "p_boot": 0.0249,
+              "excludes_null": true
+            }
+          }
+        }
+      },
+      "net_of_cost": {
+        "gross_spread_advantage": {
+          "what": "Arm1_b3_plus_insider gross spread vs B3",
+          "n_cutoffs": 316,
+          "mean": -6e-05,
+          "median": -0.00025,
+          "sd": 0.00219,
+          "hit_rate": 0.4304,
+          "boot_lo": -0.0003,
+          "boot_hi": 0.0002,
+          "half_width": 0.00025,
+          "nw_se": 0.00013,
+          "p_boot": 0.66543,
+          "excludes_null": false
+        },
+        "extra_turnover": 0.0025,
+        "cost_drag_per_cutoff": 3e-06,
+        "net_spread_advantage": -5.8e-05
+      }
+    }
+  },
+  "benchmarks": {
+    "b1_momentum_12_1": {
+      "what": "b1_momentum_12_1",
+      "n_cutoffs": 316,
+      "mean": 0.01,
+      "median": 0.01623,
+      "sd": 0.23535,
+      "hit_rate": 0.5316,
+      "boot_lo": -0.01342,
+      "boot_hi": 0.0343,
+      "half_width": 0.02386,
+      "nw_se": 0.01195,
+      "p_boot": 0.40576,
+      "excludes_null": false
+    },
+    "b2_reversal_5d": {
+      "what": "b2_reversal_5d",
+      "n_cutoffs": 316,
+      "mean": 0.00675,
+      "median": 0.00379,
+      "sd": 0.17835,
+      "hit_rate": 0.5095,
+      "boot_lo": -0.01062,
+      "boot_hi": 0.0261,
+      "half_width": 0.01836,
+      "nw_se": 0.00923,
+      "p_boot": 0.47065,
+      "excludes_null": false
+    },
+    "b3_regime_switched": {
+      "what": "b3_regime_switched",
+      "n_cutoffs": 316,
+      "mean": 0.02241,
+      "median": 0.02975,
+      "sd": 0.22698,
+      "hit_rate": 0.5601,
+      "boot_lo": -0.00086,
+      "boot_hi": 0.0457,
+      "half_width": 0.02328,
+      "nw_se": 0.0116,
+      "p_boot": 0.05829,
+      "excludes_null": false
+    }
+  },
+  "primary": {
+    "contrast": "Arm1_b3_plus_insider - b3_regime_switched",
+    "n_cutoffs": 316,
+    "mean": -0.00096,
+    "ci": [
+      -0.00187,
+      -4e-05
+    ],
+    "half_width": 0.00092,
+    "breadth": 0.4177,
+    "threshold": 0.01,
+    "criteria": {
+      "1_effect_at_least_0.010": false,
+      "2_ci_excludes_zero": true,
+      "3_breadth_and_halves": false,
+      "4_survives_ex_bear": false
+    },
+    "all_passed": false,
+    "decision": "REJECT"
+  },
+  "noise_control": {
+    "draws": 30,
+    "paired": true,
+    "median": -0.00046,
+    "mean": -0.00035,
+    "sd": 0.00046,
+    "share_above_threshold": 0.0,
+    "median_limit": 0.002,
+    "exceedance_limit": 0.1,
+    "passed": true
+  },
+  "holm_bonferroni": {
+    "Arm0_insider_rank": {
+      "p_raw": 0.0376,
+      "p_holm": 0.0752,
+      "significant": false
+    },
+    "Arm1_b3_plus_insider": {
+      "p_raw": 0.0451,
+      "p_holm": 0.0752,
+      "significant": false
+    }
+  },
+  "seconds": 10.8
+}
