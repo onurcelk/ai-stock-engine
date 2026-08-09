@@ -356,7 +356,57 @@ a **blocked study** — roadmap §2.6 forbids running it.
 
 ## 6. V3 experiments
 
-*None yet. Phase 2 (information audit) has not produced a family, and no study may be
-registered before its §2.6 power gate is computed.*
+**Family budget (§21): 3 slots. Spent: 0. Remaining: 3.** Families frozen in
+`INFORMATION_AUDIT.md` §5: (1) EDGAR fundamentals + filing-timestamped drift,
+(2) Form 4 insider transactions, (3) 13F holdings, reserve.
 
-**Family budget (§21): 3 slots. Spent: 0. Remaining: 3.**
+### 6.1 Pre-study §2.6 power gate — Family 1, computed 2026-08-09 (roadmap §29 step 4)
+
+Computed **before any implementation**, as §29 step 4 requires. This is the go/no-go
+arithmetic; the full preregistration (`alpha/V3_PREREGISTRATION.md`) still fixes exact
+thresholds, arms and multiplicity before the first fit, and repeats this gate with the
+design's actual cutoff count.
+
+**Step 1 — smallest effect worth acting on, derived from the cost model, not from hope.**
+From the frozen record: the per-cutoff top-bottom spread runs at **≈ 0.10 × IC**
+(measured 0.091–0.105 across V2.1-C/D, V2.3-A/B), and the cost drag of running a fitted
+tilt at the record's turnover was **0.0002–0.0007 per week** (same arms, at the
+pre-registered 5 bps). For the *net-of-cost* advantage over B3 to be economically
+meaningful — taken here as **≥ +0.0004/week on the spread portfolio (~2%/year)** after
+paying its own added turnover (~0.0003/week) — the gross spread advantage must be
+≥ ~0.0007/week, i.e. an IC advantage over B3 of
+
+> **MDE ≈ +0.007 IC — the smallest effect worth acting on.**
+
+**Step 2 — half-width the planned design achieves.** Phase 5 information-only tests fit
+no learner, so no training warm-up is needed: **255–316 usable development cutoffs**
+(316 if filings coverage holds to 2016; the record's 255 if it does not). Using the
+record's measured calibration (0.00827 at 255 paired cutoffs, √-scaled; the same
+moving-block machinery in `alpha/stats.py` will produce the exact number in the
+preregistration):
+
+> **Achievable half-width ≈ 0.0074–0.0083 IC** for the paired bounded-combination
+> contrast against B3 — the decisive test-7 design.
+> A *standalone* new factor paired against B3 (low correlation) resolves only ~0.03; the
+> family's decisive claim must therefore be formulated as **the increment of adding the
+> information to the incumbent**, which is the design the record already calibrates.
+
+**Step 3 — verdict.**
+
+| | |
+|---|---|
+| MDE (economic floor) | +0.007 IC vs B3 |
+| Achievable half-width | 0.0074–0.0083 IC |
+| MDE vs half-width | **at the margin — a true effect of exactly 0.007 is not reliably distinguishable from zero** |
+| **Gate verdict** | **RUNNABLE, conditionally:** the preregistration must hypothesize an effect **≥ +0.010 IC vs B3** — comfortably above both the economic floor and the resolution — or the study may not run. Literature priors for filing-timestamped drift (rank IC ~0.01–0.03 at discovery, decayed since) plausibly support 0.010; they do not support treating 0.007 as the target |
+| Recorded | here, and to be restated verbatim in `alpha/V3_PREREGISTRATION.md` before the first fit |
+
+For scale: the hypothesized 0.010 is **~7–20× what the entire V2 feature set was worth**
+(+0.0005–0.0014). That is what §2.6 demands, and it is a falsifiable bet — if Family 1's
+information is worth what V2's was, the study will return a clean, well-resolved null
+and the slot is spent honestly.
+
+### 6.2 Registered V3 studies
+
+*None yet. Phase 4 (pipeline) has not begun. The first registration happens at the
+Family 1 preregistration, before its first fit.*
