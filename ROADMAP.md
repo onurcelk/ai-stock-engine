@@ -1,6 +1,6 @@
 # Roadmap: Live Data + Making the Results Mean Something
 
-## Status — updated 2026-08-06
+## Status — updated 2026-08-10
 
 | # | Item | State |
 |---|---|---|
@@ -9,11 +9,16 @@
 | 3 | Directional accuracy, MAE / RMSE | ✅ **Done** |
 | 3.3 | Walk-forward validation | ✅ **Done** |
 | — | Intraday intervals (1h / 4h) | ✅ **Done** |
-| — | Lite / Pro interface modes | ✅ **Done** |
 | 5a | Portfolio (multi-symbol baskets) | ✅ **Done** |
 | 5c | TradingView-style price chart + app-wide dark theme | ✅ **Done** |
 | 4 | Reinforcement-learning agents in the UI | ✅ **Done** — 19 of 19 |
 | 5b | Run persistence (History tab) | ✅ **Done** |
+| 5e | TradingView chrome: toolbar, watchlist rail, range bar | ✅ **Done** |
+| **6** | **Ultimate indicator — skill-weighted consensus at 4h / 1d / 1w** | ✅ **Done** |
+| **7** | **Tradeable portfolio — buy, sell, ledger, edit-all** | ✅ **Done** |
+| **8** | **Lite and Pro split into two applications** | ✅ **Done** |
+| — | Point-in-time historical validation (V1 study) | ✅ **Done** — `validation/REPORT.md` |
+| **9** | **V2 alpha architecture — predict relative winners, not direction** | ■ **Closed** — architecture abandoned; V3 and V4 closed under their own protocols. See `reports/` |
 | 5d | Deploy split, cache warming | ⬜ Not started |
 
 ### The verdict walk-forward delivered
@@ -48,6 +53,314 @@ exists to catch, and it is why this repo's advertised 95%+ accuracies mean nothi
   The second number is the real one.
 - Canary intact: the turtle agent still returns **3.6198%** at zero cost with fixed
   sizing, matching the original notebook.
+
+---
+
+## Priority 6 — The ultimate indicator  ✅ DONE
+
+Everything before this produces *a* number. None of them is a decision, and
+averaging them would only have produced a more confident average of things
+that mostly do not work — the walk-forward table above is on record that the
+LSTM is below a coin flip on direction.
+
+So `app/core/ultimate.py` does not average opinions. It **measures** them, per
+symbol and per horizon, and weights each one by what it has actually been
+worth out of sample. `app/core/indicators.py` supplies the evidence: ten
+technical sources plus the three rule-based agents' standing positions, all
+expressed on one [-1, +1] scale so a single calibrator can score them against
+the same forward returns.
+
+### How a source earns weight
+
+1. Score the whole history on the source's own scale.
+2. Keep the bars where it actually had an opinion (|score| ≥ 0.15) — grading
+   a source on its neutral bars dilutes its hit rate towards 50% however good
+   its real calls were.
+3. Check the sign of that opinion against the realised forward return, on a
+   **held-out final 30%** only.
+4. Compute the t-statistic on the **effective** sample size, `samples / bars`.
+   Overlapping forward windows are not independent observations: a 5-bar
+   return sampled every bar is five views of the same week. Skipping this is
+   the single easiest way to manufacture significance out of correlated draws.
+5. Below `t = 1.65` (one-sided 5%) the source carries **nothing**. Above it,
+   the edge is shrunk by `t²/(t²+1)`.
+
+Nothing here may flip a sign. A source measured as anti-predictive is dropped,
+never inverted — inverting on a fit is how you find an edge in pure noise.
+
+### Four things had to be fixed before the numbers meant anything
+
+Each of these was a real output of an earlier pass, and each has a test:
+
+- **The least-insignificant source carried the verdict.** With shrinkage but
+  no floor, AAPL's 1-week horizon handed **70% of its weight** to a 54.0% hit
+  rate at *t* = 0.7. Hence `MIN_T`.
+- **The family cap did not cap.** Scaling a family down and renormalising in a
+  loop converges towards the limit far too slowly to enforce it; three rounds
+  left that same agent family at 70% of a verdict it was supposed to be held
+  to 55% of. `cap_families()` is now a water-filling solve, and weight lost to
+  the cap is *not* redistributed — it was double-counted evidence.
+- **One source could produce a full-scale call.** Normalising weights to their
+  own total makes them sum to 1 no matter how little evidence there is. They
+  are divided by a fixed `REFERENCE_WEIGHT` instead, so thin evidence reads as
+  a weak call rather than a confident one made on nothing.
+- **One *family* could still produce a 99% confident STRONG SELL.** On
+  EURUSD=X a single agent at 58.5% over 77 independent weeks did exactly that.
+  Weights are now also scaled by breadth: `FULL_BREADTH = 3` different
+  families before a horizon speaks at full volume.
+
+### What it reads on
+
+| Horizon | Bars | Period | Why |
+|---|---|---|---|
+| 4 hours | 4 × `1h` | 2y | 1h has ~3,500 bars of depth; 4h bars have a tenth of that |
+| 1 day | 1 × `1d` | 10y | Exact, no inference |
+| 1 week | 5 × `1d` | 10y | Five daily bars, not one weekly one — 5× the observations |
+
+Interval/bar pairings are a **written table**, not `horizon_hours / bar_hours`:
+a US session is 6.5 hours, so a day is 7 hourly bars and not 24.
+
+### Confidence is a product of gates, any one of which can zero it
+
+`skill` (weighted edge against `FULL_EDGE`) × `agreement` (share of live weight
+on the winning side, rescaled so a 50/50 split is zero) × `coverage` (surviving
+weight and breadth). Below `MIN_CONFIDENCE` the score may not name a direction
+at all, and STRONG needs `STRONG_CONFIDENCE` on top of the band. Timeframe
+alignment moves the **score** but deliberately never the confidence —
+horizons agreeing is evidence about direction, not about measurement quality.
+
+### What it actually says
+
+Across eighteen symbols on ten years of daily bars: **13 HOLD, 5 with a call.**
+SPY and VOO read STRONG BUY on six-to-seven sources across four families at
+53–60% hit rates and *t* ≈ 2; most single names read HOLD because nothing on
+them clears significance. The 4-hour horizon is usually silent — four-hour
+direction is close to unpredictable and the engine says so rather than filling
+the space.
+
+**This thing is allowed to say it does not know.** When nothing clears the
+gates the weights are zero, the confidence is zero, and the conclusion
+explains which gate closed. That is not a degraded mode; it is the correct
+output for most symbols on most days, and an indicator that cannot produce it
+is not measuring anything.
+
+### The forecast and the agents feed in through the same gate
+
+The user-facing ask was that the ultimate indicator read the forecast and
+trading-agent reports and reach a conclusion. Both do, and neither is trusted:
+
+- **The agents** enter as `indicators.stance()` — their signal series is an
+  *event* series, so read literally an agent has no opinion on 95% of bars
+  including almost always the last one. Forward-filling recovers the standing
+  position, which is the thing worth scoring. They are then calibrated exactly
+  like a technical source, and the turtle agent is routinely dropped at 38–43%
+  on trending indices.
+- **The forecast** needed a new function. `run()` and `walk_forward()` both
+  predict windows that already happened — which is what makes them scoreable
+  and also why neither is a forecast. `forecast.project()` trains on every bar
+  and rolls past the last one, and `ultimate.ModelEvidence` pairs that
+  direction with the walk-forward's measured directional accuracy. At the ~48%
+  this repo measured, it earns a weight of exactly zero.
+
+### A cache bug this exposed
+
+`live.fetch()` trusted a cached file whenever it was *fresh*, so a 1-year
+download in the morning answered a 10-year request in the afternoon — silently,
+with a tenth of the bars. Every calibration here sizes itself to the history it
+is handed, so this was not cosmetic. The metadata now records the widest period
+ever requested (`is_wider()`), and the returned frame is trimmed to what was
+actually asked for, which also makes the Pro sidebar's History selector do
+something for the first time.
+
+---
+
+## Priority 7 — A portfolio you can change  ✅ DONE
+
+The book was previously editable only through a table inside a Pro-only
+expander, which made buying something the hardest thing in the app to do.
+`app/core/holdings.py` now owns the changing of positions as well as their
+valuation:
+
+- `buy()` / `sell()` are pure functions returning a new book plus the
+  `Transaction` that produced it, so the arithmetic is testable and does not
+  live in a Streamlit callback.
+- Average-cost basis. Commission goes **into** the basis on a buy and **out of**
+  the realised on a sell, which is what makes P&L mean what a broker statement
+  means.
+- Selling more than is held is refused, not clamped. A short is a different
+  instrument with different risk and quietly turning a typo into one is the
+  worst possible way to find that out.
+- A trade ledger in `app/transactions.json` (gitignored alongside
+  `holdings.json`), giving realised P&L and total commission that come from
+  recorded trades rather than from prices.
+- The UI is a trade ticket — side, size, price prefilled from cache, commission
+  — plus **Edit all**, which is no longer behind Pro. Correcting a wrong cost
+  basis is bookkeeping, not an advanced feature.
+
+**One bug worth recording, because it wrote to a real file.** Every path here
+defaulted its store to `STORE` in the signature, which binds the value at
+import. Monkeypatching the module attribute therefore had no effect, and the
+first headless run of the new portfolio tab posted a live position into the
+actual `holdings.json`. Paths are now resolved at call time via `_store()` /
+`_ledger()`, `test_ui.py` has an autouse fixture redirecting both, and
+`test_holdings.py` ends with the test that pins the behaviour.
+
+---
+
+## Priority 8 — Lite and Pro are two applications  ✅ DONE
+
+They used to be one app with a knob count, which only made Lite a worse Pro.
+They now differ in what they are *for*:
+
+| | Lite | Pro |
+|---|---|---|
+| Tabs | Signal · Chart · Portfolio | Ultimate signal · Overview · Trading agents · Forecast · Portfolio · Monte Carlo · History |
+| Opens on | The buy/hold/sell call | The same call, opened into every measurement behind it |
+| Portfolio | The book you hold | The book, plus hypothetical baskets |
+
+Lite leads with the verdict card, three horizon cards and the written
+conclusion, then the chart. It cannot reach the agents, the forecast, the
+walk-forward or Monte Carlo at all — `test_ui.py::test_the_modes_are_different_applications`
+is the assertion that would fail if it drifted back into being a trimmed Pro.
+
+Pro's first tab is the evidence: a per-source table carrying hit rate, raw and
+independent sample counts, edge, *t*, weight and contribution — including the
+`Why not` column for every source that earned nothing, which is usually most
+of them.
+
+---
+
+## Priority 9 — V2 alpha architecture  ■ CLOSED
+
+Executes `../V2_Alpha_Directive_Corrected.md`. Lives in `alpha/`, a new package
+kept separate from `validation/`, which the directive freezes (§0).
+
+**This entry is a build record, not a live workstream.** The architecture below
+was built and tested; the research programmes that ran on it have since reached
+their decisions and closed. The V2→V2.3 architecture is abandoned, and the V3
+and V4 family-testing programmes are closed under their recorded protocols with
+their budgets spent. What follows describes what was constructed and what was
+learned about *building* it — the results, the decisions and the reasoning that
+produced them live in the permanent record and are not restated or interpreted
+here:
+
+| Record | Where |
+|---|---|
+| Every arm, its decision and its budget accounting | `reports/EXPERIMENT_REGISTRY.md` |
+| V2.3 programme status, post-mortem and closure audit | `reports/PROGRAMME_STATUS_V2_3.md`, `reports/V2_3_POST_MORTEM.md`, `reports/V2_3_FINAL_DECISION_AUDIT.md` |
+| V3 and V4 progress and closure | `reports/PROGRESS_V3.md`, `reports/PROGRESS_V4.md` |
+| Rebuilding any excluded artefact | `reports/V2_3_REPRODUCTION_CHECKLIST.md`, `reports/V2_3_EVIDENCE_MANIFEST.md` |
+
+Nothing in this file reopens any of it. The preregistrations and experiment
+logs under `alpha/` are append-only, and a closed programme stays closed.
+
+**The premise it was built on.** The V1 point-in-time study (`validation/REPORT.md`) answered
+"can this system predict direction" with a clean no: consensus 53.7%, no
+component beating always-predicting-up on its own horizon, 0 of 9. V2 does not
+try to answer that question better. It changes the question to **relative**
+performance — rank a cross-section by next-5-session return in excess of SPY —
+because a market-wide move is most of what direction accuracy was measuring in
+the first place, and subtracting it is the only way to find out whether
+anything is left.
+
+### Phases executed
+
+| Phase | What | State |
+|---|---|---|
+| **0** | Frozen-infra audit — confirm `validation/`, `pit.py`, the leakage tests and `app/cache` can be left untouched | ✅ Done. `app/cache` is the V1 universe definition; V2 downloads to `alpha/cache` so the frozen comparison cannot shift underneath it. |
+| **1** | Point-in-time universe (§2) | ✅ Done. S&P 500 membership reconstructed by walking the index change log backwards from the current constituent list. **410–500 eligible equities per cutoff, against V1's 22.** |
+| **2** | Pre-registration (§15, §21) | ✅ Done, and genuinely prior — written before a single model was fitted. |
+| **3** | Alpha targets (§1, §4, §5, §6) | ✅ Done. `alpha_5d`, sector-relative, residual with shrunk rolling β. |
+| **4** | Feature pipeline (§7-12) | ✅ Done. 100 features in three tiers. |
+| **5** | Statistics (§5, §15) | ✅ Done. Spearman IC, moving-block bootstrap, Newey-West, Holm-Bonferroni. |
+| **6** | Models (§14) | ✅ Done. Model A (GBM), Model A′ (six simple factors), gated B and C. |
+| **7** | Leakage tests | ✅ Done. **22 tests pass; the 431 that existed at that point still passed.** (Counts are as of the build; the current suite is listed under Testing below.) |
+| **8** | Panel freeze (stage 0) | ✅ Done. |
+| **9-12** | Development sequence, exam, adapter, reports | ■ Closed. Ran and concluded under the preregistered protocol; decisions are recorded in `reports/EXPERIMENT_REGISTRY.md`. |
+
+### Three corrections in the directive that changed the design, not just the wording
+
+- **§2, the 22-name universe.** The directive offered a choice: expand the
+  universe, or label every ranking result as methodology-signal-not-evidence.
+  Expansion was taken. Yahoo serves bars for 654 of the 781 names that were
+  ever in the index since 2014, so the cross-section is a real one and the
+  ranker is no longer blocked by its own sample width. The remaining 127 are a
+  **disclosed coverage loss** — index coverage runs 85% in 2016 rising to 100%
+  today, biased toward names later acquired or delisted, and that is stated
+  rather than netted out.
+- **§5, overlapping outcome windows.** Two options were offered: space the
+  cutoffs at least a horizon apart, or apply an embargo and report
+  block-bootstrapped errors. Both are applied. Cutoffs are spaced **exactly 5
+  sessions = the horizon**, so consecutive outcome windows are adjacent and
+  non-overlapping *by construction*; the bootstrap and Newey-West intervals sit
+  on top of that, for the market's own week-to-week persistence rather than for
+  mechanical overlap. The naive i.i.d. interval is printed beside them, in the
+  same style as the V1 report's naive-vs-clustered columns.
+- **§14, A′ before B.** Model A′ is not a post-hoc comparison, it is a gate.
+  `fit_model_b` and `fit_model_c` take a `gate_passed` argument and return
+  `None` when it is false, so a ranker that has not earned its place is **not
+  built**, rather than built and then caveated.
+
+### What the leakage tests actually do
+
+The V1 study rested on one test — rewrite the future, demand an identical
+verdict. V2 has a wider surface, so the same move is applied at each place a
+future bar could get in:
+
+| Test | Would fail if |
+|---|---|
+| `test_future_cannot_change_the_features` | any of the 100 features read past the cutoff — a scaler fitted on the whole series, a percentile over the full panel, a window measured backwards from the end |
+| `test_future_cannot_change_a_model_prediction` | the same, carried through a fitted GBM |
+| `test_membership_is_as_of_cutoff_not_today` | a name that joined the index in 2021 appeared in a 2019 cross-section |
+| `test_training_cutoffs_respect_horizon_and_embargo` | a training label had not resolved by prediction time |
+| `test_cutoff_spacing_makes_outcome_windows_non_overlapping` | the §5 spacing guarantee lapsed |
+| `test_exam_cutoffs_are_purged_from_development` | development touched the 12 frozen dates |
+| `test_ratio_features_survive_a_zero_denominator` | the §7-8 floor were a principle rather than code |
+| `test_sector_relative_leaves_the_name_itself_out` | a name were compared against a peer group containing itself |
+| `test_block_bootstrap_is_wider_than_the_naive_interval` | the §5 correction were cosmetic |
+
+### Findings from building it, before any experiment has been run
+
+- **Beta shrinkage barely fires, and that is correct.** On 252 clean
+  observations the posterior weight is ~0.98, so a well-measured β is left
+  alone; the pull only becomes material when `se(β)` is large, which is the
+  short/illiquid case §1 actually names. The first version of the test asserted
+  the opposite and was wrong about the code, not the other way round.
+- **Sector membership can be made point-in-time; sector *labels* cannot.** GICS
+  classification is today's, applied backwards. The 2018 Communication Services
+  rebuild moved ~two dozen large names at once, so any cutoff before 2018-09
+  carries names filed under a sector they were not yet in. This is the same
+  class of residual look-ahead as V1's adjusted prices — small, not removable
+  without a paid GICS history, and disclosed in every report via
+  `membership.sector_drift_note()`.
+- **An all-NaN feature column is a hard crash in sklearn 1.9's histogram
+  binner.** Such columns are dropped at fit time and the survivors recorded on
+  the `Fit`. They are deliberately *not* imputed: a cross-sectional mean would
+  be computed from the same cutoff it is filling, which is the exact leak the
+  pipeline refuses everywhere else.
+- **"Refit quarterly" needs stating in sessions, not cutoffs.** The two are
+  identical on the weekly development schedule (13 × 5 = 65 sessions), but the
+  twelve exam dates are spread over four years, and a literal every-13th-cutoff
+  rule would have predicted 2026 with a model trained through 2022. Recorded
+  before the exam ran, so it cannot be mistaken for a post-hoc adjustment.
+
+### The rule that mattered most, and still binds
+
+`alpha/PREREGISTRATION.md` fixed seven numeric criteria in advance — mean IC >
+0.03 with a bootstrap CI excluding zero, IC hit rate > 55%, a positive
+top-minus-bottom spread, sign stability, **beating the best simple factor**, no
+regime collapse, and ≥ 50 independent cutoffs. It also listed, in advance, the
+moves ruled out if the result were disappointing: no rescue features, no
+re-running the exam dates, no relaxed thresholds, no switching the headline
+metric.
+
+Those exclusions did not lapse when the programmes closed — they are the reason
+a closed entry cannot be reopened with a larger model, a different learner,
+another horizon or one more carrier. The decisions themselves are in
+`reports/EXPERIMENT_REGISTRY.md`.
+
+Failure is a complete deliverable here. The V1 report is the standard — it
+concluded its own neural forecaster was a provable no-op and said so.
 
 ---
 
@@ -329,6 +642,31 @@ Canary intact: the turtle agent still returns **3.6198%** on `GOOG-year`.
   `apply_dark()` puts every other pane in the same palette via `base_chart()`, and
   `.streamlit/config.toml` matches the page background to the chart canvas — without it
   the chart reads as a dark rectangle pasted onto a light page.
+- ~~**The rest of the page.**~~ ✅ Shipped as `app/core/theme.py` and `app/core/quotes.py`.
+  The chart was in TradingView's palette but everything around it was still default
+  Streamlit, which is what made the chart read as a screenshot pasted into someone
+  else's app. Now the page carries the same chrome: a top toolbar holding the symbol,
+  the interval pills (`1H 4H D W M`) and a live price readout; a right-hand rail with a
+  quote block, a clickable watchlist and a key-stats panel; a `1D…All` range bar under
+  the chart; and metric tiles, tabs, inputs and tables restyled to match. Four decisions
+  worth knowing:
+  - **`theme.py` imports its palette from `charts.py`.** There is one `#131722` in this
+    app and it lives next to the candles that need it; `test_theme.py` asserts they
+    cannot drift apart.
+  - **The range bar slices the frame, not the x axis.** Plotly's own rangeselector moves
+    only the x range, leaving the candles squashed against a price axis still sized for
+    five years. Slicing rescales the price axis, the volume pane and the last-price badge
+    together, the way TradingView does. `usable_ranges()` also hides keys that would draw
+    nothing (`1D` on daily bars) or draw exactly what `All` draws.
+  - **A watchlist row is an `<a href="?sym=…">`.** `st.markdown` strips scripts, so a
+    query parameter is the only handle read-only HTML has on the app. It costs a page
+    load rather than a rerun — acceptable only because every model in session state is
+    fingerprinted to the series it is replacing.
+  - **`quotes.py` never downloads.** The rail wants a dozen quotes on every rerun, and
+    `live.fetch()` would parse a decade of bars and hit the network for each. It reads
+    the cache files directly with `usecols`; only the symbol on screen is fetched, from
+    the sidebar, where a failure has somewhere to be reported. An uncached symbol still
+    gets a row — dashes, still clickable, fetched properly once it is the one selected.
 - ~~**Persist runs.**~~ ✅ Shipped as `app/core/runs.py` plus a **History** tab. Forecast,
   walk-forward and agent results are written to `app/runs/` the moment training finishes,
   so a browser refresh no longer discards minutes of work, and runs can be compared across
@@ -351,9 +689,13 @@ Canary intact: the turtle agent still returns **3.6198%** on `GOOG-year`.
 The suite lives in `app/tests/` and is run with pytest from the repo root:
 
 ```
-venv\Scripts\python.exe -m pytest              # 114 fast checks, ~1s
-venv\Scripts\python.exe -m pytest --runslow    # all 146, ~55s
+venv\Scripts\python.exe -m pytest              # 655 fast checks, ~41s
+venv\Scripts\python.exe -m pytest --runslow    # all 718, ~3m10s
 ```
+
+Note the two virtualenvs: `venv\` has pytest, `.venv\` has the scientific stack
+(tensorflow, yfinance, sklearn, plotly, streamlit). Tests run from the first,
+`alpha/` and the app run from the second.
 
 The split matters: the slow marker covers the 19-agent training sweep and the headless UI
 drivers, which build TensorFlow graphs and boot Streamlit. Everything else is pure numpy
@@ -365,19 +707,36 @@ and pandas and stays under a second, so there is no excuse not to run it.
 | `test_data.py` | All four bundled CSV layouts; column aliasing; currency stripping; tz-aware intraday stamps made naive; `periods_per_year` measured against known frequencies |
 | `test_live.py` | Cache round-trip, corruption tolerance, `slice_to_period` trimming, and the error taxonomy — a `RequestError` is never answered from cache, while a plain `FetchError` falls back to it |
 | `test_agents.py` | Registry integrity (19 agents, defaults and citations aligned); `all_states()` bit-identical to the per-bar `window_state()`; every agent trains, emits legal signals and clears the backtester |
-| `test_charts.py` | Session rangebreaks per asset class — equities collapse weekends, crypto keeps them — plus the dark palette and its agreement with `.streamlit/config.toml` |
-| `test_ui.py` | The real app under `AppTest`: both modes, every bundled dataset, and one agent per implementation family trained end to end |
+| `test_charts.py` | Session rangebreaks per asset class — equities collapse weekends, crypto keeps them — the range bar's slicing, and the dark palette's agreement with `.streamlit/config.toml` |
+| `test_quotes.py` | The watchlist board: symbology (`BTC-USD` → CRYPTO, `EURUSD=X` → FX), the cache read that goes through metadata rather than the sanitised filename, tolerance of corrupt and half-written files, and — the one that matters — that **nothing here touches the network** |
+| `test_theme.py` | Number formatting (a `-3` beside a `312.41` is the bug it exists for), the watchlist's `?sym=` links, that `theme.py` and `charts.py` cannot drift to different hex values, the verdict chrome (the call's colour matches the candles, the meter cannot be pushed off its track, an unreadable horizon is greyed rather than coloured, every class the panels emit is actually styled), and that **no panel lets markup through** — every value reaching a builder is escaped, because an uploaded CSV's filename becomes the toolbar's label |
+| `test_indicators.py` | The evidence contract — finite, inside [-1,1], indexed like the frame — on rising, falling, flat, close-only and too-short frames; that every source is **scale-free** so a $3 stock and a $90,000 one read alike; and the sign of each one, which calibration deliberately cannot correct |
+| `test_ultimate.py` | An oracle source measures 100% and an inverted one measures 0% and is dropped rather than flipped; only the holdout is scored; overlapping windows are discounted; the family cap converges instead of creeping; confidence vetoes any direction; a random walk produces no call and a real trend does; contributions sum to the score shown beside them |
+| `test_holdings.py` | Average-cost basis with commission in it, realised P&L with commission out of it, a refusal to go short, a refused ticket writing nothing — and that every path resolves its store at call time, which is the guard against a test run reaching a real portfolio |
+| `test_ui.py` | The real app under `AppTest`: that Lite and Pro are **different tab sets**, that Lite leads with a verdict card naming all three horizons, that Pro exposes the calibration table, that the ticket buys and reaches disk and refuses an oversized sell, every bundled dataset, the interval pills and range bar, the rail's links, and one agent per implementation family trained end to end |
+| `test_validation.py` | The V1 point-in-time study: two price series identical before a cutoff and violently different after produce the same verdict to the last decimal |
+| `test_alpha.py` | The V2 pipeline, 22 checks — the same rewrite-the-future test applied to 100 features and to a fitted GBM, plus index membership as-of-cutoff, the horizon+embargo training boundary, non-overlapping outcome windows, the exam-date purge, denominator floors under zero volume, leave-one-out sector peers, and that the block bootstrap really is wider than the naive interval |
 | `test_strategies.py`, `test_montecarlo.py`, `test_portfolio.py` | Signal contracts; seeded reproducibility; inner-join alignment and weight drift |
 
-**Tests are hermetic.** `app/cache/` is gitignored, so nothing may read it — `test_live.py`
-redirects `live.CACHE_DIR` into `tmp_path` and builds what it needs. `dataset/` is tracked,
-so the bundled CSVs are the only fixture data on disk. No test touches the network.
+**Tests are hermetic, and now they also have to be harmless.** `app/cache/` is gitignored,
+so nothing may read it — `test_live.py` redirects `live.CACHE_DIR` into `tmp_path` and
+builds what it needs. `dataset/` is tracked, so the bundled CSVs are the only fixture data
+on disk. No test touches the network. And since the portfolio tab can now *write*,
+`test_ui.py` redirects `holdings.STORE` and `holdings.LEDGER` in an autouse fixture:
+a headless run pressing Buy is no longer a hypothetical.
 
 Still worth adding:
 
 1. **Live fetch against the real network**, as an opt-in marker — the current suite proves
    the cache and error handling, not that Yahoo still answers.
 2. **`force=True` bypasses the cache** — currently only the fallback direction is covered.
+3. **The book and the ledger are two files written in sequence.** `holdings.execute()`
+   validates before it touches either, so a *rejected* ticket writes nothing — but an
+   accepted one saves the position first and appends the trade second, and a crash
+   between them would leave a position with no trade behind it. Realised P&L would then
+   disagree with the book. Deliberately not fixed here: the honest repair is one file or
+   one journalled write, which is a storage-format change and not a patch to the trade
+   ticket. Recorded so it is a known limit rather than a surprise.
 
 ---
 
