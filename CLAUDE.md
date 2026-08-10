@@ -168,12 +168,32 @@ verifiable in the git history.
 The global `C:\Users\onurc\CLAUDE.md` defines qwen3-coder:30b, qwen3:30b,
 qwen3.5:9b, and Gemini CLI delegation. Within this project, additional rules:
 
+### 7.1 Ollama MCP as the default transport
+
+All Ollama delegations must use the `ollama` MCP server tools by default:
+
+- **`mcp__ollama__run`** for single-prompt tasks (equivalent to `ollama run`).
+  Parameters: `name` (model name), `prompt`, and optional `temperature`, `think`.
+- **`mcp__ollama__chat_completion`** for multi-turn or system-prompt tasks.
+  Parameters: `model`, `messages` (array of `{role, content}`), and optional
+  `temperature`, `think`.
+
+Direct `ollama run <model>` shell calls via Bash are **fallback-only** — use them
+only when the MCP server is confirmed unavailable (tool call returns a connection
+error or the server is not listed). When falling back, note in the response that
+MCP was unavailable and the shell fallback was used.
+
+### 7.2 Gemini CLI (unchanged)
+
+**Gemini CLI as independent reviewer** is appropriate for: reviewing a
+preregistration for logical gaps, checking whether a proposed experiment
+reopens a closed question, validating statistical reasoning in gate
+computations. Invoked via `gemini -p "..."` as defined in the global policy.
+
+### 7.3 Project-specific delegation scope
+
 - **Never delegate research methodology decisions** to any local model. Protocol
   design, gate evaluation, and "should we run this experiment" are Claude-only.
-- **Gemini CLI as independent reviewer** is appropriate for: reviewing a
-  preregistration for logical gaps, checking whether a proposed experiment
-  reopens a closed question, validating statistical reasoning in gate
-  computations.
 - **qwen3-coder:30b** may handle: reviewing diffs to alpha code for point-in-time
   violations, generating boilerplate test cases, drafting experiment log entries
   from structured results.
