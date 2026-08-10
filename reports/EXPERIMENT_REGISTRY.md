@@ -469,3 +469,307 @@ parsed and no transaction content was read.
 **Still outstanding before Family 2 could run:** §2.10 clause-3 admissibility (not
 evaluated here), the feature construction and lookback window, its turnover — and
 explicit authorization. **A passed power gate authorizes nothing.**
+
+---
+
+## 7. Backfill — completed studies registered after the fact, 2026-08-10
+
+**Nothing above this line is edited.** §6 stops at the Family 2 power gate because the
+registry was not updated when Families 2 and 3 ran on 2026-08-09 or when V4-SUE ran on
+2026-08-10. The three entries below are **appended now**, on 2026-08-10, from the frozen
+result artefacts named in each block.
+
+**This is a record-keeping defect and is recorded as one.** Roadmap §2.7 requires an
+experiment to be registered *before the first fit*; these three were registered in their
+own pre-registration documents before their first fits — `alpha/V3_FAMILY2_PREREGISTRATION.md`
+(`bd0c7aa`), `alpha/V3_FAMILY3_PREREGISTRATION.md` (`5cb409f`), `alpha/V4_SUE_PREREGISTRATION.md`
+(`5718f83`), each committed before the code that implemented it — but the **index entry**
+here was not made at the time. The git history, not this file, is what establishes the
+temporal ordering, and it does establish it.
+
+**No number below is new.** Every value is transcribed from a committed artefact and
+was verified against it (§7.5). No result, threshold, criterion, decision or budget is
+altered by this backfill.
+
+### 7.1 V3-2 — Family 2: Form 4 insider open-market purchases
+
+| Field | |
+|---|---|
+| ID / date | `V3-2` · run 2026-08-09 · **registered 2026-08-10 (backfill)** |
+| Hypothesis | Insider open-market purchases, as a market-cap-normalised 90-day purchase intensity timestamped at EDGAR acceptance, contain incremental cross-sectional information over B3 at 5 sessions of **≥ +0.010 IC** |
+| Information source | SEC EDGAR Form 4. §2.10: clause 1 **pass**, clause 2 **pass** (0 filings admitted without an acceptance timestamp), clause 3 **pass** (mean ρ **−0.1310** vs `z__ret_12_1`, ceiling 0.30, fixed before measurement), clause 4 **pass**. Records: `reports/FAMILY2_ELIGIBILITY.md`, `reports/FAMILY2_ADMISSIBILITY.md`, `reports/FAMILY2_POWER_GATE.md` |
+| Target / horizon | `alpha_5d`, **5 sessions** (§10.1), unchanged from V3-1 |
+| Universe | PIT index membership, 143,675 rows. **19,347 open-market purchases, 561 of 619 issuers**, 42 quarterly archives |
+| Features | scale-normalised 90-day open-market purchase intensity. **No winsorisation** — §2 fixes none, unlike Family 1's 1/99. Feature **defined 0.9952**, but **non-zero only 0.1351**, median **62 names** per cutoff — the 13.6% figure the §21 diagnosis quotes as this family's effective coverage |
+| Model / seeds | **none — information-only test** (§2.9) |
+| Periods | **316 development cutoffs**, exam contamination **0**, digest `b55e065f4c9f9173` |
+| Baselines | B3 (incumbent) +0.02241, B1 12-1 momentum +0.01000, B2 reversal +0.00675, and the raw factor alone |
+| Arms declared | **2**, before the first fit. λ = **0.25** fixed, not scanned. Sign **+1**, economic prior, not estimated |
+| **Resolution / MDE (§2.6)** | MDE **+0.007** (economic floor); hypothesized ≥ +0.010; **achieved half-width 0.00092** — the tightest interval the programme has produced, and **predicted in advance as a warning, not an achievement** (§2.12) |
+| Primary metric | paired per-cutoff IC difference, Arm 1 − B3 |
+| **Result** | **−0.00096, CI [−0.00187, −0.00004], half-width 0.00092, breadth 0.4177, n = 316** |
+| Secondary | **Arm 0 raw insider rank: IC −0.00547, CI [−0.01278, +0.00151], hit 0.478** — spans zero, so *no signal*, **not** an inverted signal. Arm 1 IC +0.02146 |
+| Stability | halves **−0.00094 / −0.00097** (neither positive); ex-bear **−0.00115** |
+| Net of costs | gross spread advantage **−0.00006**, **net −0.000058**, on +0.3 pp extra turnover. The **sixth** consecutive tilt that does not pay for its own trading |
+| Noise control | **PASS** — 30 paired within-cutoff draws, median −0.00046, sd 0.00046, **0.0%** above threshold |
+| Multiplicity | Holm across 2 arms: **p_holm 0.0752 both — neither significant** |
+| **Decision** | **REJECT.** Criteria 1, 3, 4 **FAIL**. Criterion 2 recorded **"PASS" mechanically in the wrong direction** — the interval excludes zero *entirely below* it. **Reported exactly as written and NOT amended** (§3.1 of the report). The honest count is **four failures, one disguised** |
+| Reason | **The information failed, and at the root** — unlike Family 1 it never cleared zero standalone. Not the power (0.00092), not the PIT door (77.3% of Form 4s would have leaked under `filed <= cutoff`; that rule was never used), not the coverage in the sense that mattered |
+| Structural finding | **The feature cannot form a short book.** 86% of names tied at zero; under the pre-registered average-tie rule the lowest percentile rank any name receives is a median **0.4308**. **No name reaches the bottom quintile at any of the 316 cutoffs**, so Arm 0's long-short spread is **undefined everywhere, n = 0 of 316** |
+| Correction to a pre-commitment | §10.3 pre-committed effective n = 312; that holds for **Arm 0's own IC** but the primary contrast ran at **n = 316** (an all-zero cutoff collapses Arm 1 to B3, giving an exact zero that is retained). Rescaling to 312 moves the primary −0.00096 → −0.00097. **No criterion changes** |
+| Family slot | **Slot 2 of 3 — SPENT.** No Family 2′: not with sales, role weighting, another window, another horizon, **and not with the sign flipped** (§2.9, §21) |
+| Commit / artefacts | prereg `bd0c7aa`, account-holder rulings `65c0039`, result `baabc01`. `alpha/out/v3_family2_development.json` / `.pkl`, `alpha/V3_FAMILY2_REPORT.md` |
+
+**Family budget after V3-2: 3 slots, 2 spent, 1 remaining.**
+
+### 7.2 V3-3 — Family 3: 13F institutional holdings change
+
+| Field | |
+|---|---|
+| ID / date | `V3-3` · run 2026-08-09 · **registered 2026-08-10 (backfill)** |
+| Hypothesis | Quarter-on-quarter change in institutional holdings, from 13F filings, contains incremental cross-sectional information over B3 at 5 sessions of **≥ +0.010 IC** |
+| Information source | SEC 13F bulk archives — **45 archives, 20,687,226 event rows, 11,661 distinct filers**, 573 of 619 issuers mapped (**map rate 0.926**). §2.10: clause 1 **pass**, clause 2 **pass**, clause 3 **pass by the widest margin of the three families**, clause 4 **pass** |
+| Point-in-time door | **`FILING_DATE < cutoff` — stricter than acceptance time.** The bulk sets carry no acceptance timestamp and §2.1 forbids approximating one, so the rule can only ever *delay* information: **it cannot leak.** Measured staleness of Q1 at the cutoff: **median 92 days, p90 128** |
+| Mapping integrity | 13F carries **no issuer CIK**, so a CUSIP bridge was required. It **failed validation three times** before passing — stripped leading zeros, CUSIP-keyed collisions that put Meta on JPMorgan's CUSIP, and a left-justified CUSIP caught only by the **modulus-10 check digit**. Final validation **14 hand-checked mega-caps, 14 correct, 0 wrong, 0 absent**; the build **refuses to emit a feature** if that check fails |
+| Target / horizon | `alpha_5d`, **5 sessions** |
+| Universe | PIT index membership. Coverage **0.8556** defined (20,750 NaN, **never filled**, §5); per cutoff mean 0.8534, min 0.8014; names per cutoff median **394**, min 323 |
+| Features | quarter-on-quarter holdings change, continuous, **no tie block** — unlike Family 2 |
+| Model / seeds | **none — information-only test** (§2.9) |
+| Periods | **316 development cutoffs**, exam contamination **0**, digest `b55e065f4c9f9173` |
+| Baselines | B3 +0.02241, B1 +0.01000, B2 +0.00675, and the raw factor alone |
+| Arms declared | **2**, before the first fit. λ = **0.25** fixed. Sign **+1**, economic prior |
+| §2.10 clause 3 | vs `z__ret_12_1`: mean \|ρ\| **0.0726** against a 0.30 ceiling; highest against any of the 34 inputs **0.0780** against a 0.50 ceiling. **Nothing reaches a sixth of its ceiling** — genuinely orthogonal information |
+| **Resolution / MDE (§2.6)** | MDE **+0.007**; gate calibrated 0.00352 (coverage 0.80) to 0.00158 (1.00); **achieved half-width 0.00279** |
+| Primary metric | paired per-cutoff IC difference, Arm 1 − B3 |
+| **Result** | **−0.00339, CI [−0.00631, −0.00073], half-width 0.00279, breadth 0.4494, n = 316** |
+| Secondary | **Arm 0 raw holdings rank: IC −0.00659, CI [−0.01465, +0.00051], hit 0.475** — spans zero, so *no signal*, not an inverted one. Long-short spread −0.00064, CI [−0.00141, +0.00014]. Arm 1 IC +0.01903 |
+| Stability | halves **−0.00253 / −0.00424**; regimes BULL −0.00417, BEAR −0.00031, SIDEWAYS −0.00059, **EX-BEAR −0.00377**. **Negative everywhere — no regime rescues it, and none was sought** |
+| Net of costs | gross spread advantage −0.00015, **net −0.000148**, on +0.3 pp extra turnover. The **seventh** consecutive tilt that does not pay for its own trading |
+| Noise control | **PASS** — 30 paired draws, median −0.00142, sd 0.00118, **0.0%** above threshold |
+| Multiplicity | Holm: Arm 0 p_raw 0.0136 → p_holm 0.0272; Arm 1 p_raw 0.0169 → p_holm 0.0272. **Both "significant" — and both significantly NEGATIVE. Significance here is evidence against the family, not for it** |
+| **Decision** | **REJECT — all four CONTINUE criteria FAIL** |
+| Amendment A1 | **First study run under A1, and it changed a criterion's recorded value on first use.** Criterion 2 now reads "excludes zero **on the favourable side**", `bool(lo > 0.0)`. The interval excludes zero *entirely below* it, so the old direction-blind wording would have recorded PASS; **A1 turned it into the FAIL it always was.** A1 was committed at `830aafc`, **prospectively, before Family 3's data was touched**, on Family 2's recommendation, and changed no completed result |
+| Reason | **The information failed** — absent and orthogonal. **The cleanest test of the three**: good coverage, continuous distribution, the strictest door, the lowest correlation with anything already known, and the answer was still nothing |
+| Family slot | **Slot 3 of 3 — SPENT.** No Family 3′, including a sign flip; **no fourth family** |
+| Commit / artefacts | prereg `5cb409f`, A1 `830aafc`, result `7602e99`. `alpha/out/v3_family3_development.json` / `.pkl`, `alpha/out/f13_gate.json`, `alpha/edgar/f13_meta.json`, `alpha/edgar/f13_cusip_map.json`, `alpha/V3_FAMILY3_REPORT.md` |
+
+**Family budget after V3-3: 3 slots, 3 spent, 0 remaining. PROGRAMME CLOSED under §21.**
+
+### 7.3 V3 index addendum
+
+Appended rather than merged into §2's table, so that no existing row is touched.
+
+| ID | Date | Study | Arm | Primary result | Resolution | Decision |
+|---|---|---|---|---|---|---|
+| `V3-1` | 2026-08-09 | V3 Family 1 | B3 + 0.25 SUE tilt | vs B3 **+0.00090**, CI [−0.00140, +0.00317] | 0.00229 vs B3 | **REJECT** |
+| `V3-2` | 2026-08-09 | V3 Family 2 | B3 + 0.25 insider tilt | vs B3 **−0.00096**, CI [−0.00187, −0.00004] | 0.00092 vs B3 | **REJECT** |
+| `V3-3` | 2026-08-09 | V3 Family 3 | B3 + 0.25 13F tilt | vs B3 **−0.00339**, CI [−0.00631, −0.00073] | 0.00279 vs B3 | **REJECT** |
+
+**V3 verdict: 3 of 3 slots spent, 3 of 3 families REJECTED. The programme is CLOSED under
+§21.** No fourth family, no Family 1′/2′/3′, no re-test of a rejected family at another
+horizon, learner, carrier or feature. The comparative diagnosis §21 requires is in
+`alpha/V3_FAMILY3_REPORT.md` §8 and `reports/PROGRESS_V3.md`.
+
+**The three failed differently, and that is V3's most useful output.** Family 1 was **real
+but not incremental** (its own IC cleared zero and it still could not add to B3); Families
+2 and 3 were **absent** (neither standalone interval cleared zero). A family can fail
+because its information is redundant or because it is not there; V3 saw one of the former
+and two of the latter.
+
+---
+
+## 8. V4 experiments
+
+**V4 is a separate programme with its own budget, constituted by `alpha/V4_CHARTER.md`
+(`6717111`) under the master roadmap's own §21 clause that reconsidering the *formulation*
+is a new programme with a new directive, and under §27F, which reserves that commissioning
+to the account holder.** V4 inherits from V3 exactly three things: the point-in-time
+discipline, the statistical machinery, and the standard of honesty. **It inherits no slots
+and no permissions.** No V3 result is rescored, reinterpreted or edited by anything in
+this section.
+
+**V4 budget (charter §8): at most TWO confirmatory studies. Slot 2 is conditional and was
+never pre-authorised.**
+
+### 8.1 Pre-study gates — V4-SUE, computed 2026-08-10 before any slot was spent
+
+Full record: `reports/V4_SUE_POWER_GATE.md`, **committed in two parts deliberately** —
+the block-length freeze (`ee8fe3f`) **before** any half-width existed, the half-width and
+verdict (`fdda61a`) appended after. The git history is the evidence that the ordering held.
+
+| Gate | Value | Verdict |
+|---|---|---|
+| Block length, frozen before any half-width | **L = 7** — reproduces the record's own H = 5 persistence allowance on top of mechanical overlap q = 3; `n^(1/3)` = 313^(1/3) = 6.79 gives the same value independently | **FROZEN** |
+| Usable cutoffs, determined mechanically | **313** of 316 (3 dropped: 2026-07-14/21/28, windows past the end of price history) | — |
+| Measured autocorrelation of the paired difference | +0.5244 / +0.2812 / +0.0733 at lags 1–3, then noise — **matches the predicted 0.75 / 0.50 / 0.25 shared-window structure exactly** | — |
+| Effective independent n | **113.5** (variance inflation 2.7578), against a nominal 313. **Nominal n is not evidence** | — |
+| **§6 power gate** | achieved half-width **0.005372** vs frozen MDE **+0.0095** — margin **1.77×**. Newey–West cross-check 0.005308 (within 1.2%) | **PASS** |
+| **§7 standalone-strength screen** | R ≈ +0.0318 native 20D required; P = 2 × 0.01305 = **+0.0261**; **R / P ≈ 1.22** against a pre-registered ceiling of 1.5 | **PASS** |
+
+**The charter predicted this gate would fail, and was wrong for an identifiable reason.**
+§6.2 stated *"This gate is more likely to fail than to pass."* The formulation review's
+≈ 0.0092 extrapolation overstated the true half-width by **1.71×**: it charged √4 for the
+horizon on the assumption that cutoffs are lost at 20D, but **313 of 316 survive** and the
+measured variance inflation is **2.7578, not 4**. **The charter was not edited. Nothing was
+loosened to produce the PASS** — the estimate that moved was an estimate of the instrument,
+measured for the first time, in the direction the charter did not expect.
+
+**A sharper number recorded at gate time and not acted on:** the charter §10.1 estimated
+the 20D development/exam window overlap at 5 sessions; the true nearest retained neighbour
+is **10 sessions** away, so the overlap is **10 sessions — half the outcome window**. This
+strengthens the charter's conclusion that the sealed exam is **not constituted for a 20D
+horizon**, and changes none of its decisions.
+
+### 8.2 V4-1 — V4-SUE: does a 20-session horizon rescue filing-derived SUE?
+
+| Field | |
+|---|---|
+| ID / date | `V4-1` · run **2026-08-10T16:07:19** · registered 2026-08-10 |
+| Hypothesis (charter §2.2, H1) | Economically slow, filing-timestamped information contains incremental cross-sectional information over B3 at a pre-registered **20-session** horizon **which it does not contain at 5 sessions** — such that `rank_pct(B3) + 0.50·(rank_pct(sue) − 0.5)`, scored against 20-session forward alpha, exceeds B3's own IC by **≥ +0.0095 native 20D**, with the interval entirely above zero, both halves positive, and survival ex-bear |
+| H0 it had to be able to accept | Slow filing information decays no more than √H-proportionally between 5 and 20 sessions, so the longer horizon buys only cost reduction and no informational gain |
+| Information source | **The same `sue` as V3 Family 1, construction frozen and unmodified** (charter §4.1). Reuse is not a loophole around §21: §3.4(d) requires **varying the formulation while holding the information fixed**, or a null is uninterpretable |
+| Target / horizon | **`alpha_20d`** — asset minus SPY over 20 sessions, built by the existing tested instrument `targets.realise(..., horizon=20)`. **`corr(alpha_5d, alpha_20d) = 0.4962`**, confirming these are distinct dependent variables sharing only their first five sessions |
+| Universe | 142,178 rows across 313 cutoffs. **SUE coverage 0.9299** vs the ≥ 0.80 gate. **Book-tail formability 313/313 (100%)** — the Family 2 lesson made a gate, and it passed |
+| Model / seeds | **none — information-only test** (§2.9). A fitted learner is not an answer to an information null |
+| Periods | **313 development cutoffs**, 2016-01-04 … 2026-07-07. Exam contamination **0**, asserted before scoring. Digest `b55e065f4c9f9173` |
+| Baselines | **B3 +0.00846** (hw 0.02940), B1 12-1 momentum −0.00029 (hw 0.03228), B2 reversal +0.01089 (hw 0.01591), Arm 0 standalone SUE +0.00426 (hw 0.01486) — all at 20 sessions |
+| Arms declared | **2**, before the first fit. λ = **0.50 fixed, never scanned**; no point on any λ curve promotable to an arm. Sign **+1**, carried unchanged from `V3_PREREGISTRATION.md` §6.1, never estimated |
+| **Resolution / MDE (§2.6)** | MDE **+0.0095 native 20D**, frozen, never lowered. **Achieved half-width 0.00537** — margin 1.77×. **This is a well-resolved null, not an underpowered one** |
+| Primary metric | paired per-cutoff IC difference, Arm 1 − B3 |
+| **Result** | **−0.00106, CI [−0.00610, +0.00464], half-width 0.00537, breadth 0.4760, n = 313.** p_boot 0.698, p_holm 1.000 |
+| Criteria | **All four FAIL.** C1 −0.00106 < +0.0095; C2 lo = −0.00610 (A1 favourable-side logic); C3 breadth 0.476 and first half −0.00341 / second +0.00130; C4 ex-bear −0.00182 |
+| **Standalone horizon diagnostic — the decisive number** | **Standalone SUE 20D IC +0.00426, half-width 0.01486, CI [−0.01000, +0.01971], hit 0.5623**, against the pre-registered √(H/5) extrapolation **P = +0.0261**. The pre-registered threshold `P − h0 = +0.01124` was **not reached.** The observed value falls below P **by 0.02184, which exceeds its own half-width** — so this is a resolved shortfall, not an ambiguous one |
+| Secondary | Arm 1 IC **+0.00740**, **below B3's +0.00846** — adding SUE at λ = 0.50 *reduced* the signal. Arm 0 halves −0.0061 / +0.0147 (not both positive) |
+| Stability | halves −0.00341 / +0.00130 (**not both positive**); regimes BULL −0.00251, BEAR +0.00497, SIDEWAYS +0.00364, **EX-BEAR −0.00182**. The only positive regime is the one §2.5 disqualifies |
+| Net of costs | gross spread advantage vs B3 **−0.00096**, CI [−0.00219, +0.00050]; **net −0.000965** at both the 5- and 20-session stride; extra turnover **−0.0015** (20s stride). Arm 0 net **−0.002893**. **The adverse prior recorded in charter §4.3 before measurement was confirmed** |
+| Noise control | **PASS** — 30 paired within-cutoff draws, median −0.00130, mean −0.00166, sd 0.00137, **0.0% (0 of 30)** at or above the MDE, against a median limit of **+0.0019** and a 10% exceedance limit. **The null is not an artefact of the procedure** |
+| Multiplicity | Holm across 2 arms: **p_holm 1.000 both — neither significant** |
+| **Decision** | **REJECT** — all four CONTINUE criteria failed |
+| Reason (charter §12 diagnosis) | **See §8.4. The information failed, and the horizon hypothesis was disconfirmed rather than left untested.** Not the power (1.77× margin), not the PIT door, not the coverage (0.9299), not the target, not the book-tail formability (313/313), not the procedure (noise control passed) |
+| Budget slot | **V4 Slot 1 of 2 — SPENT.** **SUE is CLOSED at every horizon**: rejected at 5D under λ = 0.25 (V3-1) and at 20D under λ = 0.50 (V4-1). No variant, modification, re-sign or re-horizon may be proposed |
+| Preregistration compliance | Result generated by `alpha/v4_sue_study.py`, which imports every constant from `alpha/v4_sue_config.py`, committed at `5718f83` **before the study module existed**. A pre-measurement clarification (`targets.realise` vs direct `forward_return`) was committed at `aedf891` **before execution**. **No constant, threshold or decision rule was modified after results were seen** |
+| Commit / artefacts | formulation review `21a81d0`, charter `6717111`, gate `ee8fe3f` + `fdda61a`, prereg `5718f83`, clarification `aedf891`, result `f941480`. `alpha/out/v4_sue_development.json` / `.pkl`, `alpha/out/v4_sue_power_gate.json` / `.pkl`, `alpha/V4_SUE_RESULT.md`, tests `app/tests/test_alpha_v4_sue.py` |
+
+### 8.3 V4 index addendum
+
+| ID | Date | Study | Arm | Primary result | Resolution | Decision |
+|---|---|---|---|---|---|---|
+| `V4-1` | 2026-08-10 | V4-SUE, 20-session horizon | B3 + 0.50 SUE tilt | vs B3 **−0.00106**, CI [−0.00610, +0.00464] | **0.00537** vs B3, MDE 0.0095 | **REJECT** |
+
+### 8.4 The charter §12 diagnosis — stated explicitly
+
+Charter §12 requires the registry entry to answer: *did the information fail, or the
+target, horizon, PIT quality, coverage, economics, or the power?* The answer, in full:
+
+> **The information failed, and — for the first time in this programme — the horizon and
+> formulation hypothesis was DISCONFIRMED rather than left untested.**
+>
+> V3's §21 diagnosis (`alpha/V3_FAMILY3_REPORT.md` §8) listed the horizon as **"a live,
+> UNRESOLVED possibility"**: every family had run at 5D against sources that are
+> quarterly-to-event and 45–135 days stale, and §2.9/§21 barred re-testing them, so that
+> programme **could not distinguish "no information" from "wrong horizon."** V4 was
+> constituted to settle exactly that question by varying the formulation while holding the
+> information fixed (charter §3.4(d)). **It settled it.**
+>
+> **The decisive measurement is the standalone diagnostic, not the primary contrast.**
+> SUE's standalone 20-session IC came in at **+0.00426, half-width 0.01486, 95% CI
+> [−0.01000, +0.01971]**, against the pre-registered √(H/5) extrapolation from its V3 5D
+> standalone of **P = +0.0261** — the value implied if the longer horizon bought *nothing*
+> informational, i.e. the H0 of charter §2.2. The pre-registered admissibility threshold
+> was `P − h0 = +0.01124`. **The observed +0.00426 does not reach it.** The shortfall
+> against P is **0.02184, larger than the diagnostic's own half-width**, so this is a
+> resolved failure to reach the H0 line and not an ambiguous one.
+>
+> **H1 asserted superlinear decay — that the longer horizon would unlock information absent
+> at 5D. The measurement points the other way: the 20-session horizon did not unlock
+> information; it appears to have diluted it.** Charter §2.2 fixed this reading in advance:
+> *"if the feature's standalone 20D IC does not exceed its pure √(H/5) extrapolation from
+> 5D by enough to reach the §7 threshold, H1 is false, and the correct recorded conclusion
+> is that free point-in-time filing data on this universe cannot beat B3 at any horizon
+> this history can test — not that a third horizon should be tried."* **That is the recorded
+> conclusion.**
+>
+> **What did not fail, each excluded on a measurement rather than an assertion:**
+>
+> * **Power — NOT the failure.** Achieved half-width **0.005372** against a frozen MDE of
+>   **+0.0095**, a **1.77× margin**, corroborated by three independent dependence
+>   corrections (block bootstrap 0.005372, Newey–West 0.005308, closed-form 0.005796). The
+>   gate was frozen and passed before the slot was spent.
+> * **Point-in-time quality — NOT the failure.** The acceptance-time door
+>   (`alpha/filings.py`) is unchanged and tested; **51.8% of 10-K/10-Q filings are accepted
+>   after the 16:00 ET close of the date they are stamped with**, and the leaking
+>   `filed <= cutoff` rule was never used.
+> * **Coverage — NOT the failure.** **0.9299** against a 0.80 gate.
+> * **Book-tail formability — NOT the failure.** **313 of 313 cutoffs (100%)** could form
+>   both tails. The Family 2 defect that made a short leg impossible was made a gate here,
+>   and the gate passed.
+> * **The target — NOT the failure.** The same within-cutoff Spearman IC on 20-session
+>   forward alpha resolves B3 at **+0.00846** and B2 at **+0.01089**; the instrument
+>   measures signal when signal is present.
+> * **The procedure — NOT the failure.** Noise control **PASS**: 30 paired within-cutoff
+>   permutations, median −0.00130, **0 of 30** draws reaching the MDE.
+> * **Economics — a real failure, but downstream.** Net spread advantage **−0.000965**;
+>   the eighth consecutive tilt that does not pay for its own trading. It failed to pay
+>   because it was ≈ 0, not because costs consumed a real effect.
+>
+> **What this does NOT establish.** It does not establish that filing data contains no
+> information — V3-1's standalone SUE at 5D (+0.01305, CI [+0.00263, +0.02339]) disproves
+> that, and it remains the only factor this programme has produced whose own interval
+> cleared zero. The correct reading is narrower and firmer than V3's was: **on this
+> universe, against this incumbent, at both the fast and the slow end of the horizon range
+> this history can test, free point-in-time filing data does not contain incremental
+> information of a size worth acting on — and the horizon was not the reason.**
+
+### 8.5 V4 Slot 2 — BARRED and UNSPENT
+
+**Slot 2 is not opened, was never occupied by any source, and is now barred from opening.**
+
+Charter §8.3 permits Slot 2 only if **all four** conditions hold. **Condition 1 fails on
+the pre-registered numbers**, which is dispositive on its own:
+
+| §8.3 condition | Status |
+|---|---|
+| 1 — Slot 1 established that the V4 formulation is viable, shown by SUE's **standalone** 20D IC **materially exceeding** P = +0.0261 | **FAILS.** Observed **+0.00426** — roughly a **sixth** of P, and short of the `P − h0 = +0.01124` threshold by more than the diagnostic's own half-width. The charter fixed the consequence in advance: *"A flat or sub-√H standalone result means the formulation is dead and no second source can revive it"* |
+| 2 — the failure was diagnosed as source-specific rather than formulation-specific | **FAILS.** §8.4 diagnoses it as **formulation-level**: the horizon mechanism itself was disconfirmed. A source-specific diagnosis is not available on this evidence and may not be manufactured to open the slot |
+| 3 — a separately pre-registered scientific reason for a specific new source | **Not met.** None exists, and none may now be written, conditions 1 and 2 having failed |
+| 4 — the candidate passes §7.3's screen and §6's power gate on its own numbers | **Moot.** Conditions are **conjunctive** and are not weighed against each other |
+
+**Charter §8.2 therefore governs, in its pre-registered wording:** changing the formulation
+did not rescue the only positively evidenced V3 information source, and *"the correct
+response is to record that and stop — not to open Slot 2 by default, and not to look for a
+third horizon."*
+
+> ### Budget: V4 Slot 1 SPENT. V4 Slot 2 BARRED and UNSPENT. V4 is CLOSED.
+
+**Barred permanently under charter §9.2 and §11, restated here so this section stands alone:**
+
+* **No SUE′** — no variant of the source at any horizon, λ, sign or construction.
+* **No third horizon** — not 10D, not 40D, not 60D, not a blend, **not "as a diagnostic."**
+* **No λ change and no λ scan**; no point on any λ curve may be promoted to an arm.
+* **No sign flip**, at any horizon, on any outcome.
+* **No new information family.** V4 is a formulation study, not a feature search; there is
+  no open-ended candidate pipeline. 13F acquired no standing from the charter and acquires
+  none now. Form 4 remains barred at any horizon or architecture under its construction.
+* **No learner substitution.** A fitted model is not an answer to an information null (§2.9).
+* **No re-specification of the target**, and **no sub-universe, sector, regime or period
+  restriction** to make a result survive.
+* **No V3 artefact is edited, rescored or reinterpreted.** V3 stands exactly as recorded.
+* The **72-cutoff exam remains SEALED** at
+  `b55e065f4c9f91737b7a56fd715f0913cf8f41207bdb24d91452c10bc1c98ab0`, never opened,
+  and is **not constituted for a 20-session horizon** in any case (charter §10.1, sharpened
+  at gate time to a 10-session overlap).
+* **Production weight remains 0.0**; `alpha/adapter.py` untouched.
+* **Nothing is pushed** — `origin` is a third party's public repository (§27A).
+
+**Any further work requires a new directive from the account holder, commissioned
+deliberately as its own programme. It is not a continuation of V4, and it may not be
+opened by an executing session.**
+
+### 8.6 Verification of this backfill
+
+Every figure in §7 and §8 was transcribed from a committed artefact and re-read from that
+artefact on 2026-08-10 before being written here. Sources: `alpha/out/v3_family2_development.json`
+and `alpha/V3_FAMILY2_REPORT.md`; `alpha/out/v3_family3_development.json` and
+`alpha/V3_FAMILY3_REPORT.md`; `alpha/out/v4_sue_development.json`, `alpha/V4_SUE_RESULT.md`
+and `reports/V4_SUE_POWER_GATE.md`. **No study was re-run, no artefact was regenerated, and
+no value was recomputed.**
