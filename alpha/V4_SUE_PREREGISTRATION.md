@@ -389,3 +389,26 @@ authorization** and is not designed, specified or costed as part of this study.
 
 **V4-SUE is not authorised to run by this document.** It is pre-registered and awaiting
 separate explicit authorization to execute.
+
+---
+
+## Pre-measurement clarification — 2026-08-10
+
+**Added before the first fit, before any uncentred 20D predictive quantity exists.**
+
+§2.1 states the target is "Built by `targets.realise(..., horizon=20)`". The
+implementation instead calls `pitdata.PriceBook.forward_return(cutoff, 20, symbols)` and
+`pitdata.PriceBook.forward_return(cutoff, 20, ["SPY"])` directly, computing
+`alpha_20d = asset_return − spy_return` per cutoff. The reason is that
+`targets.realise()` (line 165 of `alpha/targets.py`) hardcodes the output column name as
+`"alpha_5d"` regardless of the `horizon` parameter passed to it.
+
+The return computation is mathematically identical: `targets.realise()` calls the same two
+`book.forward_return()` methods (lines 153–154 of `alpha/targets.py`) and performs the
+same subtraction (line 165). The direct construction avoids only the misleading column
+name.
+
+**This clarification changes no hypothesis, threshold, sample, feature, target definition,
+statistic, arm, decision rule, or any other element of this pre-registration.** The
+dependent variable remains 20-session forward alpha = asset return minus SPY return over
+the identical 20-session window.
