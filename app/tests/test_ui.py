@@ -42,6 +42,22 @@ def scratch_runs(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def scratch_holdings(tmp_path, monkeypatch):
+    """Send the book and the trade ledger to a scratch folder.
+
+    The portfolio tab can now *write* — it has a Buy button — so without this
+    a headless run posts a real position into whoever's holdings.json. It did
+    exactly that once, which is also why `holdings.py` resolves these paths at
+    call time rather than binding them in a default argument.
+    """
+    from core import holdings
+
+    monkeypatch.setattr(holdings, "STORE", tmp_path / "holdings.json")
+    monkeypatch.setattr(holdings, "LEDGER", tmp_path / "transactions.json")
+    return tmp_path
+
+
+@pytest.fixture(autouse=True)
 def offline_cache(tmp_path, monkeypatch):
     """Give every test in this module a synthetic, offline market cache.
 
@@ -73,17 +89,28 @@ def offline_cache(tmp_path, monkeypatch):
             "volume": rng.integers(1_000, 90_000, len(dates)).astype(float),
         }))
 
+    # One weekly series too, so switching the toolbar's interval pill has
+    # somewhere offline to land.
+    weekly = pd.date_range("2022-01-03", periods=180, freq="7D")
+    close = 100 + np.cumsum(rng.standard_normal(len(weekly)))
+    live._write_cache(SEEDED_SYMBOLS[0], "1wk", pd.DataFrame({
+        "date": weekly, "open": close, "high": close + 1, "low": close - 1,
+        "close": close, "volume": rng.integers(1_000, 90_000, len(weekly)).astype(float),
+    }))
+
     def refuse(symbol, period, interval):
         raise live.FetchError("network disabled in tests")
 
     monkeypatch.setattr(live, "_download", refuse)
 
 
-def fresh_app(timeout=900):
+def fresh_app(timeout=900, mode=None):
     from streamlit.testing.v1 import AppTest
 
     app = AppTest.from_file(str(APP_FILE), default_timeout=timeout)
     app.run()
+    if mode:
+        radio_offering(app, mode).set_value(mode).run()
     return app
 
 
@@ -111,19 +138,33 @@ def assert_clean(app, context):
 
 @pytest.fixture
 def bundled_app():
-    """The app pointed at a tracked dataset — no network, no cache needed."""
+    """The Pro workbench on a tracked dataset — no network, no cache needed.
+
+    Pro, because the agent, forecast and history tabs only exist there now.
+    Lite is three tabs and deliberately cannot reach any of them.
+    """
     app = fresh_app()
     assert_clean(app, "initial load")
     radio_offering(app, "Bundled dataset").set_value("Bundled dataset").run()
-    assert_clean(app, "select bundled source")
+    radio_offering(app, "Pro").set_value("Pro").run()
+    assert_clean(app, "select bundled source in Pro")
+    return app
+
+
+@pytest.fixture
+def lite_app():
+    """Lite on the seeded live cache — the decision-first view."""
+    app = fresh_app()
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    assert_clean(app, "lite on a live ticker")
     return app
 
 
 # ------------------------------------------------------------------ rendering
 
 
-@pytest.mark.parametrize("mode", ["Lite", "Pro"])
-def test_app_renders_in_both_modes(mode):
+@pytest.mark.parametrize("mode,least_charts", [("Lite", 3), ("Pro", 5)])
+def test_app_renders_in_both_modes(mode, least_charts):
     app = fresh_app()
     assert_clean(app, "initial load")
 
@@ -131,8 +172,33 @@ def test_app_renders_in_both_modes(mode):
     radio_offering(app, mode).set_value(mode).run()
     assert_clean(app, f"{mode} mode")
 
-    assert len(app.get("plotly_chart")) >= 5
-    assert len(app.metric) >= 5
+    assert len(app.get("plotly_chart")) >= least_charts
+
+
+def test_the_modes_are_different_applications():
+    """Not the same app with fewer knobs — a different set of tabs.
+
+    This is the assertion that would fail if Lite drifted back into being a
+    trimmed Pro, which is what it was before the split.
+    """
+    lite = fresh_app(mode="Lite")
+    pro = fresh_app(mode="Pro")
+    assert_clean(lite, "lite")
+    assert_clean(pro, "pro")
+
+    def tab_labels(app):
+        return {tab.label for tab in app.tabs} if hasattr(app, "tabs") else set()
+
+    lite_tabs, pro_tabs = tab_labels(lite), tab_labels(pro)
+    if lite_tabs:                       # AppTest exposes tabs from 1.36 on
+        assert lite_tabs == {"Signal", "Chart", "Portfolio"}
+        assert {"Trading agents", "Forecast", "Monte Carlo", "History"} <= pro_tabs
+
+    # Whatever the harness exposes, Pro must reach controls Lite cannot.
+    assert not [s for s in lite.selectbox if s.label == "Model"]
+    assert [s for s in pro.selectbox if s.label == "Model"]
+    assert not [s for s in lite.number_input if s.label == "Commission %"]
+    assert [s for s in pro.number_input if s.label == "Commission %"]
 
 
 def test_every_bundled_dataset_renders(bundled_app):
@@ -157,7 +223,9 @@ def test_live_ticker_serves_cache_when_offline():
 
     radio_offering(app, "Live ticker").set_value("Live ticker").run()
     assert_clean(app, "live ticker with no network")
-    assert len(app.get("plotly_chart")) >= 5
+    # Lite is three tabs: the signal chart, and the price and distribution
+    # panes behind it.
+    assert len(app.get("plotly_chart")) >= 3
 
 
 def test_unknown_symbol_is_reported_not_raised(monkeypatch):
@@ -170,6 +238,341 @@ def test_unknown_symbol_is_reported_not_raised(monkeypatch):
 
     assert_clean(app, "unknown symbol")
     assert app.sidebar.error, "expected a readable error in the sidebar"
+
+
+# -------------------------------------------------------- the TradingView bar
+
+
+def test_interval_pills_drive_the_fetch():
+    """The toolbar owns the interval now; the sidebar only offers the history."""
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+
+    radio_offering(app, "W").set_value("W").run()
+    assert_clean(app, "switch to weekly bars")
+    # Only AAPL is seeded weekly, so the Portfolio tab legitimately loses its
+    # holdings here. The price chart and the agent tab must still draw.
+    assert len(app.get("plotly_chart")) >= 4
+    assert any("Weekly" in str(block.value) for block in app.markdown)
+
+
+def test_the_range_bar_offers_only_ranges_the_series_can_show():
+    app = fresh_app()
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+
+    ranges = radio_offering(app, "All")
+    offered = list(ranges.options)
+    # 420 daily bars: no intraday "1D", and nowhere near five years.
+    assert "1D" not in offered and "5Y" not in offered
+    assert offered[-1] == "All"
+
+    ranges.set_value("3M").run()
+    assert_clean(app, "zoom to three months")
+
+
+def test_the_watchlist_links_back_into_the_app():
+    """Each row is an <a href="?sym=…">; that link is the whole interaction."""
+    app = fresh_app()
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    assert_clean(app, "live ticker rail")
+
+    rail = " ".join(str(block.value) for block in app.markdown)
+    for symbol in SEEDED_SYMBOLS:
+        assert f'href="?sym={symbol}"' in rail, f"{symbol} missing from the watchlist"
+    assert 'class="tv-wl-row on"' in rail, "the current symbol is not marked active"
+
+
+def test_a_watchlist_row_still_works_after_a_symbol_is_typed():
+    """Click MSFT, type NVDA, click MSFT again — the row must still answer.
+
+    The href never changes, so a guard that remembered the last value it had
+    applied saw nothing new on the second click and did nothing. `?sym=` is
+    consumed on read instead: it is a one-shot instruction from a row, not a
+    statement of what is on screen.
+    """
+    app = fresh_app()
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+
+    def charted():
+        return next(w for w in app.text_input if w.key == "symbol").value
+
+    app.query_params["sym"] = "MSFT"
+    app.run()
+    assert charted() == "MSFT"
+
+    next(w for w in app.text_input if w.key == "symbol").set_value("NVDA").run()
+    assert charted() == "NVDA"
+
+    app.query_params["sym"] = "MSFT"
+    app.run()
+    assert charted() == "MSFT", "the row went dead once a symbol was typed"
+    assert_clean(app, "re-clicking a watchlist row")
+
+
+def test_a_consumed_symbol_does_not_override_the_next_thing_typed():
+    """The stale parameter must not re-assert itself on the following rerun."""
+    app = fresh_app()
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+
+    app.query_params["sym"] = "MSFT"
+    app.run()
+    next(w for w in app.text_input if w.key == "symbol").set_value("NVDA").run()
+    app.run()          # any later rerun — a button, a slider, anything
+
+    assert next(w for w in app.text_input if w.key == "symbol").value == "NVDA"
+
+
+def test_the_watchlist_is_hidden_for_a_bundled_csv(bundled_app):
+    """A CSV has no ticker, so a row linking to ?sym= would go nowhere."""
+    rail = " ".join(str(block.value) for block in bundled_app.markdown)
+    assert "?sym=" not in rail
+    assert "Key stats" in rail, "the rail lost its stats panel too"
+
+
+# ------------------------------------------------------- the ultimate signal
+
+
+def markdown_text(app) -> str:
+    return " ".join(str(block.value) for block in app.markdown)
+
+
+def test_lite_leads_with_a_buy_hold_sell_call(lite_app):
+    """The one thing Lite exists for has to be on screen without a click."""
+    from core import ultimate
+
+    page = markdown_text(lite_app)
+    assert 'class="tv-verdict"' in page, "no verdict card rendered"
+    assert any(action in page for action in ultimate.ACTIONS)
+    assert 'class="tv-meter"' in page, "the call has no scale beside it"
+    # One card per horizon, plus the hero.
+    assert page.count('class="tv-hcard') >= 3
+
+
+def test_the_verdict_names_all_three_horizons(lite_app):
+    page = markdown_text(lite_app)
+    for horizon in ("4 hours", "1 day", "1 week"):
+        assert horizon in page, f"{horizon} missing from the signal tab"
+
+
+def test_the_conclusion_is_written_out(lite_app):
+    page = markdown_text(lite_app)
+    assert "Net score" in page
+    assert "confidence" in page
+
+
+def test_an_unreadable_horizon_says_so_rather_than_guessing(lite_app):
+    """Only AAPL is seeded hourly, so MSFT cannot answer the 4-hour horizon."""
+    symbol = next(w for w in lite_app.text_input if w.label == "Symbol")
+    symbol.set_value("MSFT").run()
+    assert_clean(lite_app, "a symbol with no intraday bars")
+
+    page = markdown_text(lite_app)
+    assert "NO READ" in page or "too few" in page
+
+
+def test_pro_shows_the_evidence_behind_the_call():
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    assert_clean(app, "pro ultimate tab")
+
+    headers = set()
+    for table in app.dataframe:
+        frame = getattr(table, "value", None)
+        if frame is not None and hasattr(frame, "columns"):
+            headers |= set(frame.columns)
+    assert {"Hit rate %", "Independent", "t", "Weight %"} <= headers, (
+        "the per-source calibration table is missing from Pro")
+
+
+def test_pro_can_switch_off_the_agents():
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+
+    toggle = [t for t in app.toggle if "trading agents" in t.label]
+    assert toggle, "no control for including the agents"
+    toggle[0].set_value(False).run()
+    assert_clean(app, "verdict without agents")
+
+
+def test_the_forecast_toggle_measures_and_predicts_on_its_own():
+    """Flipping it on does the work; it does not send you to another tab.
+
+    Slow even at the smallest settings, because it really does train the
+    network — which is the point, since the alternative was a warning telling
+    the user to go and assemble the two halves by hand.
+    """
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+
+    next(t for t in app.toggle if "forecast" in t.label).set_value(True).run()
+    assert_clean(app, "forecast toggle on")
+
+    # Cheapest run the sliders allow, so the test stays under a minute.
+    next(s for s in app.slider if s.key == "ultimate_folds").set_value(2).run()
+    next(s for s in app.slider if s.key == "ultimate_epochs").set_value(10).run()
+    assert_clean(app, "forecast trained")
+
+    labels = [m.label for m in app.metric]
+    assert "Directional" in labels, "no measured accuracy reported"
+    assert "Weight earned" in labels, "no verdict on whether it counts"
+
+    # Measured, projected, and kept — so a rerun does not retrain it.
+    trained = app.session_state["ultimate_model"]
+    assert trained["walk"].folds
+    assert trained["projection"].horizon > 0
+
+    # And it says plainly when the model earned nothing, which is the usual case.
+    said = " ".join([str(i.value) for i in app.info]
+                    + [str(s.value) for s in app.success])
+    assert "forecast" in said.lower()
+
+
+def test_a_measured_forecast_is_not_retrained_on_every_rerun():
+    """Without a fingerprint the toggle would retrain on each interaction."""
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    next(t for t in app.toggle if "forecast" in t.label).set_value(True).run()
+    next(s for s in app.slider if s.key == "ultimate_folds").set_value(2).run()
+    next(s for s in app.slider if s.key == "ultimate_epochs").set_value(10).run()
+
+    first = app.session_state["ultimate_model"]
+    app.run()
+    assert app.session_state["ultimate_model"] is first, "it retrained"
+
+
+# ---------------------------------------------------------------- the portfolio
+
+
+def buy_ticket(app, symbol, units, price):
+    """Fill the trade ticket and press Buy. Returns the app after the rerun."""
+    next(w for w in app.text_input if w.key == "trade_symbol").set_value(symbol)
+    next(w for w in app.number_input if w.key == "trade_units").set_value(units)
+    next(w for w in app.number_input if w.key == "trade_price").set_value(price)
+    next(b for b in app.button if b.key == "trade_buy").click().run()
+    return app
+
+
+@pytest.mark.parametrize("mode", ["Lite", "Pro"])
+def test_the_portfolio_is_tradeable_in_both_modes(mode):
+    """Buying is not an advanced feature."""
+    app = fresh_app(mode=mode)
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+
+    assert [b for b in app.button if b.key == "trade_buy"], f"{mode} cannot buy"
+    assert [b for b in app.button if b.key == "trade_sell"], f"{mode} cannot sell"
+
+
+def test_a_buy_reaches_disk_and_shows_up_as_a_position():
+    from core import holdings
+
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    buy_ticket(app, "MSFT", 4.0, 125.0)
+    assert_clean(app, "buy through the ticket")
+
+    book = holdings.load()
+    assert [h.symbol for h in book] == ["MSFT"]
+    assert book[0].quantity == pytest.approx(4.0)
+    assert [t.side for t in holdings.load_ledger()] == ["buy"]
+
+
+def test_selling_more_than_held_is_reported_not_raised():
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    buy_ticket(app, "MSFT", 2.0, 125.0)
+
+    next(w for w in app.text_input if w.key == "trade_symbol").set_value("MSFT")
+    next(w for w in app.number_input if w.key == "trade_units").set_value(99.0)
+    next(b for b in app.button if b.key == "trade_sell").click().run()
+
+    assert_clean(app, "oversized sell")
+    assert any("does not go short" in str(e.value) for e in app.error)
+
+
+def test_the_sell_button_is_disabled_without_a_position():
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    next(w for w in app.text_input if w.key == "trade_symbol").set_value("ZZZZ")
+    app.run()
+
+    sell = next(b for b in app.button if b.key == "trade_sell")
+    assert sell.disabled
+
+
+@pytest.mark.parametrize("mode", ["Lite", "Pro"])
+def test_edit_all_is_available_in_both_modes(mode):
+    """Fixing a wrong cost basis is bookkeeping, not an advanced feature."""
+    from core import holdings
+
+    holdings.save([holdings.Holding("MSFT", 1.0, 100.0)])
+
+    app = fresh_app(mode=mode)
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    assert_clean(app, f"{mode} portfolio with a position")
+
+    assert [b for b in app.button if b.key == "save_all"], f"{mode} cannot edit"
+
+
+@pytest.mark.parametrize("mode", ["Lite", "Pro"])
+def test_the_portfolio_list_carries_the_ultimate_signal(mode):
+    """The call belongs where it is actionable, not only on the signal tab."""
+    from core import holdings
+
+    holdings.save([holdings.Holding(symbol, 1.0, 100.0)
+                   for symbol in SEEDED_SYMBOLS])
+
+    app = fresh_app(mode=mode)
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    assert_clean(app, f"{mode} portfolio scan")
+
+    positions = None
+    for table in app.dataframe:
+        frame = getattr(table, "value", None)
+        columns = set(getattr(frame, "columns", []))
+        if {"Symbol", "P&L", "Call", "Signal"} <= columns:
+            positions = frame
+            break
+
+    assert positions is not None, "no positions table carrying a call"
+    assert set(positions["Symbol"]) == set(SEEDED_SYMBOLS)
+    assert positions["Call"].notna().all(), "a holding with no call"
+
+    labels = [m.label for m in app.metric]
+    assert "Book signal" in labels
+    assert "Reading sell" in labels
+
+
+def test_the_scan_agrees_with_the_signal_tab():
+    """Two numbers for one ticker on one screen would be worse than none."""
+    from core import holdings, ultimate
+
+    holdings.save([holdings.Holding("AAPL", 1.0, 100.0)])
+
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    assert_clean(app, "scan against the signal tab")
+
+    row = None
+    for table in app.dataframe:
+        frame = getattr(table, "value", None)
+        if {"Symbol", "Call", "Signal"} <= set(getattr(frame, "columns", [])):
+            row = frame[frame["Symbol"] == "AAPL"].iloc[0]
+            break
+    assert row is not None
+
+    page = markdown_text(app)
+    assert row["Call"] in page, (
+        "the portfolio row and the verdict card disagree on AAPL")
+    assert any(f"{row['Signal']:+.0f}" in str(m.value) for m in app.markdown)
+
+
+def test_an_empty_book_still_offers_the_first_buy():
+    app = fresh_app(mode="Lite")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    assert_clean(app, "empty portfolio")
+
+    assert [b for b in app.button if b.key == "trade_buy"]
+    assert any("No positions yet" in str(item.value) for item in app.info)
 
 
 # ------------------------------------------------------------------- training
@@ -250,7 +653,7 @@ def test_training_survives_a_refresh(bundled_app, scratch_runs):
     assert "return_pct" in saved[0].metrics
 
     # A brand-new session — exactly what a browser refresh produces.
-    reloaded = fresh_app()
+    reloaded = fresh_app(mode="Pro")
     radio_offering(reloaded, "Bundled dataset").set_value("Bundled dataset").run()
     assert_clean(reloaded, "after refresh")
 
@@ -268,7 +671,7 @@ def test_history_lists_and_deletes(bundled_app, scratch_runs):
                   payload={"actual": [1.0, 2.0], "mean_forecast": [1.1, 2.1],
                            "naive": [1.0, 1.0]})
 
-    app = fresh_app()
+    app = fresh_app(mode="Pro")
     radio_offering(app, "Bundled dataset").set_value("Bundled dataset").run()
     assert_clean(app, "history listing")
 
@@ -280,3 +683,4 @@ def test_history_lists_and_deletes(bundled_app, scratch_runs):
     delete[0].click().run()
     assert_clean(app, "after delete")
     assert len(runs.load_all()) == 2
+
