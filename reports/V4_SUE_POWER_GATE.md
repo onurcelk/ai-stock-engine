@@ -139,5 +139,169 @@ is on the record.
 
 ## 4. Step 3 — the achieved half-width and the verdict
 
-**PENDING.** Computed and appended in the second commit of this document, after the
-block-length freeze above was committed.
+**Appended 2026-08-10 in the second commit, after §2's block-length freeze was committed.**
+
+### 4.1 How the effect was kept out of this section
+
+Charter §6.1(2) permits the gate to inspect variance and dependence and forbids it to
+compute, report or inspect any predictive point estimate. The enforcement is structural
+rather than a promise:
+
+The paired per-cutoff series `d_t = IC(Arm 1)_t − IC(B3)_t` is formed and **immediately
+centred**, and only the centred series reaches any downstream computation or artefact. A
+percentile block-bootstrap interval shifts one-for-one with a constant added to its input,
+so its **width is exactly invariant to centring** — the half-width below is identical to
+the half-width of the uncentred series, while the effect is discarded before anything can
+read it. `alpha/out/v4_sue_power_gate.pkl` stores the centred series only; the JSON record
+carries no mean. **The Arm 1 − B3 point estimate has not been computed into any inspected
+variable, printed, persisted, or used in the verdict.**
+
+### 4.2 Inputs
+
+| | |
+|---|---|
+| Target | 20-session forward alpha, built by `targets.realise(..., horizon=20)` — the existing tested instrument, reused not rewritten |
+| Rows | 142,178 across **313** cutoffs |
+| `corr(alpha_5d, alpha_20d)` | **0.4962** — confirming these are distinct dependent variables sharing only their first five sessions, as charter §2.3 asserts |
+| SUE coverage on the 20D rows | **0.9299** — clears the charter §5 item 13 gate of ≥ 0.80 |
+| Arm 1 | `rank_pct(B3) + 0.50·(rank_pct(sue) − 0.5)`, λ = 0.50, sign +1 |
+| Exam contamination | **0**, asserted before scoring |
+
+### 4.3 Dependence structure of the paired difference (measured)
+
+| Lag | Autocorrelation | |
+|---|---|---|
+| 1 | **+0.5244** | mechanical overlap (0.75 of the window shared) |
+| 2 | **+0.2812** | mechanical overlap (0.50 shared) |
+| 3 | **+0.0733** | mechanical overlap (0.25 shared) |
+| 4 | −0.0311 | no overlap |
+| 5 | −0.0344 | no overlap |
+| 6 | −0.0573 | no overlap |
+| 7 | −0.0144 | no overlap |
+| 8 | −0.0285 | no overlap |
+
+**The measured structure matches the predicted structure exactly.** Autocorrelation decays
+monotonically across lags 1–3, in the same order as the shared-window fractions
+(0.75 / 0.50 / 0.25), and vanishes into small negative noise from lag 4 — precisely where
+§2.1 predicted mechanical overlap ends. The block length was frozen on this structure
+before it was measured, and the measurement vindicates the freeze.
+
+### 4.4 Effective independent sample size
+
+| Reading | Derivation | n_eff |
+|---|---|---|
+| Variance inflation, mechanical lags | `1 + 2·Σρ₁..₃ = 2.7578`; `n/2.7578` | **113.5** |
+| Variance inflation, through lag 6 | `1 + 2·Σρ₁..₆ = 2.5124`; `n/2.5124` | 124.6 |
+| Block-count reading | `n / L = 313 / 7` | 44.7 |
+
+The variance-inflation reading is the one that governs the width of a mean's interval; the
+block-count reading is the coarser "how many blocks does the bootstrap have to shuffle"
+figure and is quoted for completeness. Both are far below the nominal 313, which is the
+§2.12 point made concrete: **nominal n is not evidence.**
+
+### 4.5 The gate
+
+| | |
+|---|---|
+| Nominal usable n | **313** |
+| Selected block length | **7** (frozen in §2.4, before this computation) |
+| Effective independent n | **113.5** (variance inflation, mechanical lags) |
+| sd of the paired difference | 0.031503 |
+| **Achieved 95% half-width** | **0.005372** |
+| **Frozen MDE** | **+0.0095** |
+| **MDE / half-width** | **1.7683** |
+| Newey–West SE, 6 lags (cross-check) | 0.002708 → 1.96·SE = **0.005308** |
+
+> ## VERDICT: **PASS**
+>
+> Achieved half-width **0.005372 ≤ +0.0095**. The design can resolve the smallest effect
+> worth acting on, with a margin of **1.77×**.
+
+**Two independent corroborations.** The Newey–West HAC interval (0.005308) agrees with the
+block bootstrap (0.005372) to within 1.2%, and the closed-form check
+`1.96·sd/√n·√2.7578 = 0.005796` lands in the same place. Three different corrections for
+the same dependence agree, which is the condition under which a resolution figure is
+worth quoting.
+
+### 4.6 Non-decisional sensitivity
+
+Reported for transparency. **L is frozen at 7 and the verdict above is the only gate
+result.** No other value may be substituted.
+
+| L | Half-width | MDE / half-width | |
+|---|---|---|---|
+| 4 | 0.005047 | 1.88 | pass |
+| 5 | 0.005196 | 1.83 | pass |
+| **7 — frozen** | **0.005372** | **1.77** | **PASS** |
+| 10 | 0.005319 | 1.79 | pass |
+
+**The verdict is invariant across every candidate block length, including values longer
+than the one chosen.** The block-length decision was therefore not load-bearing, and
+choosing the most conservative candidate cost the gate nothing. Had the ordering been
+reversed — half-widths first, then a choice — this table is what would have made the
+choice suspect; it is published here only because the freeze was committed first.
+
+### 4.7 Why the charter expected a FAIL, and why it was wrong
+
+`V4_CHARTER.md` §6.2 predicted *"This gate is more likely to fail than to pass."* **That
+prediction was wrong, and the reason is identifiable rather than lucky.**
+
+`V4_FORMULATION_REVIEW.md` §2.5 estimated the 20D λ = 0.50 half-width at ≈ 0.0092 by
+taking V3's measured 0.00229 at λ = 0.25 / H = 5 and applying two multiplicative
+penalties: ×2 for doubling λ, and ×2 for √(H/5). Measured, the true figure is 0.005372 —
+the extrapolation **overstated the interval by 1.71×**. Both penalties were too harsh:
+
+* **The √(H/5) penalty assumed the cutoff count falls with the horizon.** The review's §1.1
+  table counted "non-overlapping draws in the span" dropping 531 → 133 and charged √4. But
+  the design does not discard cutoffs at a longer horizon: **313 of 316 survive**, and the
+  cost of the longer window is dependence, not lost draws. The measured variance inflation
+  is **2.7578, not 4** — so the correct penalty is √2.7578 = 1.66×, not 2×.
+* **Doubling λ did not double the paired standard deviation.** The review's linear
+  authority-to-width extrapolation between two anchors overstated the widening.
+
+**The correction is recorded here, and the charter is not edited.** The charter's §6.2
+prediction stands in the record as written and wrong; the MDE, the arm, the horizon and
+the CI rule it froze are all unchanged, and the gate was judged against them exactly as
+frozen. Nothing was loosened to produce this PASS — the estimate that moved was an
+estimate of the *instrument*, measured for the first time, in the direction the charter
+did not expect.
+
+---
+
+## 5. The §7 standalone-strength screen, recorded unchanged
+
+Carried verbatim from `alpha/V4_CHARTER.md` §7.2–§7.3. **Nothing is recomputed here and no
+realized 20D value is substituted into it** — charter §7.3 forbids substituting the
+measured B3 or SUE 20D figures, and none has been read.
+
+| Quantity | Value |
+|---|---|
+| **R** — required standalone 20D IC at λ = 0.50 | **≈ +0.0318 native** |
+| **P** — SUE's √(H/5) extrapolation from its V3 5D standalone (+0.01305) | **+0.0261 native** |
+| **R / P** | **≈ 1.22** |
+| Pre-registered rule | admit only if **R / P ≤ 1.5** |
+| **Screen verdict** | **PASS** |
+
+---
+
+## 6. Status after this gate
+
+| | |
+|---|---|
+| Power gate | **PASS** (half-width 0.005372 ≤ MDE 0.0095, margin 1.77×) |
+| §7 screen | **PASS** (R/P ≈ 1.22 ≤ 1.5) |
+| **V4-SUE** | **POWER-ADMISSIBLE — awaiting separate pre-registration authorization** |
+| V4 Slot 1 | **NOT SPENT** |
+| V4-SUE study | **NOT RUN** |
+| V4-SUE pre-registration | **NOT CREATED** — charter §9.4 requires it as its own document, and its authorization is separate from this gate |
+| V3 | CLOSED, unchanged. Families 1/2/3 REJECTED, 3 slots spent |
+| Exam | **SEALED**, `b55e065f4c9f91737b7a56fd715f0913cf8f41207bdb24d91452c10bc1c98ab0`. Not opened |
+| Production weight | **0.0** |
+| Pushed | **No** |
+
+Charter §9.4 fixes what may happen next and in what order: **pre-screen recorded (done) →
+V4-SUE pre-registration committed as its own document → first fit.** The second of those
+steps requires explicit authorization that this gate does not confer.
+
+Artefacts: `alpha/out/v4_sue_power_gate.json` (record), `alpha/out/v4_sue_power_gate.pkl`
+(centred paired series only — reproduces the half-width, carries no effect).

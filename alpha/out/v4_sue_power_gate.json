@@ -1,0 +1,32 @@
+{
+  "computed_at": "2026-08-10T03:34:31",
+  "charter": "alpha/V4_CHARTER.md",
+  "gate_record": "reports/V4_SUE_POWER_GATE.md",
+  "horizon_sessions": 20,
+  "lambda": 0.5,
+  "block_length_frozen": 7,
+  "nominal_n": 313,
+  "sd_paired_difference": 0.031503,
+  "acf_lags_1_to_8": [
+    0.5244,
+    0.2812,
+    0.0733,
+    -0.0311,
+    -0.0344,
+    -0.0573,
+    -0.0144,
+    -0.0285
+  ],
+  "n_eff_block_count": 44.7,
+  "n_eff_variance_inflation_q3": 113.5,
+  "n_eff_variance_inflation_q6": 124.6,
+  "achieved_half_width": 0.005372,
+  "mde_native_20d": 0.0095,
+  "mde_over_half_width": 1.7683,
+  "newey_west_se_6lag": 0.002708,
+  "verdict": "PASS",
+  "effect_suppressed": "paired series centred before any downstream use; percentile-interval width is invariant to centring",
+  "exam_digest": "b55e065f4c9f91737b7a56fd715f0913cf8f41207bdb24d91452c10bc1c98ab0",
+  "exam_opened": false,
+  "slot_1_spent": false
+}
