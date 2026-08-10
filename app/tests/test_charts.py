@@ -112,6 +112,71 @@ def test_overlays_and_markers_are_drawn(synthetic_ohlcv):
     assert {"upper", "lower", "Buy", "Sell"} <= names
 
 
+# ---------------------------------------------------------------- range bar
+
+
+def test_window_slices_from_the_latest_bar_backwards(synthetic_ohlcv):
+    """Every range key is backward from the end, so the last bar always shows."""
+    for key in ("1M", "3M", "6M"):
+        sliced = charts.window(synthetic_ohlcv, key)
+        assert sliced["date"].iloc[-1] == synthetic_ohlcv["date"].iloc[-1]
+        assert len(sliced) < len(synthetic_ohlcv)
+
+
+def test_window_all_is_the_whole_series(synthetic_ohlcv):
+    assert len(charts.window(synthetic_ohlcv, "All")) == len(synthetic_ohlcv)
+
+
+def test_window_ytd_starts_in_january(crypto_ohlcv):
+    sliced = charts.window(crypto_ohlcv, "YTD")
+    end = crypto_ohlcv["date"].iloc[-1]
+    assert sliced["date"].iloc[0].year == end.year
+
+
+def test_window_ignores_a_request_it_cannot_draw():
+    """One bar is a dot, not a chart — fall back rather than render nonsense.
+
+    Weekly bars are the case that reaches this: a one-day lookback lands
+    inside the gap between two of them and catches only the last.
+    """
+    weekly = pd.DataFrame({
+        "date": pd.date_range("2024-01-01", periods=52, freq="7D"),
+        "close": np.linspace(100, 150, 52),
+    })
+    assert len(charts.window(weekly, "1D")) == len(weekly)
+    assert "1D" not in charts.usable_ranges(weekly)
+
+
+def test_usable_ranges_drops_what_the_series_cannot_show(synthetic_ohlcv):
+    """A year of daily bars has no intraday "1D" and no "5Y" that isn't "All"."""
+    offered = charts.usable_ranges(synthetic_ohlcv)
+    assert "1D" not in offered
+    assert "5Y" not in offered
+    assert "All" in offered
+    assert offered == [key for key in charts.RANGE_KEYS if key in offered]
+
+
+def test_usable_ranges_never_offers_a_second_name_for_all(synthetic_ohlcv):
+    """Two buttons that draw the same chart are one button too many."""
+    whole = len(synthetic_ohlcv)
+    for key in charts.usable_ranges(synthetic_ohlcv):
+        if key != "All":
+            assert len(charts.window(synthetic_ohlcv, key)) < whole
+
+
+def test_usable_ranges_keeps_everything_on_a_long_history():
+    dates = pd.bdate_range("2014-01-01", periods=3_000)
+    frame = pd.DataFrame({"date": dates, "close": np.linspace(10, 400, len(dates))})
+    assert set(charts.usable_ranges(frame)) == set(charts.RANGE_KEYS) - {"1D"}
+
+
+def test_a_windowed_frame_still_charts(synthetic_ohlcv):
+    """The app charts the slice, not the full frame — that is what rescales y."""
+    view = charts.window(synthetic_ohlcv, "3M")
+    figure = charts.price_chart(view, symbol="AAPL", interval_label="D")
+    assert "candlestick" in {trace.type for trace in figure.data}
+
+
 # ------------------------------------------------------------------- palette
 
 

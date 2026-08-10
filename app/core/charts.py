@@ -16,9 +16,12 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-# TradingView's dark theme, sampled from its default chart.
+# TradingView's dark theme, sampled from its default chart. theme.py imports
+# these rather than restating them, so the page and the candles cannot drift.
 BACKGROUND = "#131722"
-GRID = "#1e222d"
+PANEL = "#1e222d"      # tooltips here; toolbars and cards in theme.py
+BORDER = "#2a2e39"     # axis lines, and every hairline on the page
+GRID = PANEL           # gridlines sit one shade below the borders
 AXIS_TEXT = "#787b86"
 TEXT = "#d1d4dc"
 UP = "#26a69a"
@@ -40,9 +43,51 @@ RANGE_BUTTONS = [
     dict(step="all", label="All"),
 ]
 
+# The same set again, as calendar spans, for the bottom range bar. Slicing the
+# frame beats plotly's own rangeselector here: it rescales the price axis, the
+# volume pane and the last-price badge to the visible window the way
+# TradingView does, where plotly would only move the x range and leave the
+# candles squashed against a y axis sized for five years.
+RANGE_DAYS = {"1D": 1, "5D": 5, "1M": 31, "3M": 92, "6M": 183, "1Y": 366, "5Y": 1827}
+RANGE_KEYS = ["1D", "5D", "1M", "3M", "6M", "YTD", "1Y", "5Y", "All"]
+
 
 def has_ohlc(frame: pd.DataFrame) -> bool:
     return {"open", "high", "low"}.issubset(frame.columns)
+
+
+def _tail(frame: pd.DataFrame, key: str) -> pd.DataFrame:
+    """The raw slice for a range key, however few bars that turns out to be."""
+    if key == "All" or frame.empty:
+        return frame
+    end = frame["date"].iloc[-1]
+    if key == "YTD":
+        start = pd.Timestamp(year=end.year, month=1, day=1)
+    else:
+        days = RANGE_DAYS.get(key)
+        if days is None:
+            return frame
+        start = end - pd.Timedelta(days=days)
+    return frame[frame["date"] >= start].reset_index(drop=True)
+
+
+def window(frame: pd.DataFrame, key: str) -> pd.DataFrame:
+    """The tail of `frame` covered by a range-bar key such as "3M"."""
+    sliced = _tail(frame, key)
+    # Two bars is the least that can be drawn; below that, ignore the request
+    # rather than hand the chart something it would render as a single dot.
+    return sliced if len(sliced) >= 2 else frame
+
+
+def usable_ranges(frame: pd.DataFrame, minimum_bars: int = 3) -> list[str]:
+    """Range keys that would actually change what this series looks like.
+
+    Dropped from both ends: a daily series has no "1D" worth drawing, and on
+    eighteen months of history "5Y" is just "All" wearing a different label.
+    Offering either is how a toolbar teaches people its buttons don't work.
+    """
+    return [key for key in RANGE_KEYS
+            if key == "All" or minimum_bars <= len(_tail(frame, key)) < len(frame)]
 
 
 def _trades_on_weekends(dates: pd.Series) -> bool:
@@ -74,9 +119,16 @@ def price_chart(
     buys: list[int] | None = None,
     sells: list[int] | None = None,
     show_volume: bool = True,
-    show_range_buttons: bool = True,
+    show_range_buttons: bool = False,
+    market: str = "",
+    watermark_sub: str = "",
 ) -> go.Figure:
-    """A TradingView-style candlestick chart with an optional volume pane."""
+    """A TradingView-style candlestick chart with an optional volume pane.
+
+    `show_range_buttons` draws plotly's own rangeselector above the chart. It
+    defaults off because the app renders that bar underneath instead, where
+    TradingView keeps it, and slices the frame so the price axis rescales too.
+    """
     dates = frame["date"]
     close = frame["close"]
     volume_available = show_volume and "volume" in frame.columns \
@@ -84,8 +136,11 @@ def price_chart(
 
     rows = 2 if volume_available else 1
     figure = make_subplots(
-        rows=rows, cols=1, shared_xaxes=True, vertical_spacing=0.02,
-        row_heights=[0.76, 0.24] if volume_available else [1.0],
+        rows=rows, cols=1, shared_xaxes=True, vertical_spacing=0.015,
+        # Volume is context, not a second chart: TradingView gives it a strip
+        # under the candles, and a quarter of the canvas reads as a claim that
+        # it matters as much as the price.
+        row_heights=[0.82, 0.18] if volume_available else [1.0],
     )
 
     if has_ohlc(frame):
@@ -174,60 +229,77 @@ def price_chart(
 
     if symbol:
         figure.add_annotation(
-            text=symbol, xref="paper", yref="paper", x=0.5, y=0.55,
-            showarrow=False, font=dict(size=72, color=WATERMARK, family="Arial Black"),
+            text=symbol, xref="paper", yref="paper", x=0.5, y=0.56,
+            showarrow=False, font=dict(size=76, color=WATERMARK, family="Arial Black"),
         )
+        if watermark_sub:
+            figure.add_annotation(
+                text=watermark_sub, xref="paper", yref="paper", x=0.5, y=0.44,
+                showarrow=False, font=dict(size=16, color=WATERMARK),
+            )
 
-    # TradingView's top-left legend: symbol, interval, then the last OHLC.
+    # TradingView's legend sits *inside* the chart, hard against the top-left
+    # corner: symbol, interval, market, then the last bar's OHLC and its move.
     header = f"<b>{symbol}</b>" if symbol else ""
-    if interval_label:
-        header += f"  <span style='color:{AXIS_TEXT}'>· {interval_label}</span>"
+    tags = [t for t in (interval_label, market) if t]
+    if tags:
+        header += f"  <span style='color:{AXIS_TEXT}'>· {' · '.join(tags)}</span>"
     if has_ohlc(frame):
         row = frame.iloc[-1]
         header += (
-            f"   <span style='color:{AXIS_TEXT}'>O</span> {row['open']:,.2f}"
-            f"  <span style='color:{AXIS_TEXT}'>H</span> {row['high']:,.2f}"
-            f"  <span style='color:{AXIS_TEXT}'>L</span> {row['low']:,.2f}"
-            f"  <span style='color:{AXIS_TEXT}'>C</span> "
+            f"   <span style='color:{AXIS_TEXT}'>O</span>"
+            f"<span style='color:{badge}'>{row['open']:,.2f}</span>"
+            f"  <span style='color:{AXIS_TEXT}'>H</span>"
+            f"<span style='color:{badge}'>{row['high']:,.2f}</span>"
+            f"  <span style='color:{AXIS_TEXT}'>L</span>"
+            f"<span style='color:{badge}'>{row['low']:,.2f}</span>"
+            f"  <span style='color:{AXIS_TEXT}'>C</span>"
             f"<span style='color:{badge}'>{row['close']:,.2f}</span>"
         )
-    if header:
-        figure.add_annotation(
-            text=header, xref="paper", yref="paper", x=0, y=1.06,
-            showarrow=False, xanchor="left", align="left",
-            font=dict(size=13, color=TEXT),
-        )
+    change = last - previous
+    header += (
+        f"   <span style='color:{badge}'>{change:+,.2f} "
+        f"({change / previous * 100 if previous else 0:+.2f}%)</span>"
+    )
+    figure.add_annotation(
+        text=header, xref="paper", yref="paper", x=0.004, y=0.995,
+        showarrow=False, xanchor="left", yanchor="top", align="left",
+        font=dict(size=12.5, color=TEXT),
+    )
 
     breaks = _rangebreaks(dates, interval_label)
 
     figure.update_layout(
         height=height,
-        margin=dict(l=8, r=64, t=48, b=8),
+        # The legend is drawn inside the canvas now, so the only top margin
+        # left is whatever plotly's rangeselector needs when it is asked for.
+        margin=dict(l=6, r=62, t=46 if show_range_buttons else 10, b=6),
         paper_bgcolor=BACKGROUND,
         plot_bgcolor=BACKGROUND,
         font=dict(color=TEXT, size=11),
         hovermode="x unified",
         dragmode="pan",
         xaxis_rangeslider_visible=False,
-        bargap=0.15,
-        legend=dict(orientation="h", yanchor="bottom", y=1.0, x=0.35,
-                    bgcolor="rgba(0,0,0,0)", font=dict(color=TEXT)),
-        hoverlabel=dict(bgcolor="#1e222d", bordercolor=GRID,
+        bargap=0.25,
+        legend=dict(orientation="h", yanchor="top", y=0.94, x=0.006,
+                    bgcolor="rgba(0,0,0,0)", font=dict(color=AXIS_TEXT, size=11)),
+        hoverlabel=dict(bgcolor=PANEL, bordercolor=BORDER,
                         font=dict(color=TEXT, size=11)),
     )
 
     axis_common = dict(
         gridcolor=GRID, zeroline=False, showspikes=True, spikemode="across",
         spikesnap="cursor", spikedash="dot", spikecolor=CROSSHAIR, spikethickness=1,
-        linecolor=GRID, tickfont=dict(color=AXIS_TEXT),
+        linecolor=BORDER, tickfont=dict(color=AXIS_TEXT, size=10.5),
     )
     figure.update_xaxes(**axis_common, rangebreaks=breaks, showgrid=True)
-    figure.update_yaxes(**axis_common, side="right", showgrid=True)
+    figure.update_yaxes(**axis_common, side="right", showgrid=True,
+                        ticklabelposition="outside", ticks="")
 
     if show_range_buttons:
         figure.update_xaxes(
             rangeselector=dict(
-                buttons=RANGE_BUTTONS, bgcolor="#1e222d", activecolor="#2962ff",
+                buttons=RANGE_BUTTONS, bgcolor=PANEL, activecolor=LINE,
                 font=dict(color=TEXT, size=10), bordercolor=GRID, borderwidth=1,
                 x=0, y=1.18, xanchor="left",
             ),
@@ -235,7 +307,10 @@ def price_chart(
         )
 
     if volume_available:
-        figure.update_yaxes(title_text="", showticklabels=True, row=2, col=1)
+        # TradingView's volume pane is deliberately quiet: no grid, three ticks,
+        # SI-suffixed so 26,720,000 reads as 26.7M without widening the axis.
+        figure.update_yaxes(title_text="", showgrid=False, nticks=3,
+                            tickformat="~s", row=2, col=1)
 
     return figure
 
@@ -245,12 +320,12 @@ def apply_dark(figure: go.Figure) -> go.Figure:
     figure.update_layout(
         paper_bgcolor=BACKGROUND, plot_bgcolor=BACKGROUND,
         font=dict(color=TEXT, size=11),
-        hoverlabel=dict(bgcolor="#1e222d", bordercolor=GRID, font=dict(color=TEXT)),
+        hoverlabel=dict(bgcolor=PANEL, bordercolor=BORDER, font=dict(color=TEXT)),
     )
-    figure.update_xaxes(gridcolor=GRID, linecolor=GRID,
-                        tickfont=dict(color=AXIS_TEXT), zeroline=False)
-    figure.update_yaxes(gridcolor=GRID, linecolor=GRID,
-                        tickfont=dict(color=AXIS_TEXT), zeroline=False)
+    figure.update_xaxes(gridcolor=GRID, linecolor=BORDER,
+                        tickfont=dict(color=AXIS_TEXT, size=10.5), zeroline=False)
+    figure.update_yaxes(gridcolor=GRID, linecolor=BORDER,
+                        tickfont=dict(color=AXIS_TEXT, size=10.5), zeroline=False)
     return figure
 
 
@@ -258,5 +333,7 @@ CONFIG = {
     # TradingView scrolls to zoom and drags to pan; match that.
     "scrollZoom": True,
     "displaylogo": False,
-    "modeBarButtonsToRemove": ["select2d", "lasso2d", "autoScale2d"],
+    "displayModeBar": "hover",
+    "doubleClick": "reset",
+    "modeBarButtonsToRemove": ["select2d", "lasso2d", "autoScale2d", "toggleSpikelines"],
 }
