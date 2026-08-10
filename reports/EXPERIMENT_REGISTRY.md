@@ -773,3 +773,73 @@ and `alpha/V3_FAMILY2_REPORT.md`; `alpha/out/v3_family3_development.json` and
 `alpha/V3_FAMILY3_REPORT.md`; `alpha/out/v4_sue_development.json`, `alpha/V4_SUE_RESULT.md`
 and `reports/V4_SUE_POWER_GATE.md`. **No study was re-run, no artefact was regenerated, and
 no value was recomputed.**
+
+---
+
+## 9. Single-Name Phase 1 (SN-1) — 2026-08-11
+
+Appended 2026-08-11. Commissioned by the account holder's `MISSION` directive (2026-08-10)
+and admissible under master roadmap **§9b, Phase 7b — single-name re-validation**, which is
+a standing blocking phase, not a new family study.
+
+### 9.1 Registry entry
+
+| Field | Value |
+|---|---|
+| ID | **SN-1** |
+| Date | 2026-08-11 |
+| Hypothesis | The incumbent cross-sectional signal B3, calibrated walk-forward and optionally conditioned on market state, produces a useful **absolute** single-name forecast of `P(r₅ > 0)` and `E[r₅]` |
+| Information source | **None new.** `alpha/out/panel.pkl` (built 2026-08-08), existing columns only |
+| Target | **`asset_return`** — absolute 5-session forward return. **Not** `alpha_5d`. A different dependent variable from every prior study in this repository |
+| Horizon | **5 sessions** (`targets.HORIZON`). No second horizon computed anywhere |
+| Model | S0 always-up · S1 unconditional prior · S2 12-1 momentum · S3 B3 · S4 B3 × (trend, vol). Logistic `C=1.0` + Ridge `alpha=1.0`, one centred feature, no regularisation search |
+| Seeds / instrument | `stats.SEED = 20260808`, block length 4 cutoffs, 10,000 draws, Newey-West 4 lags |
+| Sample | 215 development cutoffs, 2018-01-26 … 2026-07-28 · 101,137 symbol-dates · 580 symbols · realised up-rate 0.5370 |
+| Pre-registration | `alpha/SINGLE_NAME_PREREGISTRATION.md`, commit `616e41a`, **before any measurement** |
+| Gates | G1 **FAIL** · G2 **FAIL** · G3 **FAIL** · G4 **FAIL** |
+| **Decision** | **DO NOT ADVANCE.** No candidate is eligible for the exam |
+| Budget slots spent | **0.** No information family was tested. V3 (3/3 spent) and V4 (slot 1 spent, slot 2 barred) are unchanged and remain CLOSED |
+| Exam | **SEALED**, `b55e065f4c9f91737b7a56fd715f0913cf8f41207bdb24d91452c10bc1c98ab0`, not loaded, not scored, not inspected |
+| Production | weight **0.0**, `alpha/adapter.py` untouched |
+| Report | `reports/SINGLE_NAME_PHASE1.md` |
+
+### 9.2 The finding, in one paragraph
+
+Across all 101,137 symbol-dates **no arm ever emitted `p_up < 0.5`**, and **zero SELL calls
+were produced**. B3's cross-sectional rank moves the absolute directional probability by
+about ±2 points around a 53.7% unconditional drift, so every arm makes the same directional
+call as always-up on every row and the paired accuracy contrast is identically zero. The
+best probabilistic contrast anywhere is S4 − S1 on log loss, **−0.00024 against a half-width
+of 0.00096**. Calibration in aggregate is adequate (ECE 0.01799) but has no resolution: 98.1%
+of the probability mass falls in one 0.1-wide bin, and the residual bias is **overconfidence**
+that widens with the probability (−0.017 in the main bin, −0.048 in the tail).
+
+### 9.3 What is barred as a consequence
+
+* **No larger model on the same input.** M0 and M1 both failed; M2 requires validated
+  independent alpha features and the programme has none. Roadmap §2.9 and §0.1 ("No V2.4")
+  govern directly.
+* **No threshold rescue.** The §4 sweep reached 57.5% accuracy at 8.8% coverage. It is a
+  diagnostic curve computed after the fact; no point on it may become the rule without a
+  fresh pre-registration (roadmap §0.1, CLAUDE.md §3.2).
+* **No promotion of the S4 regime bucket.** S4's entire separation from S3 comes from
+  BULL_TREND/LOW_VOL, where the walk-forward fit **inverts** B3's ranking. Regime-concentrated
+  results are a disqualifier under roadmap §2.5 and may not be restricted to in order to
+  survive.
+* **No claim that the decile spread is a stock prediction.** The +0.00656 [+0.00220, +0.01005]
+  top-minus-bottom decile spread is a *within-cutoff* contrast. Roadmap §9b: a signal that
+  beats the cross-section but not always-up is a portfolio-construction result and must be
+  described as one.
+* **No new information family** is authorised by this result, and none was tested by it.
+
+### 9.4 Measured resolution, carried forward
+
+| Contrast | 95% half-width | Reusable as |
+|---|---:|---|
+| Log loss vs S1 | **0.00096** | the probabilistic MDE for any future single-name candidate |
+| Brier vs S1 | **0.00047** | ditto |
+| Mean 5D return on the covered book | **0.00390** | the economic MDE — **39 bp per 5 sessions** |
+| Directional accuracy, level | **0.02628** | the bar for any unpaired accuracy claim |
+
+These are measurements on the development set at n = 215 cutoffs, not thresholds, and they
+are what a future §2.6 power gate for a single-name study should be computed against.

@@ -486,7 +486,11 @@ def report(frame: pd.DataFrame) -> dict:
 
 
 def _table(frame: pd.DataFrame) -> list[dict]:
-    out = frame.reset_index()
+    """A frame as JSON records, with a categorical/interval index rendered as text."""
+    out = frame.copy()
+    out.index = [str(value) for value in out.index]
+    out.index.name = "bucket"
+    out = out.reset_index()
     out.columns = [str(c) for c in out.columns]
     return json.loads(out.to_json(orient="records", double_precision=6))
 
