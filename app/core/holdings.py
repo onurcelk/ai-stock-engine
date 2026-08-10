@@ -4,19 +4,69 @@ The rest of portfolio.py deals in hypothetical weights ("what if I put 25% in
 each of these"). This module deals in what is actually owned, so it needs the
 two things weights can't express: how many units, and what was paid.
 
-Holdings live in a local JSON file that is gitignored — it is personal
-financial data and does not belong in version control.
+It also owns the *changing* of those positions. `buy()` and `sell()` are pure
+functions returning a new book plus the transaction that produced it, which is
+what lets the UI put a trade ticket on screen without the arithmetic living in
+a Streamlit callback. Cost basis is average-cost: a buy re-averages the unit
+cost (commission included, because commission is part of what you paid), a
+sell leaves it alone and books the difference as realised.
+
+Both files here are local JSON and gitignored — this is personal financial
+data and does not belong in version control.
 """
 
 from __future__ import annotations
 
 import dataclasses
+import datetime as dt
 import json
 import pathlib
 
 import pandas as pd
 
 STORE = pathlib.Path(__file__).resolve().parents[1] / "holdings.json"
+LEDGER = pathlib.Path(__file__).resolve().parents[1] / "transactions.json"
+
+
+def _store(path: pathlib.Path | None) -> pathlib.Path:
+    """Resolve the book's location at call time, not at import time.
+
+    Every function here used to default its path to `STORE` in the signature,
+    which binds the value when the module is imported. Redirecting the store —
+    which is exactly what a test does — therefore had no effect, and driving
+    the portfolio tab headlessly wrote a position into the real file. Reading
+    the module attribute on each call is what makes monkeypatching work, and
+    is the only thing standing between a test run and someone's actual
+    holdings.
+    """
+    return STORE if path is None else path
+
+
+def _ledger(path: pathlib.Path | None) -> pathlib.Path:
+    return LEDGER if path is None else path
+
+
+BUY, SELL = "buy", "sell"
+
+# Enough to survive a fat-fingered decimal point without rejecting a real
+# fractional-share purchase.
+MIN_QUANTITY = 1e-9
+
+
+def _quoted(price: float) -> str:
+    """A fill price with its trailing zeros trimmed but its meaning intact.
+
+    Four fixed places make `0.0000` of a sub-cent fill, and trimming the zeros
+    off that leaves `0` — a trade confirmation quoting a price of zero for a
+    trade that had one. Prices under a cent get the places they need instead.
+
+    Trimming is applied here, to the number alone. Doing it to the assembled
+    sentence — which is what this used to do, the `rstrip` binding to the whole
+    implicitly concatenated string — makes the result depend on what happens to
+    follow the price.
+    """
+    places = 4 if abs(price) >= 0.01 else 8
+    return f"{price:,.{places}f}".rstrip("0").rstrip(".")
 
 
 @dataclasses.dataclass
@@ -122,7 +172,219 @@ class Valuation:
                                  na_position="last").reset_index(drop=True)
 
 
-def load(path: pathlib.Path = STORE) -> list[Holding]:
+@dataclasses.dataclass
+class Transaction:
+    """One executed order, and what it did to the book.
+
+    `realised` is only meaningful on a sell — it is the part of the P&L that
+    stopped being an opinion. Buys carry 0.0 rather than None so the ledger
+    sums without special-casing.
+    """
+
+    at: dt.datetime
+    side: str
+    symbol: str
+    quantity: float
+    price: float
+    fee: float = 0.0
+    realised: float = 0.0
+    note: str = ""
+
+    @property
+    def notional(self) -> float:
+        return self.quantity * self.price
+
+    @property
+    def cash(self) -> float:
+        """Signed cash effect: negative when buying, positive when selling."""
+        return (-self.notional - self.fee if self.side == BUY
+                else self.notional - self.fee)
+
+    def describe(self) -> str:
+        return (f"{self.side.upper()} {self.quantity:g} {self.symbol} "
+                f"@ {_quoted(self.price)}")
+
+
+def _validate(symbol: str, quantity: float, price: float, fee: float) -> str:
+    symbol = str(symbol).strip().upper()
+    if not symbol:
+        raise ValueError("Enter a symbol.")
+    if not quantity or quantity < MIN_QUANTITY:
+        raise ValueError("Quantity has to be greater than zero.")
+    if price <= 0:
+        raise ValueError("Price has to be greater than zero.")
+    if fee < 0:
+        raise ValueError("Commission cannot be negative.")
+    return symbol
+
+
+def buy(holdings: list[Holding], symbol: str, quantity: float, price: float,
+        fee: float = 0.0) -> tuple[list[Holding], Transaction]:
+    """Add units, re-averaging the cost basis. Returns a new book.
+
+    The commission goes into the basis rather than being written off, which
+    is the accounting that makes "P&L" mean what a broker statement means:
+    what you would clear if you sold, not what the price did.
+    """
+    symbol = _validate(symbol, quantity, price, fee)
+    book = [dataclasses.replace(h) for h in holdings]
+
+    for index, held in enumerate(book):
+        if held.symbol == symbol:
+            units = held.quantity + quantity
+            spent = held.cost_basis + quantity * price + fee
+            book[index] = Holding(symbol, units, spent / units)
+            break
+    else:
+        book.append(Holding(symbol, quantity,
+                            (quantity * price + fee) / quantity))
+
+    return book, Transaction(at=dt.datetime.now(), side=BUY, symbol=symbol,
+                             quantity=float(quantity), price=float(price),
+                             fee=float(fee))
+
+
+def sell(holdings: list[Holding], symbol: str, quantity: float, price: float,
+         fee: float = 0.0) -> tuple[list[Holding], Transaction]:
+    """Reduce a position at average cost, booking the realised difference.
+
+    Selling more than is held is refused rather than clamped: a short is a
+    different instrument with different risk, and quietly turning a typo into
+    one would be the worst possible way to find that out.
+    """
+    symbol = _validate(symbol, quantity, price, fee)
+    book = [dataclasses.replace(h) for h in holdings]
+
+    position = next((h for h in book if h.symbol == symbol), None)
+    if position is None:
+        raise ValueError(f"You do not hold any {symbol}.")
+    if quantity > position.quantity + MIN_QUANTITY:
+        raise ValueError(
+            f"You hold {position.quantity:g} {symbol}, so {quantity:g} cannot "
+            "be sold. This app does not go short."
+        )
+
+    realised = quantity * (price - position.unit_cost) - fee
+    remaining = position.quantity - quantity
+    if remaining <= MIN_QUANTITY:
+        book = [h for h in book if h.symbol != symbol]
+    else:
+        position.quantity = remaining
+
+    return book, Transaction(at=dt.datetime.now(), side=SELL, symbol=symbol,
+                             quantity=float(quantity), price=float(price),
+                             fee=float(fee), realised=float(realised))
+
+
+def load_ledger(path: pathlib.Path | None = None) -> list[Transaction]:
+    """Every recorded trade, oldest first. A corrupt file reads as empty."""
+    path = _ledger(path)
+    if not path.exists():
+        return []
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return []
+
+    ledger = []
+    for item in raw.get("transactions", []):
+        try:
+            ledger.append(Transaction(
+                at=dt.datetime.fromisoformat(item["at"]),
+                side=str(item["side"]).lower(),
+                symbol=str(item["symbol"]).strip().upper(),
+                quantity=float(item["quantity"]),
+                price=float(item["price"]),
+                fee=float(item.get("fee", 0.0)),
+                realised=float(item.get("realised", 0.0)),
+                note=str(item.get("note", "")),
+            ))
+        except (KeyError, TypeError, ValueError):
+            continue  # skip a malformed row rather than losing the ledger
+    return sorted(ledger, key=lambda t: t.at)
+
+
+def save_ledger(ledger: list[Transaction], path: pathlib.Path | None = None) -> None:
+    path = _ledger(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "transactions": [
+                    {**dataclasses.asdict(t), "at": t.at.isoformat(timespec="seconds")}
+                    for t in ledger
+                ]
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+
+def record(transaction: Transaction, path: pathlib.Path | None = None) -> None:
+    """Append one trade to the ledger on disk."""
+    path = _ledger(path)
+    save_ledger(load_ledger(path) + [transaction], path)
+
+
+def execute(side: str, symbol: str, quantity: float, price: float,
+            fee: float = 0.0, *, store: pathlib.Path | None = None,
+            ledger: pathlib.Path | None = None) -> Transaction:
+    """Run a trade against the saved book and persist both files.
+
+    The one place in the app that writes a position. Everything upstream is a
+    pure function, so a failed validation raises before anything touches the
+    disk and the book on disk is never left half-updated.
+    """
+    if side not in (BUY, SELL):
+        raise ValueError(f"Unknown side {side!r}.")
+    store, ledger = _store(store), _ledger(ledger)
+    book, transaction = (buy if side == BUY else sell)(
+        load(store), symbol, quantity, price, fee)
+    save(book, store)
+    record(transaction, ledger)
+    return transaction
+
+
+def position(holdings: list[Holding], symbol: str) -> Holding | None:
+    symbol = str(symbol).strip().upper()
+    return next((h for h in holdings if h.symbol == symbol), None)
+
+
+def realised_total(ledger: list[Transaction]) -> float:
+    return sum(t.realised for t in ledger)
+
+
+def fees_total(ledger: list[Transaction]) -> float:
+    return sum(t.fee for t in ledger)
+
+
+def ledger_table(ledger: list[Transaction]) -> pd.DataFrame:
+    """The trade history, newest first, ready for st.dataframe."""
+    if not ledger:
+        return pd.DataFrame(
+            columns=["When", "Side", "Symbol", "Units", "Price", "Value",
+                     "Commission", "Realised"]
+        )
+    return pd.DataFrame(
+        [
+            {
+                "When": t.at.strftime("%Y-%m-%d %H:%M"),
+                "Side": t.side.upper(),
+                "Symbol": t.symbol,
+                "Units": round(t.quantity, 6),
+                "Price": round(t.price, 4),
+                "Value": round(t.notional, 2),
+                "Commission": round(t.fee, 2),
+                "Realised": round(t.realised, 2) if t.side == SELL else None,
+            }
+            for t in reversed(ledger)
+        ]
+    )
+
+
+def load(path: pathlib.Path | None = None) -> list[Holding]:
+    path = _store(path)
     if not path.exists():
         return []
     try:
@@ -142,7 +404,8 @@ def load(path: pathlib.Path = STORE) -> list[Holding]:
     return holdings
 
 
-def save(holdings: list[Holding], path: pathlib.Path = STORE) -> None:
+def save(holdings: list[Holding], path: pathlib.Path | None = None) -> None:
+    path = _store(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps(
