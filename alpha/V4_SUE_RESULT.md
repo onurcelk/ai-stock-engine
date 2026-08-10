@@ -1,0 +1,165 @@
+# V4-SUE Result — REJECT
+
+**Run 2026-08-10T16:07:19. Slot 1 of 2 SPENT. SUE is CLOSED at every horizon.**
+
+---
+
+## 1. Decision
+
+**REJECT.** All four criteria failed. The V4 formulation change did not rescue
+filing-derived SUE information at the 20-session horizon.
+
+---
+
+## 2. Primary contrast — Arm 1 minus B3
+
+| | |
+|---|---|
+| Contrast | `IC(Arm 1) - IC(B3)`, paired per cutoff |
+| Arm 1 | `rank_pct(B3) + 0.50 * (rank_pct(sue) - 0.5)` |
+| Mean paired IC | **-0.00106** |
+| 95% CI (L=7, 10,000 draws) | **[-0.00610, +0.00464]** |
+| Half-width | 0.00537 |
+| Breadth (hit rate) | 0.4760 |
+| n cutoffs | 313 |
+| MDE | +0.0095 |
+| p (bootstrap, raw) | 0.698 |
+| p (Holm-adjusted) | 1.000 |
+
+---
+
+## 3. Criteria — all four FAIL
+
+| # | Criterion | Required | Observed | Verdict |
+|---|-----------|----------|----------|---------|
+| C1 | Mean >= MDE | >= +0.0095 | -0.00106 | **FAIL** |
+| C2 | CI entirely above zero (A1) | lo > 0.0 | lo = -0.00610 | **FAIL** |
+| C3 | Breadth > 0.50 AND both halves positive | both conditions | breadth 0.476, first half -0.00341, second +0.00130 | **FAIL** |
+| C4 | Survives ex-bear at MDE | ex-bear >= +0.0095 | ex-bear = -0.00182 | **FAIL** |
+
+The failure is total. The point estimate is negative, the interval comfortably
+spans zero, breadth is below 50%, both halves are not positive (first half is
+negative), and the effect does not survive bear removal.
+
+---
+
+## 4. Noise control — PASS
+
+| | |
+|---|---|
+| Draws | 30 paired within-cutoff permutations |
+| Median | -0.00130 |
+| Mean | -0.00166 |
+| SD | 0.00137 |
+| Share >= MDE | 0.0% (0 of 30) |
+| Median limit | +0.0019 |
+| Exceedance limit | 10% |
+| Verdict | **PASS** |
+
+The null result is not an artefact of the testing procedure. The noise floor is
+well-behaved and the study had adequate power to detect an effect at the MDE.
+
+---
+
+## 5. Standalone horizon diagnostic
+
+| | |
+|---|---|
+| Standalone SUE 20D IC (Arm 0) | +0.00426 |
+| Half-width (h0) | 0.01486 |
+| 95% CI | [-0.01000, +0.01971] |
+| P (sqrt-H extrapolation) | +0.0261 |
+| Threshold | P - h0 = +0.01124 |
+| Reading | **Below P** |
+
+The standalone 20D IC (+0.00426) falls **below** the sqrt(H/5) extrapolation
+from V3's 5D result (+0.0261) even accounting for resolution. This is evidence
+**against** the horizon mechanism: the longer horizon did not unlock information
+that was absent at 5D; it may have diluted it.
+
+---
+
+## 6. Arms and benchmarks at 20 sessions
+
+| Predictor | Mean IC | Half-width | 95% CI | Hit rate |
+|-----------|---------|------------|--------|----------|
+| B1 (mom 12-1) | -0.00029 | 0.03228 | [-0.03098, +0.03359] | 0.518 |
+| B2 (reversal 5d) | +0.01089 | 0.01591 | [-0.00337, +0.02845] | 0.533 |
+| **B3 (regime-switched)** | **+0.00846** | **0.02940** | **[-0.02078, +0.03803]** | **0.527** |
+| Arm 0 (SUE standalone) | +0.00426 | 0.01486 | [-0.01000, +0.01971] | 0.562 |
+| Arm 1 (B3 + SUE) | +0.00740 | 0.02883 | [-0.02145, +0.03622] | 0.543 |
+
+Arm 1 (+0.00740) is **below** B3 alone (+0.00846). Adding SUE to B3 under
+lambda=0.50 **reduced** the predictive signal at 20 sessions.
+
+---
+
+## 7. Economic significance
+
+| | Arm 0 vs B3 | Arm 1 vs B3 |
+|---|---|---|
+| Extra turnover (20s stride) | -0.0749 | -0.0015 |
+| Cost drag (5 bps) | 0.0 | 0.0 |
+| Net spread advantage | -0.002893 | -0.000965 |
+
+Both arms show negative net spread advantage versus B3. The adverse prior from
+V3 (SUE failing to generate tail-level economic value) is confirmed at 20D.
+
+---
+
+## 8. Study parameters (frozen, unchanged)
+
+| Parameter | Value |
+|-----------|-------|
+| Horizon | 20 sessions |
+| Target | alpha_20d (asset - SPY, 20 sessions) |
+| Feature | sue (standardized unexpected earnings) |
+| Sign | +1 |
+| Lambda | 0.50 |
+| Block length | 7 |
+| Bootstrap draws | 10,000 |
+| Newey-West lags | 6 |
+| MDE | +0.0095 |
+| Cutoffs | 313 (3 dropped) |
+| SUE coverage | 0.9299 |
+| Book-tail formability | 313/313 (100%) |
+| Exam contamination | 0 |
+| corr(alpha_5d, alpha_20d) | 0.4962 |
+
+---
+
+## 9. Artefacts
+
+| File | Content |
+|------|---------|
+| `alpha/out/v4_sue_development.json` | Full report with all statistics |
+| `alpha/out/v4_sue_development.pkl` | Per-cutoff IC series, primary contrast, noise draws, 20D target |
+
+---
+
+## 10. Budget and closure
+
+**V4 slot 1 of 2 is SPENT.** This is permanent.
+
+**SUE is CLOSED as a candidate alpha source at every horizon tested:**
+- V3 Family 1: REJECTED at 5D under lambda=0.25. Slot 1 of 3.
+- V4-SUE: REJECTED at 20D under lambda=0.50. Slot 1 of 2.
+
+SUE cleared zero standalone at 5D (+0.01305) but lost to B3 under the
+combination arm. At 20D it does not even clear P: standalone IC +0.00426 vs
+the sqrt(H/5) extrapolation of +0.0261.
+
+**No variant, modification, re-sign, or re-horizon of SUE may be proposed.**
+The filing-derived earnings-surprise signal has been tested at two horizons under
+two lambda authorities and rejected at both. The question is answered.
+
+---
+
+## 11. Preregistration compliance
+
+This result was generated by `alpha/v4_sue_study.py`, which imports all constants
+from `alpha/v4_sue_config.py` (committed at `5718f83` before the study module
+existed). The preregistration was committed before the first fit. A pre-measurement
+clarification regarding `targets.realise` vs direct `forward_return` was committed
+at `aedf891` before execution. No constant, threshold, or decision rule was
+modified after results were seen.
