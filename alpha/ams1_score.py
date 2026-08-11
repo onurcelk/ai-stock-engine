@@ -255,3 +255,102 @@ def holm(pvalues: dict[str, float]) -> dict[str, float]:
         running = max(running, (m - rank) * value)
         adjusted[key] = min(1.0, running)
     return adjusted
+
+
+def report() -> dict:
+    """Every table and gate the pre-registration named, in one artefact."""
+    frame = joined()
+    stances = pd.read_pickle(cfg.SIGNALS_PATH)
+    table = ladder_table(frame, "state")
+    raw_table = ladder_table(frame, "raw_state")
+    mono = monotonicity(table)
+
+    bull = frame[frame["state"] == "strong bullish"].groupby(level=0)["direction"].mean()
+    bear = frame[frame["state"] == "strong bearish"].groupby(level=0)["direction"].mean()
+    gap = interval((bull - bear).dropna())
+    bull_ret = frame[frame["state"] == "strong bullish"].groupby(level=0)["asset_return"].mean()
+    bear_ret = frame[frame["state"] == "strong bearish"].groupby(level=0)["asset_return"].mean()
+    gap_ret = interval((bull_ret - bear_ret).dropna())
+
+    gates = {}
+    g2 = paired(frame, "B3_b3_market_state", "AMS_family_calibrated", "logloss")
+    gates["2_probabilistic"] = dict(
+        g2, passed=bool(g2["excludes_zero"] and -g2["mean"] >= cfg.MIN_LOGLOSS_GAIN))
+    g4 = paired(frame, "B4_raw_vote", "AMS_family_calibrated", "logloss")
+    gates["4_family_beats_raw"] = dict(
+        g4, passed=bool(g4["excludes_zero"] and g4["mean"] < 0))
+    g5 = paired(frame, "B3_b3_market_state", "AMS_incremental", "logloss")
+    gates["5_incremental"] = dict(
+        g5, passed=bool(g5["excludes_zero"] and -g5["mean"] >= cfg.MIN_LOGLOSS_GAIN))
+    gates["3_monotonicity"] = dict(
+        mono, gap=gap,
+        passed=bool(np.isfinite(mono.get("spearman", np.nan))
+                    and mono["spearman"] >= cfg.MIN_LADDER_SPEARMAN
+                    and gap["lo"] > 0))
+    abst = abstention(frame)
+    gates["6_abstention"] = dict(
+        abst, passed=bool(abst["retained"]["logloss"] < abst["all"]["logloss"]
+                          and abst["retained"]["coverage"] >= cfg.MIN_ABSTAIN_COVERAGE))
+    extremes = table[table["state"].isin(["strong bearish", "strong bullish"])]
+    gates["7_breadth"] = {
+        "min_symbols": int(extremes["symbols"].min()),
+        "min_cutoffs": int(extremes["cutoffs"].min()),
+        "passed": bool(extremes["symbols"].min() >= cfg.MIN_SYMBOLS
+                       and extremes["cutoffs"].min() >= cfg.MIN_CUTOFFS)}
+    stab = stability(frame)
+    inverted = [half for half, got in stab.items()
+                if got["strong_bullish_p_up"] is not None
+                and got["strong_bullish_p_up"] > got["strong_bearish_p_up"]]
+    gates["8_stability"] = dict(stab, halves_favouring_hypothesis=len(inverted),
+                                passed=len(inverted) == 2)
+    bear_rate = float(frame[frame["state"] == "strong bearish"]["direction"].mean())
+    bear_ci = interval(bear)
+    gates["9_bearish"] = {
+        "p_up_strong_bearish": round(bear_rate, 4),
+        "ci": [round(bear_ci["lo"], 4), round(bear_ci["hi"], 4)],
+        "passed": bool(bear_ci["hi"] < cfg.SUB_50)}
+
+    arms = {name: {k: round(float(v), 5) for k, v in
+                   per_cutoff(frame, column).mean().items()}
+            for name, column in ARMS.items()}
+
+    payload = {
+        "scored_at": dt.datetime.now().isoformat(timespec="seconds"),
+        "rows": int(len(frame)),
+        "cutoffs": int(frame.index.get_level_values(0).nunique()),
+        "symbols": int(frame.index.get_level_values(1).nunique()),
+        "base_up_rate": round(float(frame["direction"].mean()), 4),
+        "base_return_bp": round(1e4 * float(frame["asset_return"].mean()), 1),
+        "arms": arms,
+        "family_ladder": table.to_dict("records"),
+        "raw_ladder": raw_table.to_dict("records"),
+        "monotonicity": mono,
+        "extreme_gap_p_up": gap,
+        "extreme_gap_return_bp": {k: (round(1e4 * v, 1) if isinstance(v, float) else v)
+                                  for k, v in gap_ret.items()},
+        "gates": gates,
+        "leave_one_family_out": leave_one_family_out(frame, stances),
+        "reliability": reliability(frame),
+        "verdict": "ADVANCE" if all(
+            gates[k]["passed"] for k in ("2_probabilistic", "3_monotonicity",
+                                         "4_family_beats_raw", "5_incremental",
+                                         "7_breadth", "8_stability")) else "REJECT",
+    }
+    cfg.RESULT_PATH.write_text(json.dumps(payload, indent=1, default=str),
+                               encoding="utf-8")
+    return payload
+
+
+def main() -> int:
+    payload = report()
+    print(f"rows {payload['rows']:,}  cutoffs {payload['cutoffs']}  "
+          f"symbols {payload['symbols']}  base up-rate {payload['base_up_rate']}")
+    print("\ngates:")
+    for name, got in payload["gates"].items():
+        print(f"  {name:22s} {'PASS' if got['passed'] else 'FAIL'}")
+    print(f"\nAMS-1 VERDICT: {payload['verdict']}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

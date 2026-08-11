@@ -923,3 +923,83 @@ Any future absolute-return candidate on this universe must clear its own claim a
 This supersedes nothing in §9.4 — SN-1's 39 bp remains the measured economic MDE of the
 Phase 1 covered book. It adds the constraint SN-1 could not see: what an *event-time* design
 can resolve once its blocks are counted honestly.
+
+---
+
+## 11. Agent Meta-Signal Study (AMS-1) — 2026-08-11
+
+Appended 2026-08-11. Commissioned by the account holder to test the repository's
+**original multi-agent thesis** directly: does agreement among algorithmically distinct
+trading-agent families identify situations where a single-name 5-session prediction
+becomes materially more reliable?
+
+### 11.1 Registry entry
+
+| Field | Value |
+|---|---|
+| ID | **AMS-1** |
+| Date | 2026-08-11 |
+| Hypothesis | Cross-family trading-agent agreement alters the conditional distribution of the 5-session single-name return enough to support calibrated selective prediction |
+| Information source | **None new.** The repository's own trading agents, reconstructed point-in-time |
+| Target | **`asset_return`** — absolute 5-session forward return |
+| Horizon | **5 sessions.** No second horizon computed anywhere |
+| Roster | 7 agents in 3 families: `A_RULE` (3), `D_POLICY_GRADIENT` (1), `E_EVOLUTIONARY` (3). 15 RL agents excluded on measured reconstruction cost |
+| Sample | 19,173 scored rows · 100 symbols · **215 evaluation cutoffs** · base up-rate 0.5435 |
+| Pre-registration | `alpha/AGENT_META_PREREGISTRATION.md`, commit `229990c`, **before any forward return** |
+| Stage 1 | `c493a5b` — `AMS-1 ADMISSIBILITY: PASS` |
+| Gates | 1 **PASS** · 2 FAIL · 3 FAIL · 4 FAIL · 5 FAIL · 6 PASS · 7 PASS · 8 FAIL · 9 FAIL |
+| **Decision** | **`AMS-1 VERDICT: REJECT`** |
+| Budget slots spent | **0.** No information family was tested. V3 (3/3) and V4 (slot 1 spent, slot 2 barred) remain CLOSED and unchanged; Family-10 remains unspent |
+| Exam | **SEALED**, `b55e065f…`, not loaded, not scored, not inspected |
+| Production | weight **0.0**, `alpha/adapter.py` untouched |
+| Report | `reports/AGENT_META_SIGNAL_RESULT.md`, audit `reports/AGENT_META_AUDIT.md` |
+| Tests | 840 → 900 collected, 837 passed, 63 skipped, **0 failed** |
+
+### 11.2 The finding, in one paragraph
+
+Across the four populated consensus states `P(up)` is **perfectly monotone downwards**
+(Spearman **−1.00**): unanimous SELL is followed by an up-move **56.3%** of the time and
+unanimous BUY **53.0%**, with mean returns of **+35.3 bp** and **−0.3 bp**. The extreme
+gap is **−1.10 pp** against a paired interval of **[−4.34, +1.82]**, so the inversion is
+not significant either — the correct reading is that the agents carry **no directional
+information** and what little structure exists points the wrong way. Every arm's log loss
+sits within 0.001 of every other, no arm ever emits a probability below 0.5, and the whole
+probability range across 19,173 rows is 0.542–0.562. Family aggregation neither helps nor
+hurts (**−0.000031** [−0.00027, +0.00015]) because the Stage 1 audit measured that there is
+nothing to aggregate: **zero of 231 agent pairs are near-clones**, mutual information runs
+0.015–0.060 bits of a possible 1.585, and pairwise correlations run −0.09 to +0.08.
+
+### 11.3 What is barred as a consequence
+
+* **No sign flip.** The inversion may not be traded, reported as a signal, or used to
+  define a contrarian arm. It is not significant, and flipping a sign after a negative
+  result is the retrofit CLAUDE.md §3.2 exists to prevent.
+* **No claim that the excluded agents would have rescued it.** §10 of the pre-registration
+  fixed this in advance, and four of the fifteen are degenerate at the repository's own
+  default iterations (`Actor-critic` emits BUY on 98.5% of bars; `Actor-critic duel
+  recurrent` emits nothing).
+* **No AMS-2.** The pre-registration named AMS-2 as the follow-up *on ADVANCE only*.
+* **No re-run at another horizon.** AMS-1 computed one horizon by design; a horizon study
+  needs its own charter and its own power gate computed first.
+* **No promotion of Gate 6.** Abstention's log-loss gain is an artefact of the retained
+  rows drifting up more, not of better discrimination: retained accuracy 0.5527 against a
+  retained base rate of 0.5497, and the paired change is **−0.0023 [−0.0053, +0.0004]**.
+
+### 11.4 Carried forward
+
+Three independent designs have now measured the same wall on free daily price data at a
+5-session horizon for single names:
+
+| study | design | resolution reached | result |
+|---|---|---|---|
+| SN-1 | weekly grid, B3-based | 39 bp / 3.0 pp | no probability below 0.5 |
+| Family-10 | event time, 8-K adverse items | floor **49 bp** at L=24 | unreachable hurdle |
+| **AMS-1** | agent consensus | **31 bp / 3.0 pp** | nothing above it |
+
+AMS-1 reached the **sharpest** resolution of the three — 316 dates buy more than 177 — and
+still found nothing. That is the strongest form the null has taken in this programme.
+
+**A product finding, recorded because it is actionable outside the research record:**
+three families agree unanimously on 28.3% of rows; seven agents agree unanimously on 1.2%.
+A surface that displays "18 of 22 agents agree" as a confidence signal is counting
+coincidence, not evidence — and this repository's Trading-agents tab does exactly that.

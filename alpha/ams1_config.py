@@ -31,6 +31,12 @@ UP_STRICTLY_POSITIVE = sn.UP_STRICTLY_POSITIVE
 PROB_CLIP = sn.PROB_CLIP
 WINSOR_TAIL = sn.WINSOR_TAIL
 
+#: Re-exported, not re-chosen. Every AMS-1 calibration uses the same
+#: low-capacity learner Single-Name Phase 1 used, on the same settings, so the
+#: comparison against the incumbents is like for like.
+LOGISTIC_PARAMS = sn.LOGISTIC_PARAMS
+RIDGE_PARAMS = sn.RIDGE_PARAMS
+
 MIN_TRAIN_CUTOFFS = sn.MIN_TRAIN_CUTOFFS    # 100, same walk-forward warm-up
 
 # ----------------------------------------------------------------------
