@@ -1,0 +1,314 @@
+{
+ "probed_at": "2026-08-11T00:42:51",
+ "source": "alpha/edgar/submissions.zip (SEC bulk submissions, free)",
+ "note": "No network call, no price, no forward return, no model. Acceptance timestamps are immutable, so a current snapshot is a valid point-in-time record of knowability.",
+ "study_start": "2016-01-04",
+ "panel_symbols_with_cik": 622,
+ "ciks_probed": 618,
+ "filers_with_at_least_one_8k": 612,
+ "total_8k": 82076,
+ "non_earnings_8k": 55118,
+ "distinct_filer_event_days": 53922,
+ "mean_8k_per_filer_per_year": 12.19,
+ "acceptance": {
+  "before_1600_et": 34518,
+  "after_1600_et": 47558,
+  "share_after_close": 0.5794,
+  "by_hour_et": {
+   "1": 4,
+   "2": 12,
+   "3": 24,
+   "4": 54,
+   "5": 34,
+   "6": 7890,
+   "7": 8331,
+   "8": 7251,
+   "9": 3886,
+   "10": 1271,
+   "11": 1176,
+   "12": 1126,
+   "13": 1069,
+   "14": 1145,
+   "15": 1245,
+   "16": 34658,
+   "17": 9252,
+   "18": 1383,
+   "19": 955,
+   "20": 657,
+   "21": 649,
+   "22": 4
+  }
+ },
+ "coverage_by_year": {
+  "2016": 539,
+  "2017": 549,
+  "2018": 555,
+  "2019": 566,
+  "2020": 576,
+  "2021": 584,
+  "2022": 590,
+  "2023": 594,
+  "2024": 602,
+  "2025": 606,
+  "2026": 612
+ },
+ "filings_by_year": {
+  "2016": 7712,
+  "2017": 7617,
+  "2018": 7606,
+  "2019": 7717,
+  "2020": 8579,
+  "2021": 7899,
+  "2022": 7318,
+  "2023": 7358,
+  "2024": 7470,
+  "2025": 7689,
+  "2026": 5111
+ },
+ "non_earnings_event_dates": 3221,
+ "items": [
+  {
+   "code": "9.01",
+   "label": "financial statements and exhibits (ATTACHMENT, not an event)",
+   "filings": 64893,
+   "filers": 611,
+   "event_dates": 3212,
+   "per_date": 20.2,
+   "per_filer_per_year": 9.655
+  },
+  {
+   "code": "2.02",
+   "label": "results of operations and financial condition (EARNINGS)",
+   "filings": 25984,
+   "filers": 612,
+   "event_dates": 2394,
+   "per_date": 10.85,
+   "per_filer_per_year": 3.86
+  },
+  {
+   "code": "8.01",
+   "label": "other events",
+   "filings": 19776,
+   "filers": 608,
+   "event_dates": 3150,
+   "per_date": 6.28,
+   "per_filer_per_year": 2.957
+  },
+  {
+   "code": "7.01",
+   "label": "Regulation FD disclosure",
+   "filings": 19224,
+   "filers": 602,
+   "event_dates": 3061,
+   "per_date": 6.28,
+   "per_filer_per_year": 2.903
+  },
+  {
+   "code": "5.02",
+   "label": "departure or election of directors or principal officers",
+   "filings": 15393,
+   "filers": 608,
+   "event_dates": 3094,
+   "per_date": 4.98,
+   "per_filer_per_year": 2.302
+  },
+  {
+   "code": "1.01",
+   "label": "entry into a material definitive agreement",
+   "filings": 8871,
+   "filers": 586,
+   "event_dates": 2877,
+   "per_date": 3.08,
+   "per_filer_per_year": 1.376
+  },
+  {
+   "code": "5.07",
+   "label": "submission of matters to a vote of security holders",
+   "filings": 6393,
+   "filers": 604,
+   "event_dates": 1625,
+   "per_date": 3.93,
+   "per_filer_per_year": 0.962
+  },
+  {
+   "code": "2.03",
+   "label": "creation of a direct financial obligation",
+   "filings": 5448,
+   "filers": 543,
+   "event_dates": 2434,
+   "per_date": 2.24,
+   "per_filer_per_year": 0.912
+  },
+  {
+   "code": "5.03",
+   "label": "amendments to articles of incorporation or bylaws",
+   "filings": 2851,
+   "filers": 593,
+   "event_dates": 1745,
+   "per_date": 1.63,
+   "per_filer_per_year": 0.437
+  },
+  {
+   "code": "1.02",
+   "label": "termination of a material definitive agreement",
+   "filings": 998,
+   "filers": 366,
+   "event_dates": 836,
+   "per_date": 1.19,
+   "per_filer_per_year": 0.248
+  },
+  {
+   "code": "2.01",
+   "label": "completion of acquisition or disposition of assets",
+   "filings": 782,
+   "filers": 368,
+   "event_dates": 636,
+   "per_date": 1.23,
+   "per_filer_per_year": 0.193
+  },
+  {
+   "code": "3.02",
+   "label": "unregistered sales of equity securities (DILUTION)",
+   "filings": 700,
+   "filers": 212,
+   "event_dates": 618,
+   "per_date": 1.13,
+   "per_filer_per_year": 0.3
+  },
+  {
+   "code": "3.03",
+   "label": "material modification to rights of security holders",
+   "filings": 556,
+   "filers": 215,
+   "event_dates": 504,
+   "per_date": 1.1,
+   "per_filer_per_year": 0.235
+  },
+  {
+   "code": "2.05",
+   "label": "costs associated with exit or disposal activities",
+   "filings": 410,
+   "filers": 173,
+   "event_dates": 377,
+   "per_date": 1.09,
+   "per_filer_per_year": 0.215
+  },
+  {
+   "code": "2.06",
+   "label": "material impairments",
+   "filings": 175,
+   "filers": 93,
+   "event_dates": 164,
+   "per_date": 1.07,
+   "per_filer_per_year": 0.171
+  },
+  {
+   "code": "3.01",
+   "label": "notice of delisting or failure to satisfy a listing rule",
+   "filings": 132,
+   "filers": 80,
+   "event_dates": 130,
+   "per_date": 1.02,
+   "per_filer_per_year": 0.15
+  },
+  {
+   "code": "5.04",
+   "label": "(uncatalogued)",
+   "filings": 111,
+   "filers": 82,
+   "event_dates": 107,
+   "per_date": 1.04,
+   "per_filer_per_year": 0.123
+  },
+  {
+   "code": "2.04",
+   "label": "triggering events that accelerate a financial obligation",
+   "filings": 82,
+   "filers": 41,
+   "event_dates": 81,
+   "per_date": 1.01,
+   "per_filer_per_year": 0.182
+  },
+  {
+   "code": "5.05",
+   "label": "(uncatalogued)",
+   "filings": 73,
+   "filers": 61,
+   "event_dates": 72,
+   "per_date": 1.01,
+   "per_filer_per_year": 0.109
+  },
+  {
+   "code": "4.01",
+   "label": "changes in registrant's certifying accountant",
+   "filings": 70,
+   "filers": 61,
+   "event_dates": 69,
+   "per_date": 1.01,
+   "per_filer_per_year": 0.104
+  },
+  {
+   "code": "5.01",
+   "label": "changes in control of registrant",
+   "filings": 65,
+   "filers": 61,
+   "event_dates": 65,
+   "per_date": 1.0,
+   "per_filer_per_year": 0.097
+  },
+  {
+   "code": "1.04",
+   "label": "(uncatalogued)",
+   "filings": 52,
+   "filers": 11,
+   "event_dates": 51,
+   "per_date": 1.02,
+   "per_filer_per_year": 0.43
+  },
+  {
+   "code": "5.08",
+   "label": "(uncatalogued)",
+   "filings": 35,
+   "filers": 26,
+   "event_dates": 35,
+   "per_date": 1.0,
+   "per_filer_per_year": 0.122
+  },
+  {
+   "code": "4.02",
+   "label": "non-reliance on previously issued financial statements",
+   "filings": 34,
+   "filers": 30,
+   "event_dates": 34,
+   "per_date": 1.0,
+   "per_filer_per_year": 0.103
+  },
+  {
+   "code": "1.05",
+   "label": "material cybersecurity incident",
+   "filings": 14,
+   "filers": 14,
+   "event_dates": 14,
+   "per_date": 1.0,
+   "per_filer_per_year": 0.091
+  },
+  {
+   "code": "1.03",
+   "label": "bankruptcy or receivership",
+   "filings": 11,
+   "filers": 6,
+   "event_dates": 11,
+   "per_date": 1.0,
+   "per_filer_per_year": 0.167
+  },
+  {
+   "code": "5.06",
+   "label": "(uncatalogued)",
+   "filings": 4,
+   "filers": 4,
+   "event_dates": 4,
+   "per_date": 1.0,
+   "per_filer_per_year": 0.091
+  }
+ ]
+}
