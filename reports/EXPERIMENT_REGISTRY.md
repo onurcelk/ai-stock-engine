@@ -843,3 +843,83 @@ that widens with the probability (−0.017 in the main bin, −0.048 in the tail
 
 These are measurements on the development set at n = 215 cutoffs, not thresholds, and they
 are what a future §2.6 power gate for a single-name study should be computed against.
+
+---
+
+## 10. Family 10 admissibility pilot (F10-PILOT) — 2026-08-11
+
+Appended 2026-08-11. Commissioned by the account holder after
+`reports/ABSOLUTE_ALPHA_SOURCE_SURVEY.md` returned `OPEN ONE FAMILY` at `4a966a2`.
+Registered here under §2.7 because **no failed run is ever silently discarded** — and a
+pre-slot admissibility pilot that returns FAIL is exactly the kind of run that would
+otherwise leave no trace.
+
+### 10.1 Registry entry
+
+| Field | Value |
+|---|---|
+| ID | **F10-PILOT** |
+| Date | 2026-08-11 |
+| Kind | **Admissibility pilot, not a study.** Four blocking stages, each committed before the next |
+| Hypothesis under test | Not tested. The pilot asks only whether SEC 8-K adverse-event items are *scientifically admissible* as the next family |
+| Information source | SEC EDGAR bulk `submissions` archive, already on disk. **No new source opened** |
+| Event definition | 8-K carrying ≥1 of `1.02, 1.03, 2.04, 2.05, 2.06, 3.01, 3.02, 4.02` and **not** `2.02`. Frozen; nothing added, removed or split |
+| Target | **None read.** No forward return, no post-event return, no sign fitted |
+| Horizon | 5 sessions, inherited from `targets.HORIZON`. No second horizon anywhere |
+| Sample | **1,682 issuer-events**, 477 CIKs, 485 historical securities, 1,221 sessions, 2016-01-04 … 2026-07-31 |
+| Stage 1 — survivorship / identity | **PASS**, `cc2613b` |
+| Stage 2 — §2.10 clause 3 | **PASS**, `e02d857`. 0.0437 vs 12-1, 0.0432 vs B3, 0.0458 worst of 34 |
+| Stage 3a — block length | **L = 24 sessions frozen BEFORE any half-width**, `b75a70e` |
+| Stage 3b — §2.6 power gate | **FAIL**, `ac2505e`. 57.8 bp against the 39 bp hurdle fixed at `4a966a2` |
+| Stage 4 — PIT mutation proof | **NOT REACHED.** Stage 3 blocks |
+| **Decision** | **`FAMILY10 ADMISSIBILITY: FAIL` — POWER.** The family is not implemented |
+| Budget slots spent | **0.** V3 remains 3/3 spent and CLOSED; V4 slot 1 spent, slot 2 BARRED; both unchanged |
+| Exam | **SEALED**, `b55e065f4c9f91737b7a56fd715f0913cf8f41207bdb24d91452c10bc1c98ab0`. Not loaded, not scored, not inspected — only its cutoff *dates* were read, which is calendar arithmetic |
+| Production | weight **0.0**, `alpha/adapter.py` untouched |
+| Report | `reports/FAMILY10_ADMISSIBILITY.md`, with stage records `FAMILY10_STAGE1_PANEL.md`, `FAMILY10_STAGE2_INDEPENDENCE.md`, `FAMILY10_STAGE3_POWER.md` |
+| Tests | 768 → 840 collected, 777 passed, 63 skipped, **0 failed**. No existing test weakened |
+
+### 10.2 The finding, in one paragraph
+
+The family is admissible on **identity** and on **independence**, both strongly. It is not
+**resolvable**. Point-in-time reconstruction on CIK identity retains 133 securities that are
+not current index members and 70 issuers that are no longer SEC registrants — and shows that
+a present-day-symbol panel would have deleted **42.4% of item 3.01 (delisting)** against
+**5.6% of item 3.02 (dilution)**, a loss that rises monotonically with how adverse the event
+is. That repair works. What does not survive is power: at a block length derived from the
+dependence structure of event-time sampling (**L = 24 sessions, D = 111 blocks**) the primary
+687-event development-safe sample resolves **57.8 bp per 5 sessions** against the **39 bp**
+economic hurdle the source survey fixed before the pilot began, and the half-width **floors at
+49.0 bp as n → ∞** — so 39 bp is unreachable at that block length for *any* event count.
+
+### 10.3 What is barred as a consequence
+
+* **No shorter block to rescue the gate.** The family clears 39 bp at exactly one length,
+  L = 5, which allows nothing for market persistence and contradicts `alpha/stats.py`'s own
+  standard. Re-running at L = 5 would be optimising the block length for a favourable MDE,
+  which the commissioning directive and roadmap §2.6 both forbid.
+* **No "the effect might be huge."** Power must be justified before outcomes are seen, and
+  **61.1% of these filings are accepted after the close** (measured), so only residual drift
+  is capturable.
+* **No item-set enlargement to buy events.** The eight items are frozen and item 2.02 is
+  barred structurally as the rejected V4-SUE family's information.
+* **No re-test at another horizon.** V4 already disconfirmed the horizon hypothesis and
+  barred slot 2; roadmap §2.9 and §21 govern.
+* **No claim that Stage 4 would have passed.** It was not run and nothing here should be read
+  as if it had been.
+
+### 10.4 Measured resolution, carried forward
+
+The half-width floor is a property of the **study window and the target**, not of this family.
+Any future absolute-return candidate on this universe must clear its own claim against these
+**before** a panel is built for it:
+
+| Block length | Independent blocks | Half-width floor as n → ∞ |
+|---:|---:|---:|
+| 5 sessions | 532 | 22.4 bp |
+| 10 sessions | 266 | 31.6 bp |
+| **24 sessions** | **111** | **49.0 bp** |
+
+This supersedes nothing in §9.4 — SN-1's 39 bp remains the measured economic MDE of the
+Phase 1 covered book. It adds the constraint SN-1 could not see: what an *event-time* design
+can resolve once its blocks are counted honestly.
