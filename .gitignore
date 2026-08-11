@@ -61,3 +61,8 @@ alpha/edgar/f13_events.parquet
 # via `python -m alpha.family10_identity`. family10_meta.json (small, the
 # build's fingerprint) IS committed, like filings_meta.json and f13_meta.json.
 alpha/edgar/cik_directory.parquet
+
+# --- AMS-1 (agent meta-signal study): per-shard intermediate agent signals.
+# Regenerable with `python -m alpha.ams1_signals --shard N --of M`; the combined
+# ams1_signals.pkl and its meta fingerprint ARE committed.
+alpha/out/ams1_shards/

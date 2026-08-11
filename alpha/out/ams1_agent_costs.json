@@ -1,0 +1,208 @@
+{
+ "measured_at": "2026-08-11",
+ "host": "32-core workstation, single process per agent",
+ "note": "Wall-clock cost of ONE training run plus one signal replay, per agent, on one symbol. Measured on AAPL. No forward return, target or label was read.",
+ "symbol": "AAPL",
+ "per_agent": {
+  "Evolution strategy": {
+   "family": "E_EVOLUTIONARY",
+   "seconds_500_bars": 3.87,
+   "seconds_1000_bars": 8.28,
+   "iterations": 100,
+   "buy_share_1000": 0.335,
+   "sell_share_1000": 0.335,
+   "training_improved": true
+  },
+  "Neuro-evolution": {
+   "family": "E_EVOLUTIONARY",
+   "seconds_500_bars": 0.76,
+   "seconds_1000_bars": 1.3,
+   "iterations": 30,
+   "buy_share_1000": 0.407,
+   "sell_share_1000": 0.407,
+   "training_improved": true
+  },
+  "Neuro-evolution (novelty search)": {
+   "family": "E_EVOLUTIONARY",
+   "seconds_500_bars": 2.06,
+   "seconds_1000_bars": 2.22,
+   "iterations": 30,
+   "buy_share_1000": 0.212,
+   "sell_share_1000": 0.212,
+   "training_improved": false
+  },
+  "Policy gradient": {
+   "family": "D_POLICY_GRADIENT",
+   "seconds_500_bars": 8.46,
+   "seconds_1000_bars": 7.98,
+   "iterations": 50,
+   "buy_share_1000": 0.342,
+   "sell_share_1000": 0.329,
+   "training_improved": false
+  },
+  "Q-learning": {
+   "family": "B_VALUE_RL",
+   "seconds_500_bars": 7.85,
+   "seconds_1000_bars": 16.82,
+   "iterations": 20,
+   "buy_share_1000": 0.263,
+   "sell_share_1000": 0.263,
+   "training_improved": false
+  },
+  "Double Q-learning": {
+   "family": "B_VALUE_RL",
+   "seconds_500_bars": 10.12,
+   "seconds_1000_bars": 19.7,
+   "iterations": 20,
+   "buy_share_1000": 0.115,
+   "sell_share_1000": 0.113,
+   "training_improved": false
+  },
+  "Duel Q-learning": {
+   "family": "B_VALUE_RL",
+   "seconds_500_bars": 10.17,
+   "seconds_1000_bars": 20.18,
+   "iterations": 20,
+   "buy_share_1000": 0.207,
+   "sell_share_1000": 0.207,
+   "training_improved": true
+  },
+  "Double duel Q-learning": {
+   "family": "B_VALUE_RL",
+   "seconds_500_bars": 10.24,
+   "seconds_1000_bars": 20.17,
+   "iterations": 20,
+   "buy_share_1000": 0.116,
+   "sell_share_1000": 0.116,
+   "training_improved": true
+  },
+  "Recurrent Q-learning": {
+   "family": "B_VALUE_RL",
+   "seconds_500_bars": 31.76,
+   "seconds_1000_bars": 66.62,
+   "iterations": 10,
+   "buy_share_1000": 0.315,
+   "sell_share_1000": 0.229,
+   "training_improved": false
+  },
+  "Double recurrent Q-learning": {
+   "family": "B_VALUE_RL",
+   "seconds_500_bars": 32.5,
+   "seconds_1000_bars": 69.15,
+   "iterations": 10,
+   "buy_share_1000": 0.246,
+   "sell_share_1000": 0.245,
+   "training_improved": true
+  },
+  "Duel recurrent Q-learning": {
+   "family": "B_VALUE_RL",
+   "seconds_500_bars": 34.5,
+   "seconds_1000_bars": 68.4,
+   "iterations": 10,
+   "buy_share_1000": 0.499,
+   "sell_share_1000": 0.281,
+   "training_improved": true
+  },
+  "Double duel recurrent Q-learning": {
+   "family": "B_VALUE_RL",
+   "seconds_500_bars": 38.29,
+   "seconds_1000_bars": 77.24,
+   "iterations": 10,
+   "buy_share_1000": 0.001,
+   "sell_share_1000": 0.001,
+   "training_improved": true
+  },
+  "Curiosity Q-learning": {
+   "family": "F_CURIOSITY_RL",
+   "seconds_500_bars": 7.91,
+   "seconds_1000_bars": 15.54,
+   "iterations": 20,
+   "buy_share_1000": 0.348,
+   "sell_share_1000": 0.317,
+   "training_improved": false
+  },
+  "Duel curiosity Q-learning": {
+   "family": "F_CURIOSITY_RL",
+   "seconds_500_bars": 8.61,
+   "seconds_1000_bars": 18.08,
+   "iterations": 20,
+   "buy_share_1000": 0.361,
+   "sell_share_1000": 0.302,
+   "training_improved": true
+  },
+  "Recurrent curiosity Q-learning": {
+   "family": "F_CURIOSITY_RL",
+   "seconds_500_bars": 26.56,
+   "seconds_1000_bars": 53.0,
+   "iterations": 10,
+   "buy_share_1000": 0.515,
+   "sell_share_1000": 0.174,
+   "training_improved": false
+  },
+  "Actor-critic": {
+   "family": "C_ACTOR_CRITIC",
+   "seconds_500_bars": 13.27,
+   "seconds_1000_bars": 26.55,
+   "iterations": 15,
+   "buy_share_1000": 0.985,
+   "sell_share_1000": 0.0,
+   "training_improved": false
+  },
+  "Actor-critic duel": {
+   "family": "C_ACTOR_CRITIC",
+   "seconds_500_bars": 15.03,
+   "seconds_1000_bars": 29.76,
+   "iterations": 15,
+   "buy_share_1000": 0.84,
+   "sell_share_1000": 0.0,
+   "training_improved": false
+  },
+  "Actor-critic recurrent": {
+   "family": "C_ACTOR_CRITIC",
+   "seconds_500_bars": 67.83,
+   "seconds_1000_bars": 138.9,
+   "iterations": 10,
+   "buy_share_1000": 0.897,
+   "sell_share_1000": 0.066,
+   "training_improved": false
+  },
+  "Actor-critic duel recurrent": {
+   "family": "C_ACTOR_CRITIC",
+   "seconds_500_bars": 70.72,
+   "seconds_1000_bars": 132.98,
+   "iterations": 10,
+   "buy_share_1000": 0.0,
+   "sell_share_1000": 0.0,
+   "training_improved": false
+  }
+ },
+ "per_family": {
+  "E_EVOLUTIONARY": {
+   "agents": 3,
+   "seconds_500_bars": 6.69,
+   "seconds_1000_bars": 11.8
+  },
+  "D_POLICY_GRADIENT": {
+   "agents": 1,
+   "seconds_500_bars": 8.46,
+   "seconds_1000_bars": 7.98
+  },
+  "B_VALUE_RL": {
+   "agents": 8,
+   "seconds_500_bars": 175.43,
+   "seconds_1000_bars": 358.28
+  },
+  "F_CURIOSITY_RL": {
+   "agents": 3,
+   "seconds_500_bars": 43.08,
+   "seconds_1000_bars": 86.62
+  },
+  "C_ACTOR_CRITIC": {
+   "agents": 4,
+   "seconds_500_bars": 166.85,
+   "seconds_1000_bars": 328.19
+  }
+ },
+ "roster_total_seconds_500_bars": 400.5,
+ "roster_total_seconds_1000_bars": 792.9
+}
