@@ -102,6 +102,15 @@ SURVEY_BLOCKS_10D = source_probe.BLOCKS_10D  # 266
 BASE_UP_RATE = 0.537
 SUB_50 = 0.50
 
+#: The economic claim's hurdle, fixed in `reports/ABSOLUTE_ALPHA_SOURCE_SURVEY.md`
+#: §1.2 claim (c) and committed at `4a966a2` **before this pilot began**: an
+#: effect is economically useful only above ~39 bp per 5 sessions, Phase 1's
+#: covered-book resolution. §3.3 of the same survey judged this family by
+#: whether its half-width sat inside that number, and passed it on 27.7–35.6 bp.
+#: A gate has teeth only if failing it has consequences (CLAUDE.md §3.1), so the
+#: number is read here exactly as it was written there.
+ECONOMIC_HURDLE_BP = 39.0
+
 
 def development_safe(events: pd.DataFrame, calendar: pd.DatetimeIndex,
                      exam: list[pd.Timestamp],
@@ -362,6 +371,23 @@ def run_gate(verbose: bool = True) -> dict:
         for length, count in ((5, SURVEY_BLOCKS_5D), (10, SURVEY_BLOCKS_10D))
     }
 
+    # Robustness, computed *after* the freeze and unable to change it: the
+    # verdict must not turn on the one number this stage chose. Reported for
+    # every defensible block length, not only the frozen one.
+    sensitivity = {
+        str(length): {
+            "blocks": 2664 // length,
+            "primary": gate(samples["primary_development_safe"], 2664 // length),
+            "all_events": gate(samples["all_events"], 2664 // length),
+        }
+        for length in (5, 7, 10, 14, 21, BLOCK_LENGTH, 30)
+    }
+    # The floor: what the half-width tends to as the event count grows without
+    # bound. Because the bracket tends to rho, it does not go to zero — the
+    # common market move never diversifies away (survey 1.1).
+    floors = {str(length): gate(10 ** 9, 2664 // length)["economic_mde_bp"]
+              for length in (5, 10, BLOCK_LENGTH)}
+
     primary = results["primary_development_safe"]
     payload = {
         "measured_at": dt.datetime.now().isoformat(timespec="seconds"),
@@ -378,6 +404,18 @@ def run_gate(verbose: bool = True) -> dict:
         "samples": results,
         "primary": primary,
         "survey_block_comparison": comparison,
+        "block_length_sensitivity": sensitivity,
+        "half_width_floor_bp_as_n_grows": floors,
+        "economic_hurdle_bp": ECONOMIC_HURDLE_BP,
+        "economic_hurdle_source":
+            "reports/ABSOLUTE_ALPHA_SOURCE_SURVEY.md 1.2 claim (c), committed "
+            "at 4a966a2 before this pilot began: an effect is economically "
+            "useful only above ~39 bp per 5 sessions (Phase 1's covered-book "
+            "resolution), and 3.3 judged the family by whether its half-width "
+            "sat inside that.",
+        "economic_claim_detectable": bool(
+            primary["economic_mde_bp"] <= ECONOMIC_HURDLE_BP),
+        "passed": bool(primary["economic_mde_bp"] <= ECONOMIC_HURDLE_BP),
     }
     GATE_PATH.write_text(json.dumps(payload, indent=1), encoding="utf-8")
 
@@ -394,6 +432,21 @@ def run_gate(verbose: bool = True) -> dict:
             print(f"{name:32s} {got['events']:6,} {got['economic_mde_bp']:10.1f} "
                   f"{got['directional_mde_pp']:11.2f} "
                   f"{got['sub50_shift_required_pp']:12.2f}")
+
+        print(f"\nblock-length sensitivity (computed after the freeze; "
+              f"cannot change it):")
+        print(f"{'L':>4s} {'blocks':>7s} {'primary bp':>11s} {'all-events bp':>14s}")
+        for length, got in sensitivity.items():
+            mark = " <= hurdle" if got["primary"]["economic_mde_bp"] <= \
+                ECONOMIC_HURDLE_BP else ""
+            print(f"{length:>4s} {got['blocks']:>7d} "
+                  f"{got['primary']['economic_mde_bp']:>11.1f} "
+                  f"{got['all_events']['economic_mde_bp']:>14.1f}{mark}")
+        print(f"\nhalf-width floor as the event count grows without bound: "
+              + ", ".join(f"L={k}: {v:.1f} bp" for k, v in floors.items()))
+        print(f"\nhurdle {ECONOMIC_HURDLE_BP} bp (survey §1.2 claim c, committed "
+              f"at 4a966a2)  |  primary {primary['economic_mde_bp']:.1f} bp  ->  "
+              f"{'PASS' if payload['passed'] else 'FAIL'}")
     return payload
 
 

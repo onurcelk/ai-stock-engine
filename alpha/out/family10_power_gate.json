@@ -1,0 +1,290 @@
+{
+ "measured_at": "2026-08-11T11:00:04",
+ "note": "No forward return read. Inputs are the marginal target properties committed in alpha/source_probe.py.",
+ "block_length_sessions": 24,
+ "blocks": 111,
+ "base_up_rate": 0.537,
+ "variance_inputs": {
+  "return_sd": 0.04526,
+  "return_rho": 0.2916,
+  "up_variance": 0.24783,
+  "up_rho": 0.1778,
+  "block_inflation": 1.077
+ },
+ "samples": {
+  "all_events": {
+   "per_date": 15.153,
+   "independent_dates": 111.0,
+   "return_half_width_bp": 52.7,
+   "up_rate_half_width_pp": 4.8,
+   "blocks": 111,
+   "events": 1682,
+   "directional_mde_pp": 4.8,
+   "economic_mde_bp": 52.7,
+   "sub50_shift_required_pp": 8.5,
+   "sub50_baseline_gap_pp": 3.7
+  },
+  "panel_priceable": {
+   "per_date": 13.315,
+   "independent_dates": 111.0,
+   "return_half_width_bp": 53.2,
+   "up_rate_half_width_pp": 4.88,
+   "blocks": 111,
+   "events": 1478,
+   "directional_mde_pp": 4.88,
+   "economic_mde_bp": 53.2,
+   "sub50_shift_required_pp": 8.58,
+   "sub50_baseline_gap_pp": 3.7
+  },
+  "primary_development_safe": {
+   "per_date": 6.189,
+   "independent_dates": 111.0,
+   "return_half_width_bp": 57.8,
+   "up_rate_half_width_pp": 5.56,
+   "blocks": 111,
+   "events": 687,
+   "directional_mde_pp": 5.56,
+   "economic_mde_bp": 57.8,
+   "sub50_shift_required_pp": 9.26,
+   "sub50_baseline_gap_pp": 3.7
+  }
+ },
+ "primary": {
+  "per_date": 6.189,
+  "independent_dates": 111.0,
+  "return_half_width_bp": 57.8,
+  "up_rate_half_width_pp": 5.56,
+  "blocks": 111,
+  "events": 687,
+  "directional_mde_pp": 5.56,
+  "economic_mde_bp": 57.8,
+  "sub50_shift_required_pp": 9.26,
+  "sub50_baseline_gap_pp": 3.7
+ },
+ "survey_block_comparison": {
+  "survey_L5_blocks532": {
+   "per_date": 1.291,
+   "independent_dates": 532.0,
+   "return_half_width_bp": 38.0,
+   "up_rate_half_width_pp": 4.11,
+   "blocks": 532,
+   "events": 687,
+   "directional_mde_pp": 4.11,
+   "economic_mde_bp": 38.0,
+   "sub50_shift_required_pp": 7.81,
+   "sub50_baseline_gap_pp": 3.7
+  },
+  "survey_L10_blocks266": {
+   "per_date": 2.583,
+   "independent_dates": 266.0,
+   "return_half_width_bp": 44.1,
+   "up_rate_half_width_pp": 4.54,
+   "blocks": 266,
+   "events": 687,
+   "directional_mde_pp": 4.54,
+   "economic_mde_bp": 44.1,
+   "sub50_shift_required_pp": 8.24,
+   "sub50_baseline_gap_pp": 3.7
+  }
+ },
+ "block_length_sensitivity": {
+  "5": {
+   "blocks": 532,
+   "primary": {
+    "per_date": 1.291,
+    "independent_dates": 532.0,
+    "return_half_width_bp": 38.0,
+    "up_rate_half_width_pp": 4.11,
+    "blocks": 532,
+    "events": 687,
+    "directional_mde_pp": 4.11,
+    "economic_mde_bp": 38.0,
+    "sub50_shift_required_pp": 7.81,
+    "sub50_baseline_gap_pp": 3.7
+   },
+   "all_events": {
+    "per_date": 3.162,
+    "independent_dates": 532.0,
+    "return_half_width_bp": 29.7,
+    "up_rate_half_width_pp": 3.01,
+    "blocks": 532,
+    "events": 1682,
+    "directional_mde_pp": 3.01,
+    "economic_mde_bp": 29.7,
+    "sub50_shift_required_pp": 6.71,
+    "sub50_baseline_gap_pp": 3.7
+   }
+  },
+  "7": {
+   "blocks": 380,
+   "primary": {
+    "per_date": 1.808,
+    "independent_dates": 380.0,
+    "return_half_width_bp": 40.5,
+    "up_rate_half_width_pp": 4.29,
+    "blocks": 380,
+    "events": 687,
+    "directional_mde_pp": 4.29,
+    "economic_mde_bp": 40.5,
+    "sub50_shift_required_pp": 7.99,
+    "sub50_baseline_gap_pp": 3.7
+   },
+   "all_events": {
+    "per_date": 4.426,
+    "independent_dates": 380.0,
+    "return_half_width_bp": 32.9,
+    "up_rate_half_width_pp": 3.25,
+    "blocks": 380,
+    "events": 1682,
+    "directional_mde_pp": 3.25,
+    "economic_mde_bp": 32.9,
+    "sub50_shift_required_pp": 6.95,
+    "sub50_baseline_gap_pp": 3.7
+   }
+  },
+  "10": {
+   "blocks": 266,
+   "primary": {
+    "per_date": 2.583,
+    "independent_dates": 266.0,
+    "return_half_width_bp": 44.1,
+    "up_rate_half_width_pp": 4.54,
+    "blocks": 266,
+    "events": 687,
+    "directional_mde_pp": 4.54,
+    "economic_mde_bp": 44.1,
+    "sub50_shift_required_pp": 8.24,
+    "sub50_baseline_gap_pp": 3.7
+   },
+   "all_events": {
+    "per_date": 6.323,
+    "independent_dates": 266.0,
+    "return_half_width_bp": 37.2,
+    "up_rate_half_width_pp": 3.57,
+    "blocks": 266,
+    "events": 1682,
+    "directional_mde_pp": 3.57,
+    "economic_mde_bp": 37.2,
+    "sub50_shift_required_pp": 7.27,
+    "sub50_baseline_gap_pp": 3.7
+   }
+  },
+  "14": {
+   "blocks": 190,
+   "primary": {
+    "per_date": 3.616,
+    "independent_dates": 190.0,
+    "return_half_width_bp": 48.4,
+    "up_rate_half_width_pp": 4.85,
+    "blocks": 190,
+    "events": 687,
+    "directional_mde_pp": 4.85,
+    "economic_mde_bp": 48.4,
+    "sub50_shift_required_pp": 8.55,
+    "sub50_baseline_gap_pp": 3.7
+   },
+   "all_events": {
+    "per_date": 8.853,
+    "independent_dates": 190.0,
+    "return_half_width_bp": 42.3,
+    "up_rate_half_width_pp": 3.97,
+    "blocks": 190,
+    "events": 1682,
+    "directional_mde_pp": 3.97,
+    "economic_mde_bp": 42.3,
+    "sub50_shift_required_pp": 7.67,
+    "sub50_baseline_gap_pp": 3.7
+   }
+  },
+  "21": {
+   "blocks": 126,
+   "primary": {
+    "per_date": 5.452,
+    "independent_dates": 126.0,
+    "return_half_width_bp": 55.3,
+    "up_rate_half_width_pp": 5.37,
+    "blocks": 126,
+    "events": 687,
+    "directional_mde_pp": 5.37,
+    "economic_mde_bp": 55.3,
+    "sub50_shift_required_pp": 9.07,
+    "sub50_baseline_gap_pp": 3.7
+   },
+   "all_events": {
+    "per_date": 13.349,
+    "independent_dates": 126.0,
+    "return_half_width_bp": 50.0,
+    "up_rate_half_width_pp": 4.58,
+    "blocks": 126,
+    "events": 1682,
+    "directional_mde_pp": 4.58,
+    "economic_mde_bp": 50.0,
+    "sub50_shift_required_pp": 8.28,
+    "sub50_baseline_gap_pp": 3.7
+   }
+  },
+  "24": {
+   "blocks": 111,
+   "primary": {
+    "per_date": 6.189,
+    "independent_dates": 111.0,
+    "return_half_width_bp": 57.8,
+    "up_rate_half_width_pp": 5.56,
+    "blocks": 111,
+    "events": 687,
+    "directional_mde_pp": 5.56,
+    "economic_mde_bp": 57.8,
+    "sub50_shift_required_pp": 9.26,
+    "sub50_baseline_gap_pp": 3.7
+   },
+   "all_events": {
+    "per_date": 15.153,
+    "independent_dates": 111.0,
+    "return_half_width_bp": 52.7,
+    "up_rate_half_width_pp": 4.8,
+    "blocks": 111,
+    "events": 1682,
+    "directional_mde_pp": 4.8,
+    "economic_mde_bp": 52.7,
+    "sub50_shift_required_pp": 8.5,
+    "sub50_baseline_gap_pp": 3.7
+   }
+  },
+  "30": {
+   "blocks": 88,
+   "primary": {
+    "per_date": 7.807,
+    "independent_dates": 88.0,
+    "return_half_width_bp": 63.0,
+    "up_rate_half_width_pp": 5.96,
+    "blocks": 88,
+    "events": 687,
+    "directional_mde_pp": 5.96,
+    "economic_mde_bp": 63.0,
+    "sub50_shift_required_pp": 9.66,
+    "sub50_baseline_gap_pp": 3.7
+   },
+   "all_events": {
+    "per_date": 19.114,
+    "independent_dates": 88.0,
+    "return_half_width_bp": 58.4,
+    "up_rate_half_width_pp": 5.26,
+    "blocks": 88,
+    "events": 1682,
+    "directional_mde_pp": 5.26,
+    "economic_mde_bp": 58.4,
+    "sub50_shift_required_pp": 8.96,
+    "sub50_baseline_gap_pp": 3.7
+   }
+  }
+ },
+ "half_width_floor_bp_as_n_grows": {
+  "5": 22.4,
+  "10": 31.6,
+  "24": 49.0
+ },
+ "economic_hurdle_bp": 39.0,
+ "economic_hurdle_source": "reports/ABSOLUTE_ALPHA_SOURCE_SURVEY.md 1.2 claim (c), committed at 4a966a2 before this pilot began: an effect is economically useful only above ~39 bp per 5 sessions (Phase 1's covered-book resolution), and 3.3 judged the family by whether its half-width sat inside that.",
+ "economic_claim_detectable": false,
+ "passed": false
+}
