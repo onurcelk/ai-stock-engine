@@ -1,0 +1,61 @@
+{
+ "built_at": "2026-08-11T10:35:23",
+ "source": "SEC EDGAR bulk submissions archive (alpha/edgar/submissions.zip) + S&P 500 constituent/change tables (en.wikipedia.org)",
+ "note": "Fingerprints for the Family 10 artefacts that are too large or too environment-local to version, matching the filings_meta.json / f13_meta.json convention. Nothing here reads a price or a return.",
+ "cik_directory_rows": 980321,
+ "cik_directory_with_ticker": 7957,
+ "ever_member_tickers": 720,
+ "identity_methods": {
+  "sec_ticker": 593,
+  "sec_name": 109,
+  "unresolved": 16,
+  "sec_name_subset": 2
+ },
+ "unresolved_tickers": [
+  "ACE",
+  "ADT",
+  "BCR",
+  "BMS",
+  "BRCM",
+  "CA",
+  "CCE",
+  "CVC",
+  "DNB",
+  "FERG",
+  "FOSL",
+  "FRC",
+  "HOT",
+  "SBNY",
+  "TSS",
+  "VIAB"
+ ],
+ "unique_ciks": 688,
+ "change_log_drift_vs_frozen": {
+  "additions": 0,
+  "removals": 0,
+  "checked_window": "2016-01-04..2026-08-07",
+  "note": "the fresh 2026-08-11 fetch of the S&P change log agrees exactly with the 2026-08-08 frozen sp500_changes.csv over the study window; the membership files were not rewritten"
+ },
+ "fingerprints": {
+  "alpha/edgar/cik_directory.parquet": {
+   "bytes": 23117916,
+   "sha256": "90162327d7efd5f64ba340ecc8fbe66764b0a1bf960147935e05be4102009033"
+  },
+  "alpha/cache/_meta/sp500_security_names.csv": {
+   "bytes": 50085,
+   "sha256": "6fb1e7cd99fa9385145d7a9f6c60d81bdd9fdf5ae24878c4ee2fce2b04cc50e8"
+  },
+  "alpha/cache/_meta/sp500_changes.csv": {
+   "bytes": 8238,
+   "sha256": "7f5cfd4071b21b4777b23f3cd054edd8961abff785f506c227200bfdf2271e14"
+  },
+  "alpha/cache/_meta/sp500_current.csv": {
+   "bytes": 23360,
+   "sha256": "5a205bb8da78e62d77a446506a4a0feac2a5e0ba1c90e017a5a5d1ee26e00972"
+  },
+  "alpha/out/family10_events.parquet": {
+   "bytes": 67045,
+   "sha256": "efaf7b042bad1eb2ab1e3160947e3939928a65656963d6bd61167e7712b3d6f6"
+  }
+ }
+}

@@ -1,0 +1,345 @@
+{
+ "built_at": "2026-08-11T10:35:35",
+ "study_start": "2016-01-04",
+ "last_usable_session": "2026-07-31",
+ "calendar_sessions": 2664,
+ "adverse_items": [
+  "1.02",
+  "1.03",
+  "2.04",
+  "2.05",
+  "2.06",
+  "3.01",
+  "3.02",
+  "4.02"
+ ],
+ "excluded_items": [
+  "2.02"
+ ],
+ "horizon": 5,
+ "identity": {
+  "ever_member_tickers": 720,
+  "resolved_tickers": 704,
+  "unresolved_tickers": 16,
+  "unresolved": [
+   "ACE",
+   "ADT",
+   "BCR",
+   "BMS",
+   "BRCM",
+   "CA",
+   "CCE",
+   "CVC",
+   "DNB",
+   "FERG",
+   "FOSL",
+   "FRC",
+   "HOT",
+   "SBNY",
+   "TSS",
+   "VIAB"
+  ],
+  "methods": {
+   "sec_ticker": 593,
+   "sec_name": 109,
+   "unresolved": 16,
+   "sec_name_subset": 2
+  },
+  "unique_ciks": 688,
+  "multi_security_ciks": 14
+ },
+ "census": {
+  "raw_8k_in_window": 87794,
+  "carries_an_adverse_item": 2589,
+  "candidate_adverse_filings": 2367,
+  "pit_eligible_filings": 2360,
+  "membership_eligible_filings": 1687,
+  "dropped_item_2_02_present": 222,
+  "dropped_not_an_index_member_that_session": 673,
+  "dropped_no_usable_session": 7
+ },
+ "amendments": {
+  "all": 1883,
+  "adverse": 84
+ },
+ "filing_level": {
+  "eligible_filings": 1687,
+  "accepted_after_close": 1031,
+  "share_after_close": 0.6111,
+  "deferred_to_next_session": 1033,
+  "share_deferred": 0.6123
+ },
+ "survivorship": {
+  "survivorship_safe": {
+   "events": 1682,
+   "issuers": 477,
+   "sessions": 1221,
+   "by_item": {
+    "1.02": 853,
+    "1.03": 5,
+    "2.04": 64,
+    "2.05": 211,
+    "2.06": 138,
+    "3.01": 118,
+    "3.02": 393,
+    "4.02": 12
+   }
+  },
+  "current_registrant_only": {
+   "events": 1510,
+   "issuers": 407,
+   "sessions": 1135,
+   "by_item": {
+    "1.02": 756,
+    "1.03": 4,
+    "2.04": 54,
+    "2.05": 189,
+    "2.06": 121,
+    "3.01": 68,
+    "3.02": 371,
+    "4.02": 9
+   },
+   "events_lost": 172,
+   "share_lost": 0.1023
+  },
+  "current_index_member_only": {
+   "events": 1347,
+   "issuers": 352,
+   "sessions": 1033,
+   "by_item": {
+    "1.02": 690,
+    "1.03": 4,
+    "2.04": 43,
+    "2.05": 153,
+    "2.06": 113,
+    "3.01": 63,
+    "3.02": 326,
+    "4.02": 8
+   },
+   "events_lost": 335,
+   "share_lost": 0.1992
+  },
+  "item_loss_share_registrant": {
+   "1.02": 0.1137,
+   "1.03": 0.2,
+   "2.04": 0.1562,
+   "2.05": 0.1043,
+   "2.06": 0.1232,
+   "3.01": 0.4237,
+   "3.02": 0.056,
+   "4.02": 0.25
+  },
+  "item_loss_share_index_member": {
+   "1.02": 0.1911,
+   "1.03": 0.2,
+   "2.04": 0.3281,
+   "2.05": 0.2749,
+   "2.06": 0.1812,
+   "3.01": 0.4661,
+   "3.02": 0.1705,
+   "4.02": 0.3333
+  },
+  "historical_securities": 485,
+  "securities_not_current_members": 133,
+  "issuers_no_longer_registrants": 70,
+  "events_from_issuers_no_longer_registrants": 172
+ },
+ "issuer_events": {
+  "events": 1682,
+  "unique_ciks": 477,
+  "unique_sessions": 1221,
+  "calendar_sessions": 2664,
+  "session_coverage": 0.4583,
+  "events_per_date_mean": 1.378,
+  "events_per_date_max": 5,
+  "dates_with_one_event": 870,
+  "top_date_share": 0.003,
+  "events_per_issuer_mean": 3.526,
+  "events_per_issuer_max": 20,
+  "issuers_with_one_event": 126,
+  "top_issuer_share": 0.0119,
+  "top10_issuer_share": 0.0868,
+  "occupied_blocks": 498,
+  "total_blocks": 532,
+  "events_per_occupied_block_mean": 3.378,
+  "events_per_occupied_block_max": 12,
+  "issuers_per_occupied_block_mean": 3.343
+ },
+ "issuer_events_by_year": {
+  "2016": {
+   "events": 180,
+   "issuers": 131,
+   "sessions": 119
+  },
+  "2017": {
+   "events": 139,
+   "issuers": 112,
+   "sessions": 110
+  },
+  "2018": {
+   "events": 170,
+   "issuers": 126,
+   "sessions": 123
+  },
+  "2019": {
+   "events": 157,
+   "issuers": 121,
+   "sessions": 115
+  },
+  "2020": {
+   "events": 192,
+   "issuers": 121,
+   "sessions": 134
+  },
+  "2021": {
+   "events": 167,
+   "issuers": 125,
+   "sessions": 124
+  },
+  "2022": {
+   "events": 115,
+   "issuers": 100,
+   "sessions": 85
+  },
+  "2023": {
+   "events": 135,
+   "issuers": 115,
+   "sessions": 96
+  },
+  "2024": {
+   "events": 136,
+   "issuers": 108,
+   "sessions": 102
+  },
+  "2025": {
+   "events": 184,
+   "issuers": 137,
+   "sessions": 135
+  },
+  "2026": {
+   "events": 107,
+   "issuers": 86,
+   "sessions": 78
+  }
+ },
+ "issuer_events_by_item": {
+  "1.02": {
+   "label": "termination of a material definitive agreement",
+   "events": 853,
+   "issuers": 351
+  },
+  "1.03": {
+   "label": "bankruptcy or receivership",
+   "events": 5,
+   "issuers": 4
+  },
+  "2.04": {
+   "label": "triggering events that accelerate a financial obligation",
+   "events": 64,
+   "issuers": 36
+  },
+  "2.05": {
+   "label": "costs associated with exit or disposal activities",
+   "events": 211,
+   "issuers": 125
+  },
+  "2.06": {
+   "label": "material impairments",
+   "events": 138,
+   "issuers": 85
+  },
+  "3.01": {
+   "label": "notice of delisting or failure to satisfy a listing rule",
+   "events": 118,
+   "issuers": 94
+  },
+  "3.02": {
+   "label": "unregistered sales of equity securities (dilution)",
+   "events": 393,
+   "issuers": 163
+  },
+  "4.02": {
+   "label": "non-reliance on previously issued financial statements",
+   "events": 12,
+   "issuers": 12
+  }
+ },
+ "non_overlapping": {
+  "events": 1651,
+  "unique_ciks": 477,
+  "unique_sessions": 1201,
+  "calendar_sessions": 2664,
+  "session_coverage": 0.4508,
+  "events_per_date_mean": 1.375,
+  "events_per_date_max": 5,
+  "dates_with_one_event": 860,
+  "top_date_share": 0.003,
+  "events_per_issuer_mean": 3.461,
+  "events_per_issuer_max": 16,
+  "issuers_with_one_event": 126,
+  "top_issuer_share": 0.0097,
+  "top10_issuer_share": 0.0818,
+  "occupied_blocks": 497,
+  "total_blocks": 532,
+  "events_per_occupied_block_mean": 3.322,
+  "events_per_occupied_block_max": 11,
+  "issuers_per_occupied_block_mean": 3.322
+ },
+ "non_overlapping_by_year": {
+  "2016": {
+   "events": 175,
+   "issuers": 131,
+   "sessions": 116
+  },
+  "2017": {
+   "events": 139,
+   "issuers": 112,
+   "sessions": 110
+  },
+  "2018": {
+   "events": 168,
+   "issuers": 126,
+   "sessions": 121
+  },
+  "2019": {
+   "events": 153,
+   "issuers": 121,
+   "sessions": 112
+  },
+  "2020": {
+   "events": 187,
+   "issuers": 121,
+   "sessions": 130
+  },
+  "2021": {
+   "events": 165,
+   "issuers": 125,
+   "sessions": 124
+  },
+  "2022": {
+   "events": 113,
+   "issuers": 100,
+   "sessions": 85
+  },
+  "2023": {
+   "events": 135,
+   "issuers": 115,
+   "sessions": 96
+  },
+  "2024": {
+   "events": 133,
+   "issuers": 108,
+   "sessions": 101
+  },
+  "2025": {
+   "events": 179,
+   "issuers": 137,
+   "sessions": 130
+  },
+  "2026": {
+   "events": 104,
+   "issuers": 86,
+   "sessions": 76
+  }
+ }
+}
