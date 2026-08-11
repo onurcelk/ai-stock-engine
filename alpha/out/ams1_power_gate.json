@@ -1,0 +1,205 @@
+{
+ "measured_at": "2026-08-11T13:37:01",
+ "note": "Signal geometry only. No forward return, target or label was read. Variance inputs are the marginal target properties committed in alpha/source_probe.py.",
+ "rows": 31600,
+ "cutoffs": 316,
+ "symbols": 100,
+ "agents": [
+  "Evolution strategy",
+  "Moving average crossover",
+  "Neuro-evolution",
+  "Neuro-evolution (novelty search)",
+  "Policy gradient",
+  "Signal rolling",
+  "Turtle"
+ ],
+ "availability": {
+  "Turtle": 0.9907,
+  "Moving average crossover": 0.9907,
+  "Signal rolling": 0.9907,
+  "Policy gradient": 0.9747,
+  "Evolution strategy": 0.9747,
+  "Neuro-evolution": 0.9747,
+  "Neuro-evolution (novelty search)": 0.9747
+ },
+ "family_vote_balance": {
+  "A_RULE": {
+   "buy": 0.4616,
+   "flat": 0.0002,
+   "sell": 0.5289,
+   "absent": 0.0093
+  },
+  "D_POLICY_GRADIENT": {
+   "buy": 0.4761,
+   "flat": 0.0008,
+   "sell": 0.4978,
+   "absent": 0.0253
+  },
+  "E_EVOLUTIONARY": {
+   "buy": 0.3966,
+   "flat": 0.0008,
+   "sell": 0.5774,
+   "absent": 0.0253
+  }
+ },
+ "variance_inputs": {
+  "return_sd": 0.04526,
+  "return_rho": 0.2916,
+  "up_variance": 0.24783,
+  "up_rho": 0.1778,
+  "block_inflation": 1.077,
+  "base_up_rate": 0.537
+ },
+ "family_ladder": {
+  "minimum_geometry": {
+   "rows": 2000,
+   "cutoffs": 100,
+   "symbols": 50
+  },
+  "states": {
+   "strong bearish": {
+    "rows": 5449,
+    "coverage": 0.1769,
+    "cutoffs": 314,
+    "symbols": 100,
+    "rows_per_cutoff_mean": 17.354,
+    "rows_per_cutoff_max": 44,
+    "rows_per_cutoff": 17.354,
+    "directional_mde_pp": 2.814,
+    "economic_mde_bp": 31.1,
+    "sub50_shift_required_pp": 6.514,
+    "meets_minimum": true
+   },
+   "moderate bearish": {
+    "rows": 12021,
+    "coverage": 0.3903,
+    "cutoffs": 316,
+    "symbols": 100,
+    "rows_per_cutoff_mean": 38.041,
+    "rows_per_cutoff_max": 54,
+    "rows_per_cutoff": 38.041,
+    "directional_mde_pp": 2.64,
+    "economic_mde_bp": 29.9,
+    "sub50_shift_required_pp": 6.34,
+    "meets_minimum": true
+   },
+   "mixed": {
+    "rows": 20,
+    "coverage": 0.0006,
+    "cutoffs": 2,
+    "symbols": 20,
+    "rows_per_cutoff_mean": 10.0,
+    "rows_per_cutoff_max": 19,
+    "rows_per_cutoff": 10.0,
+    "directional_mde_pp": 37.891,
+    "economic_mde_bp": 406.7,
+    "sub50_shift_required_pp": 41.591,
+    "meets_minimum": false
+   },
+   "moderate bullish": {
+    "rows": 10036,
+    "coverage": 0.3258,
+    "cutoffs": 316,
+    "symbols": 100,
+    "rows_per_cutoff_mean": 31.759,
+    "rows_per_cutoff_max": 57,
+    "rows_per_cutoff": 31.759,
+    "directional_mde_pp": 2.668,
+    "economic_mde_bp": 30.1,
+    "sub50_shift_required_pp": 6.368,
+    "meets_minimum": true
+   },
+   "strong bullish": {
+    "rows": 3275,
+    "coverage": 0.1063,
+    "cutoffs": 314,
+    "symbols": 100,
+    "rows_per_cutoff_mean": 10.43,
+    "rows_per_cutoff_max": 38,
+    "rows_per_cutoff": 10.43,
+    "directional_mde_pp": 3.004,
+    "economic_mde_bp": 32.3,
+    "sub50_shift_required_pp": 6.704,
+    "meets_minimum": true
+   }
+  },
+  "extremes_measurable": true,
+  "gate_1_power": "PASS"
+ },
+ "raw_ladder": {
+  "minimum_geometry": {
+   "rows": 2000,
+   "cutoffs": 100,
+   "symbols": 50
+  },
+  "states": {
+   "strong bearish": {
+    "rows": 236,
+    "coverage": 0.0075,
+    "cutoffs": 138,
+    "symbols": 84,
+    "rows_per_cutoff_mean": 1.71,
+    "rows_per_cutoff_max": 9,
+    "rows_per_cutoff": 1.71,
+    "directional_mde_pp": 7.26,
+    "economic_mde_bp": 68.3,
+    "sub50_shift_required_pp": 10.96,
+    "meets_minimum": false
+   },
+   "moderate bearish": {
+    "rows": 17972,
+    "coverage": 0.5741,
+    "cutoffs": 316,
+    "symbols": 100,
+    "rows_per_cutoff_mean": 56.873,
+    "rows_per_cutoff_max": 82,
+    "rows_per_cutoff": 56.873,
+    "directional_mde_pp": 2.592,
+    "economic_mde_bp": 29.6,
+    "sub50_shift_required_pp": 6.292,
+    "meets_minimum": true
+   },
+   "mixed": {
+    "rows": 26,
+    "coverage": 0.0008,
+    "cutoffs": 10,
+    "symbols": 20,
+    "rows_per_cutoff_mean": 2.6,
+    "rows_per_cutoff_max": 17,
+    "rows_per_cutoff": 2.6,
+    "directional_mde_pp": 23.357,
+    "economic_mde_bp": 226.9,
+    "sub50_shift_required_pp": 27.057,
+    "meets_minimum": false
+   },
+   "moderate bullish": {
+    "rows": 12928,
+    "coverage": 0.413,
+    "cutoffs": 316,
+    "symbols": 100,
+    "rows_per_cutoff_mean": 40.911,
+    "rows_per_cutoff_max": 76,
+    "rows_per_cutoff": 40.911,
+    "directional_mde_pp": 2.63,
+    "economic_mde_bp": 29.9,
+    "sub50_shift_required_pp": 6.33,
+    "meets_minimum": true
+   },
+   "strong bullish": {
+    "rows": 143,
+    "coverage": 0.0046,
+    "cutoffs": 99,
+    "symbols": 73,
+    "rows_per_cutoff_mean": 1.444,
+    "rows_per_cutoff_max": 5,
+    "rows_per_cutoff": 1.444,
+    "directional_mde_pp": 9.128,
+    "economic_mde_bp": 84.9,
+    "sub50_shift_required_pp": 12.828,
+    "meets_minimum": false
+   }
+  },
+  "extremes_measurable": false,
+  "gate_1_power": "FAIL"
+ }
+}
