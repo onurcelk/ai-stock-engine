@@ -617,6 +617,10 @@ def test_model_key_separates_incumbent_from_challenger(tmp_path):
     frame = outcome_ledger.performance_frame(pairs)
     summary = outcome_ledger.summarise(frame)
 
-    assert set(frame["model_key"]) == {"ultimate_ensemble", "lstm-v1"}
+    # Phase 3 replaced the placeholder identities with registry model ids, and
+    # split the version into its own column so pooling across versions is a
+    # choice a caller makes rather than one the key makes for them.
+    assert set(frame["model_key"]) == {"ensemble.ultimate", "neural.lstm"}
+    assert "lstm-v1" in set(frame["model_version"])
     assert set(summary["horizon"]) == {"1d", "1w", "3x1d"}
     assert (summary["n"] == 1).all()

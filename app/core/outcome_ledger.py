@@ -29,6 +29,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from . import model_registry
 from .forecast_ledger import (
     CHALLENGER,
     PRODUCTION_INCUMBENT,
@@ -625,10 +626,14 @@ def score_matured(
 
 
 def model_key(record: ForecastRecord) -> str:
-    """The unit a score is attributed to, until Phase 3 formalises identity."""
-    if record.production_or_challenger == CHALLENGER:
-        return record.model_versions.get("neural_challenger", "unknown_challenger")
-    return "ultimate_ensemble"
+    """The unit a score is attributed to: the Phase 3 registry identity.
+
+    Identity is stable across retraining, so two versions of one model pool
+    into one row here.  When that pooling matters, group on `model_version`
+    as well — `performance_frame` carries both columns for exactly that
+    reason, and Phase 4 must decide which it wants rather than inherit one.
+    """
+    return model_registry.record_spec(record).model_id
 
 
 def wilson_interval(successes: int, n: int, z: float = _Z) -> tuple[float, float]:
@@ -662,6 +667,7 @@ def performance_frame(
         rows.append({
             "forecast_id": record.forecast_id,
             "model_key": model_key(record),
+            "model_version": model_registry.record_version(record),
             "status": record.production_or_challenger,
             "symbol": outcome.symbol,
             "horizon": outcome.horizon,

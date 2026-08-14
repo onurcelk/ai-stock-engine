@@ -101,7 +101,7 @@ Do not treat this summary as a substitute for repository evidence when exact val
 - [x] **PHASE 0 — Architecture Audit**
 - [x] **PHASE 1 — Forecast Ledger**
 - [x] **PHASE 2 — Outcome Scoring & Performance Memory**
-- [ ] **PHASE 3 — Unified Model Registry**
+- [x] **PHASE 3 — Unified Model Registry**
 - [ ] **PHASE 4 — Baseline + Challenger Evaluation**
 - [ ] **PHASE 5 — Adaptive Ensemble**
 - [ ] **PHASE 6 — Regime-Aware Evaluation**
@@ -111,7 +111,7 @@ Do not treat this summary as a substitute for repository evidence when exact val
 - [ ] **PHASE 10 — V5 Integrated Validation**
 - [ ] **PHASE 11 — Production Decision**
 
-**ACTIVE PHASE:** PHASE 3
+**ACTIVE PHASE:** PHASE 4
 
 ---
 
@@ -294,13 +294,13 @@ Each model should expose, where relevant:
 
 ## Tasks
 
-- [ ] Inventory existing rule-based models.
-- [ ] Inventory admissible RL models.
-- [ ] Inventory neural/ML models.
-- [ ] Define common prediction interface.
-- [ ] Separate `PRODUCTION / CHALLENGER / EXPERIMENTAL / REJECTED / RETIRED`.
-- [ ] Ensure every output identifies model version.
-- [ ] Prevent rejected models from silently affecting production.
+- [x] Inventory existing rule-based models.
+- [x] Inventory admissible RL models.
+- [x] Inventory neural/ML models.
+- [x] Define common prediction interface.
+- [x] Separate `PRODUCTION / CHALLENGER / EXPERIMENTAL / REJECTED / RETIRED`.
+- [x] Ensure every output identifies model version.
+- [x] Prevent rejected models from silently affecting production.
 
 ## Required Deliverable
 
@@ -312,10 +312,10 @@ Each model should expose, where relevant:
 
 ## Completion Record
 
-- Status: PENDING
-- Result:
-- Commit:
-- Notes:
+- Status: COMPLETE
+- Result: GO. The new `app/core/model_registry.py` registers 45 predictive components — 14 PRODUCTION, 3 CHALLENGER, 19 EXPERIMENTAL, 3 RETIRED, 6 REJECTED — each with declared identity, source-hash version, family, target, horizons, required features, training cutoff, retraining policy, PIT status and production status. Model outputs are comparable under one framework because every model declares an `output_kind` and a `score_class` that maps onto named `outcome_ledger.summarise` columns: the incumbent ensemble and the neural challengers share `return_pct` and are directly rankable, while signal-only constituents admit directional accuracy alone. The census is built from `indicators.SOURCES`, `agents.REGISTRY`, `forecast.MODELS` and `ultimate.HORIZONS` and bound to them by tests, so it cannot drift. The complete fast suite passed with 904 tests passed and 63 skipped, the 876-pass Phase 2 baseline plus 28 new tests, with nothing weakened.
+- Commit: PENDING — record the applying commit hash when this registry, its tests, and the roadmap update are committed.
+- Notes for Phase 4: **There is no admissible RL candidate.** All 19 trainable agents are PIT-INADMISSIBLE for a structural reason (whole-series training, replay from bar zero) and none carries a `record_key`, so none can appear in a frozen forecast; reopening that means building a PIT-safe training protocol, which is Phase 7 work and not a Phase 4 shortcut. `closed.pit1_single_name` — 9 components, 0 beat always-up, unanimous sign — is the prior for single-name direction and the candidate set must be justified against it. `closed.ams1_agent_meta` constrains Phase 5: weighting by cross-family agent agreement reopens a refused result. Rank by `score_class`: only `RETURN_AND_DIRECTIONAL` models may be compared on MAE/RMSE. `outcome_ledger.model_key` now returns registry identity (authorised in terms by the Phase 2 completion record) and `performance_frame` carries a separate `model_version` column, so Phase 4 must choose explicitly whether to group by identity or by identity and version. A model-assisted incumbent record still resolves to `ensemble.ultimate`; use `constituent_ids(record)` when that distinction matters. Call `assert_record_admissible` on any record entering an evaluation. The Phase 2 interval caveat is unchanged: nominal intervals, not a significance test. `app/streamlit_app.py` and `app/tests/test_ui.py` keep their pre-existing uncommitted modifications and were not touched.
 
 ---
 
