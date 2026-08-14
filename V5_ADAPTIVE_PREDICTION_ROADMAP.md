@@ -99,7 +99,7 @@ Do not treat this summary as a substitute for repository evidence when exact val
 # 3. Global V5 Phase Tracker
 
 - [x] **PHASE 0 — Architecture Audit**
-- [ ] **PHASE 1 — Forecast Ledger**
+- [x] **PHASE 1 — Forecast Ledger**
 - [ ] **PHASE 2 — Outcome Scoring & Performance Memory**
 - [ ] **PHASE 3 — Unified Model Registry**
 - [ ] **PHASE 4 — Baseline + Challenger Evaluation**
@@ -111,7 +111,7 @@ Do not treat this summary as a substitute for repository evidence when exact val
 - [ ] **PHASE 10 — V5 Integrated Validation**
 - [ ] **PHASE 11 — Production Decision**
 
-**ACTIVE PHASE:** PHASE 1
+**ACTIVE PHASE:** PHASE 2
 
 ---
 
@@ -193,12 +193,12 @@ Create one immutable point-in-time record for every production/challenger foreca
 
 ## Tasks
 
-- [ ] Design schema.
-- [ ] Reuse existing prediction persistence if safe.
-- [ ] Make forecast records immutable.
-- [ ] Add version identifiers.
-- [ ] Add tests proving no post-outcome rewrite.
-- [ ] Add tests proving no future data enters stored forecast.
+- [x] Design schema.
+- [x] Reuse existing prediction persistence if safe.
+- [x] Make forecast records immutable.
+- [x] Add version identifiers.
+- [x] Add tests proving no post-outcome rewrite.
+- [x] Add tests proving no future data enters stored forecast.
 
 ## Required Deliverable
 
@@ -213,10 +213,10 @@ Create one immutable point-in-time record for every production/challenger foreca
 
 ## Completion Record
 
-- Status: PENDING
-- Result:
-- Commit:
-- Notes:
+- Status: COMPLETE
+- Result: GO. The new SQLite forecast ledger generates and freezes one immutable record per available incumbent horizon, reloads canonical payloads with integrity verification, and serializes explicitly versioned genuine forward neural challengers. Exact consumed frames are cutoff-validated and fingerprinted; duplicate/replacement inserts, updates, deletes, identity tampering, and post-cutoff data are rejected. The complete fast suite passed with 848 tests passed and 63 skipped.
+- Commit: PENDING — replace with the Phase 1 implementation commit hash in the state-only follow-up commit.
+- Notes: Phase 2 must store outcomes and scores separately by `forecast_id`; it must never rewrite the Phase 1 `forecasts` table or introduce outcome reads into `forecast_ledger.py`. `probability_positive`, `regime_state`, and `baseline_prediction` remain null unless supplied from admissible forecast-time evidence. The existing modified `app/streamlit_app.py` and `app/tests/test_ui.py` were not touched; UI adoption remains outside Phase 1.
 
 ---
 

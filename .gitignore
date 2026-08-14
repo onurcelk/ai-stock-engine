@@ -7,6 +7,10 @@
 venv/
 app/cache/
 app/runs/
+app/forecast_ledger.sqlite3
+app/forecast_ledger.sqlite3-wal
+app/forecast_ledger.sqlite3-shm
+app/forecast_ledger.sqlite3-journal
 .pytest_cache/
 
 # .streamlit/config.toml IS committed — it carries the app's theme.
