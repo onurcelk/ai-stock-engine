@@ -134,9 +134,10 @@ Do not treat this summary as a substitute for repository evidence when exact val
 - [x] **PHASE 2 — Outcome Scoring & Performance Memory**
 - [x] **PHASE 3 — Unified Model Registry**
 - [x] **PHASE 4 — Baseline + Challenger Evaluation**
-- [ ] **PHASE 5 — Adaptive Ensemble** — **BLOCKED**, premise contradicted by the
-      record; awaiting a scope decision between the two reformulations in
-      `reports/V5_PHASE4_CHALLENGER_EVAL.md` §10.2
+- [x] **PHASE 5 — Adaptive Ensemble** — **CLOSED in both forms.** As written:
+      BLOCKED, premise contradicted by the record. As reformulation (a)
+      weight-to-abstain: ran as ABS-1 and returned
+      **NOT ANSWERABLE IN THIS HARNESS** on the power gate
 - [ ] **PHASE 6 — Regime-Aware Evaluation**
 - [ ] **PHASE 7 — Retraining & Promotion Policy**
 - [ ] **PHASE 8 — Research & Learning UI**
@@ -144,9 +145,13 @@ Do not treat this summary as a substitute for repository evidence when exact val
 - [ ] **PHASE 10 — V5 Integrated Validation**
 - [ ] **PHASE 11 — Production Decision**
 
-**ACTIVE PHASE:** PHASE 5 — **BLOCKED.** Do not begin Phase 5 as written. Read
-`reports/V5_PHASE4_CHALLENGER_EVAL.md` §10.1–§10.2 first and obtain a scope
-decision from the programme owner.
+**ACTIVE PHASE:** PHASE 9 — Data Gap Analysis, taken **out of order** and ahead
+of Phases 6, 7 and 8. Read `reports/V5_PHASE5A_ABSTENTION.md` §6 and §8 first.
+The reordering is the standing Phase 4 §10.2(b) recommendation, now the only
+remaining one: Phase 5 is closed in both forms, and the binding constraint on
+this programme is resolution, not model choice. Phases 6, 7 and 8 are not
+skipped — they are deferred behind the question of whether any dataset exists
+that this instrument could resolve.
 
 ---
 
@@ -521,6 +526,11 @@ Proceed only with candidates that either:
 > decision from the programme owner before doing anything below. Reweighting
 > components that are collectively indistinguishable from the market's drift
 > produces a different number, not a better forecast.
+>
+> **Closed 2026-08-14.** The block above stands and its wording is unchanged.
+> The owner chose reformulation §10.2(a), which ran as ABS-1 and returned
+> `NOT ANSWERABLE IN THIS HARNESS` at its power gate. Phase 5 is closed in both
+> forms. See the Completion Record below and `reports/V5_PHASE5A_ABSTENTION.md`.
 
 ## Goal
 
@@ -553,27 +563,121 @@ All information used to determine `weight_i(t)` must exist before time `t`.
 
 ## Tasks
 
+The five tasks below belong to Phase 5 **as written** and were **never
+started**. The phase was blocked before them and is now closed; they are left
+unticked deliberately, as the record that they were not done.
+
 - [ ] Pre-register ensemble weighting rule before final evaluation.
 - [ ] Implement PIT-safe historical weight reconstruction.
 - [ ] Compare static vs adaptive ensemble.
 - [ ] Compare both against production baseline.
 - [ ] Test stability.
 
+### Tasks actually executed — reformulation (a), weight-to-abstain
+
+- [x] Obtain the programme owner's scope decision between §10.2(a) and (b).
+- [x] Pre-register the abstention study before any statistic existed.
+- [x] Commit the power-gate computation before running it.
+- [x] Compute Gate 1 from signal geometry alone, reading no outcome.
+- [x] Apply the pre-registered verdict rule to the gate result.
+
 ## Required Deliverable
 
-`reports/V5_PHASE5_ADAPTIVE_ENSEMBLE.md`
+`reports/V5_PHASE5_ADAPTIVE_ENSEMBLE.md` — **not produced.** The phase it
+belonged to was never entered. The deliverable of the executed reformulation is
+`reports/V5_PHASE5A_ABSTENTION.md`.
 
 ## STOP / GO Gate
 
 Adaptive weighting must add credible OOS value over the simple baseline/static alternative.
 
+**Never reached.** No weighting was constructed, so nothing was available to
+put against this gate.
+
 ## Completion Record
 
-- Status: PENDING
-- Result:
-- Commit:
-- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
-- Notes:
+- Status: **CLOSED in both forms.** Not COMPLETE — nothing was demonstrated.
+- Result: Phase 5 **as written** stayed blocked: Phase 4 found its premise
+  contradicted by the frozen record and no constituent set with differing
+  measurable OOS usefulness exists to reallocate weight between. On 2026-08-14
+  the programme owner chose reformulation **(a) weight-to-abstain** from
+  `reports/V5_PHASE4_CHALLENGER_EVAL.md` §10.2. That reformulation was
+  pre-registered as **ABS-1** and run to its first gate only.
+  **`ABS-1 VERDICT: NOT ANSWERABLE IN THIS HARNESS`** — Gate 1 (power) failed.
+  The `D − B` coverage contrast resolves to an MDE of **29.15 pp at 80% power**
+  against a pre-registered **7.5 pp** threshold, and the intermediate band C
+  holds **7 rows across 5 dates**, failing minimum geometry on all three counts.
+  Per §7 of the pre-registration the study did not run: `calls.csv` was never
+  opened and **no accuracy was computed**. The failure is conclusive rather than
+  provisional, because §6.1 fixed in advance that the geometry is an upper bound
+  on the scoreable rows and therefore errs toward passing. One prediction-side
+  structural finding stands: the coverage gate is **effectively bimodal** —
+  120 spoken rows at one family's breadth, 66 at full breadth, 7 in between — so
+  coverage is not a continuous dial and no future design may treat it as one.
+- Commit: `f53aa96` (pre-registration, before any statistic), `660ce25` (gate
+  code, before it was run), and the commit carrying this roadmap update with
+  `reports/V5_PHASE5A_ABSTENTION.md`.
+- Examined: *(recorded during the phase, under the §0 standing rule.)*
+  1. Baseline suite: **904 passed, 63 skipped** — green, run before any edit,
+     matching the Phase 3 and Phase 4 records exactly.
+  2. Final suite: **904 passed, 63 skipped.** Delta **0**. The one new module,
+     `alpha/abs1_power_gate.py`, is a standalone analysis entry point and adds
+     no test; no existing assertion was relaxed.
+  3. Leak detector: **no prediction path touched.** The new module reads a
+     frozen JSON artifact and computes geometry; it predicts nothing.
+     `app/tests/test_validation.py::test_future_cannot_change_the_verdict` was
+     run **explicitly and individually: 1 passed.**
+  4. Methodology surfaces (§1.2): **none touched.** No target, feature, model
+     parameter, exam set, walk-forward or `validation/pit.py` change, so no
+     amendment was required.
+  5. Frozen records: **read** — `validation/REPORT.md` (§5, §8, §11, and the
+     conclusions), `reports/V5_PHASE4_CHALLENGER_EVAL.md` (§6, §7, §10),
+     `reports/SINGLE_NAME_PHASE1.md` §3F (quoted via Phase 4),
+     `alpha/AGENT_META_PREREGISTRATION.md` (read for house format only).
+     **None was modified.** `validation/out/predictions.json` was read;
+     `validation/out/calls.csv` had only its header and its `system`/`window`
+     label sets read, and **no outcome value in it was ever read**. Every number
+     quoted was copied, never recomputed — including PIT-1's published interval,
+     from which the design effect was re-derived. ABS-1's own pre-registration
+     was **appended to** with a dated §6.1 before the gate ran; the original §6
+     wording is unaltered.
+  6. Closed programmes: **PIT-1 is the one at risk, and it was not reopened.**
+     ABS-1's admissibility rests on a single narrow ground, fixed in its §1
+     before anything was computed: PIT-1's *"the engine's refusal to speak is
+     calibrated"* is an assertion the closed record **never measured**, and
+     testing an unmeasured assertion is not re-testing an established result. No
+     candidate was re-evaluated, no arm resurrected, no threshold moved, no
+     cutoff or symbol added. `closed.ams1_agent_meta` was checked against ABS-1's
+     `agreement` diagnostic and the two were found to be different objects; the
+     diagnostic carried no verdict and was never computed.
+  7. Measurement: **geometry only, and no outcome.** What was measured is the
+     row/date/symbol geometry of four coverage bands and the resolution that
+     geometry implies, computed from the prediction side of the frozen record.
+     No accuracy, no MAE, no baseline comparison, no interval on any outcome, no
+     forecast frozen, no ledger written. The gate's own output records
+     `outcomes_read: false`. No model was promoted, demoted, retired or
+     reopened, and no production weight changed.
+  8. Sealed exam accessed: **no.**
+- Notes for Phase 9: **the binding constraint on this programme is resolution,
+  not model choice.** Twelve independent cutoff dates cannot resolve a 7.5 pp
+  effect — the figure that killed ABS-1 and the same constraint behind every
+  wide interval in Phase 4. Phase 9's gate (*"any new dataset must have a
+  precise hypothesis and measurable expected role"*) should therefore be applied
+  with a **resolution requirement attached**: a candidate family must be asked
+  not only what it would predict but whether any obtainable sample could show
+  it. Carry forward unchanged: PIT-1's three residual look-aheads are
+  **unrepaired**, so this harness still cannot support a believable positive
+  result, and a repaired harness is the precondition for any future prospective
+  study — adding cutoffs to PIT-1's grid remains the re-run refused under §1.3.
+  `reports/V5_PHASE5A_ABSTENTION.md` §6 records a qualification a future reader
+  of Phase 4 §10.2 needs: calibrated gating was described there as "the one
+  validated property of this system", and on the evidence now available that is
+  too strong — the property was asserted, never tested, and the only test
+  designed for it could not be run. That is **not** a correction to PIT-1 under
+  §1.1 and must not be appended to `validation/REPORT.md` as one; PIT-1's claim
+  has not been contradicted, only left unsupported. `app/streamlit_app.py` and
+  `app/tests/test_ui.py` keep their pre-existing uncommitted modifications and
+  were not touched.
 
 ---
 

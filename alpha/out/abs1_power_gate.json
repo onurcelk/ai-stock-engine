@@ -1,0 +1,87 @@
+{
+  "study": "ABS-1",
+  "preregistration": "alpha/V5_ABSTENTION_PREREGISTRATION.md",
+  "computed_from": "validation/out/predictions.json",
+  "outcomes_read": false,
+  "pit1_anchor": {
+    "published_half_width_pp": 13.1,
+    "design_effect": 2.408,
+    "icc": 0.1385
+  },
+  "minimum_geometry": {
+    "rows": 25,
+    "dates": 6,
+    "symbols": 8
+  },
+  "bands": [
+    {
+      "band": "A",
+      "rows": 652,
+      "dates": 12,
+      "symbols": 28,
+      "rows_per_date": 54.33,
+      "design_effect": 8.384,
+      "half_width_pp": 11.11,
+      "meets_minimum_geometry": true,
+      "by_horizon": {
+        "1d": 223,
+        "1w": 254,
+        "4h": 175
+      }
+    },
+    {
+      "band": "B",
+      "rows": 120,
+      "dates": 12,
+      "symbols": 25,
+      "rows_per_date": 10.0,
+      "design_effect": 2.246,
+      "half_width_pp": 13.41,
+      "meets_minimum_geometry": true,
+      "by_horizon": {
+        "1d": 59,
+        "1w": 36,
+        "4h": 25
+      }
+    },
+    {
+      "band": "C",
+      "rows": 7,
+      "dates": 5,
+      "symbols": 5,
+      "rows_per_date": 1.4,
+      "design_effect": 1.055,
+      "half_width_pp": 38.05,
+      "meets_minimum_geometry": false,
+      "by_horizon": {
+        "1d": 4,
+        "4h": 3
+      }
+    },
+    {
+      "band": "D",
+      "rows": 66,
+      "dates": 12,
+      "symbols": 16,
+      "rows_per_date": 5.5,
+      "design_effect": 1.623,
+      "half_width_pp": 15.37,
+      "meets_minimum_geometry": true,
+      "by_horizon": {
+        "1d": 32,
+        "1w": 26,
+        "4h": 8
+      }
+    }
+  ],
+  "primary_contrast": {
+    "contrast": "D - B",
+    "se_pp": 10.41,
+    "half_width_pp": 20.39,
+    "mde_pp_80_power": 29.15,
+    "threshold_pp": 7.5,
+    "geometry_ok": false,
+    "mde_ok": false
+  },
+  "gate_1_power": "FAIL"
+}
