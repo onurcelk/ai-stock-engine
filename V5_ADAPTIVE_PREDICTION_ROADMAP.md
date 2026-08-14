@@ -23,8 +23,39 @@ At the beginning of a fresh Claude Code context:
    - tick completed tasks with `[x]`,
    - record result,
    - record commit hash,
+   - **record the Examined block (see below)**,
    - set the next active phase,
    - commit the roadmap update together with the phase result when appropriate.
+
+### Per-Phase Examination Record — standing rule
+
+Every phase, without exception, examines the eight items below and writes the
+answers into its own **Examined** block in its Completion Record. This is not a
+summary of the phase's work; it is the evidence that the phase's work did not
+damage anything, and it must be answerable from this file alone after `/clear`.
+
+An item that was not checked is recorded as `not checked`, and an item nobody
+recorded at the time is recorded as `not recorded`. Neither is silently
+omitted, and neither is backfilled from memory or inference.
+
+| # | Item | What is recorded |
+|---|---|---|
+| 1 | **Baseline suite** | `pytest` pass/skip counts *before* any edit, and whether the baseline was green. Never edit on a red suite. |
+| 2 | **Final suite** | `pytest` pass/skip counts after the change, and the delta against the baseline. A drop in passes is a regression and blocks the phase. |
+| 3 | **Leak detector** | Whether the phase touched a prediction path, and the explicit result of `app/tests/test_validation.py::test_future_cannot_change_the_verdict`. |
+| 4 | **Methodology surfaces** | Which of the CLAUDE.md §1.2 surfaces were touched (targets, features, model params, examset, ladder, `validation/pit.py`), and the amendment authorising it — or `none touched`. |
+| 5 | **Frozen records** | Which append-only records were *read* (`alpha/*_PREREGISTRATION.md`, `alpha/*_EXPERIMENT_LOG.md`, `reports/EXPERIMENT_REGISTRY.md`), and confirmation that none was modified. |
+| 6 | **Closed programmes** | Which closed or rejected work this phase could plausibly reopen, and why it does not. `none` is a valid answer but must be stated. |
+| 7 | **Measurement** | What was measured, or the explicit statement that nothing was. Narrative must follow measurement, never precede it. |
+| 8 | **Sealed exam** | Whether any sealed exam artifact was accessed. Expected answer: `no`. |
+
+Two rules about the block itself:
+
+- **It is written before the phase is declared COMPLETE**, not after, so a
+  failing item stops the phase rather than being explained away in hindsight.
+- **It is never edited to match a later belief.** If a later phase finds an
+  Examined entry was wrong, append a dated correction under §6's rule and cite
+  the correcting commit. The original wording stays visible.
 
 ### Token Discipline
 
@@ -162,6 +193,15 @@ It must contain:
 - Status: COMPLETE
 - Result: GO. The live execution path is fully mapped: the default Ultimate signal combines ten deterministic technical sources and three rule-based agents, with an optional on-demand recurrent neural forecast. The application has mutable training-run history but no immutable production forecast ledger or live forecast-to-outcome join; the separate validation package provides reusable PIT truncation, freeze-before-score, and overwrite-refusal patterns.
 - Commit: PENDING — read-only preparation; record the applying commit hash when this audit and roadmap update are committed.
+- Examined: *(backfilled 2026-08-14 under the §0 standing rule, from the Phase 0 record and `reports/V5_PHASE0_ARCHITECTURE_AUDIT.md` only — nothing was reconstructed from memory.)*
+  1. Baseline suite: **not recorded.**
+  2. Final suite: **not recorded.** No code was changed, so no delta exists.
+  3. Leak detector: no prediction path touched — the phase was a read-only audit. `app/tests/test_validation.py` was *read* as evidence (audit §7.1) but its result was **not recorded**.
+  4. Methodology surfaces (§1.2): none touched.
+  5. Frozen records: none modified. Which append-only records were read was **not itemised**; audit §2.2 records that sealed exam artifacts were not opened.
+  6. Closed programmes: none reopened. Legacy and closed paths were classified `UNUSED` / retire-from-graph (audit §13) without being re-tested.
+  7. Measurement: **none.** Audit §17: "Phase 1 implementation performed by this audit: none".
+  8. Sealed exam accessed: **no** (audit §2.2, §17).
 - Notes: Phase 1 should wrap existing incumbent/challenger outputs in an immutable forecast record without changing model behaviour. Keep `app/runs` as separate mutable UI history; store confidence separately from `probability_positive`; isolate same-series RL and leaky single-split neural paths from production evidence; do not implement scoring, adaptive weighting, retraining, or Phase 1 UI work yet.
 
 ---
@@ -216,6 +256,15 @@ Create one immutable point-in-time record for every production/challenger foreca
 - Status: COMPLETE
 - Result: GO. The new SQLite forecast ledger generates and freezes one immutable record per available incumbent horizon, reloads canonical payloads with integrity verification, and serializes explicitly versioned genuine forward neural challengers. Exact consumed frames are cutoff-validated and fingerprinted; duplicate/replacement inserts, updates, deletes, identity tampering, and post-cutoff data are rejected. The complete fast suite passed with 848 tests passed and 63 skipped.
 - Commit: `d04956f` (`v5 phase 1 forecast ledger: GO`)
+- Examined: *(backfilled 2026-08-14 under the §0 standing rule, from the Phase 1 record and `reports/V5_PHASE1_FORECAST_LEDGER.md` §7 only.)*
+  1. Baseline suite: **not recorded.**
+  2. Final suite: **848 passed, 63 skipped.** Delta against baseline is unavailable because the baseline was not recorded.
+  3. Leak detector: no model behaviour changed — the phase wrapped existing outputs. `app/tests/test_validation.py` was run explicitly at completion as one of four files (`96 passed`); the named test's individual result was **not itemised**. A Phase 1 analogue was added: invariance when all unseen future prices are rewritten.
+  4. Methodology surfaces (§1.2): none touched.
+  5. Frozen records: none modified. Reads **not itemised**.
+  6. Closed programmes: none reopened. The ledger admits no RL/evolutionary agent and no `forecast.run` output (report §3).
+  7. Measurement: **none.** The phase established that a forecast can be frozen, reloaded, and proven unchanged; it produced no predictive result.
+  8. Sealed exam accessed: **no.**
 - Notes: Phase 2 must store outcomes and scores separately by `forecast_id`; it must never rewrite the Phase 1 `forecasts` table or introduce outcome reads into `forecast_ledger.py`. `probability_positive`, `regime_state`, and `baseline_prediction` remain null unless supplied from admissible forecast-time evidence. The existing modified `app/streamlit_app.py` and `app/tests/test_ui.py` were not touched; UI adoption remains outside Phase 1.
 
 ---
@@ -267,6 +316,15 @@ Where appropriate:
 - Status: COMPLETE
 - Result: GO. The new `app/core/outcome_ledger.py` matches matured forecasts to realised bars in a separate append-only `outcomes` table keyed by `forecast_id`, scores them horizon-aware against a declared baseline, and builds rolling/expanding performance memory in which every point estimate carries its sample size and interval. Scoring is a pure function of a frozen record plus realised prices — it was demonstrated with `ultimate.evaluate` and `forecast.project` patched to raise, which is the Phase 2 gate. The complete fast suite passed with 876 tests passed and 63 skipped, the 848-pass Phase 1 baseline plus 28 new tests, with nothing weakened.
 - Commit: `bcf7347` (`v5 phase 2 outcome scoring and performance memory: GO`)
+- Examined: *(backfilled 2026-08-14 under the §0 standing rule, from the Phase 2 record and `reports/V5_PHASE2_SCORING_MEMORY.md` only.)*
+  1. Baseline suite: **848 passed, 63 skipped** (the Phase 1 result, cited as this phase's baseline).
+  2. Final suite: **876 passed, 63 skipped.** Delta **+28 passes**, 0 skips changed, nothing weakened.
+  3. Leak detector: no prediction path touched — scoring is a separate process that never writes forecasts. The named test's individual result was **not separately recorded**; it is inside the passing fast suite.
+  4. Methodology surfaces (§1.2): none touched.
+  5. Frozen records: none modified. Reads **not itemised**.
+  6. Closed programmes: none reopened.
+  7. Measurement: **mechanism only.** Scoring was demonstrated as a pure function of a frozen record plus realised prices, with `ultimate.evaluate` and `forecast.project` patched to raise. No predictive claim was produced.
+  8. Sealed exam accessed: **no.**
 - Notes for Phase 3: `model_key()` in `outcome_ledger` is a placeholder identity (`ultimate_ensemble`, or the challenger's `neural_challenger` version) that Phase 3 should replace with real registry identity; keep the scoring API stable when it does. The reported Wilson/normal intervals are **nominal and assume independent observations** — overlapping horizons on one series violate that, so they describe performance but are not a significance test and must not be used as one by Phase 4 or Phase 10. Performance memory becomes known at `matured_at`, never at `cutoff_at`: Phase 5 must build weights through `known_as_of()`. `probability_positive`, Brier, and calibration remain null because no production path emits a probability, and confidence must never be substituted for one. Sector-relative outcomes stay unavailable pending a PIT sector map (Phase 9 candidate). No weight, status, or promotion was changed. `app/streamlit_app.py` and `app/tests/test_ui.py` keep their pre-existing uncommitted modifications and were not touched.
 
 ---
@@ -315,6 +373,15 @@ Each model should expose, where relevant:
 - Status: COMPLETE
 - Result: GO. The new `app/core/model_registry.py` registers 45 predictive components — 14 PRODUCTION, 3 CHALLENGER, 19 EXPERIMENTAL, 3 RETIRED, 6 REJECTED — each with declared identity, source-hash version, family, target, horizons, required features, training cutoff, retraining policy, PIT status and production status. Model outputs are comparable under one framework because every model declares an `output_kind` and a `score_class` that maps onto named `outcome_ledger.summarise` columns: the incumbent ensemble and the neural challengers share `return_pct` and are directly rankable, while signal-only constituents admit directional accuracy alone. The census is built from `indicators.SOURCES`, `agents.REGISTRY`, `forecast.MODELS` and `ultimate.HORIZONS` and bound to them by tests, so it cannot drift. The complete fast suite passed with 904 tests passed and 63 skipped, the 876-pass Phase 2 baseline plus 28 new tests, with nothing weakened.
 - Commit: `26c65f8` (`v5 phase 3 unified model registry: GO`)
+- Examined: *(recorded during the phase, the first under the §0 standing rule.)*
+  1. Baseline suite: **876 passed, 63 skipped** — green, run before any edit, matching the Phase 2 record exactly.
+  2. Final suite: **904 passed, 63 skipped.** Delta **+28 passes**, 0 skips changed, no existing assertion relaxed.
+  3. Leak detector: no prediction path touched — the registry reads and classifies, it does not predict. `app/tests/test_validation.py::test_future_cannot_change_the_verdict` was run **explicitly and individually: 1 passed.**
+  4. Methodology surfaces (§1.2): **none touched.** No target, feature, model parameter, exam set, walk-forward, or `validation/pit.py` change, so no amendment was required. One behavioural change outside that list — `outcome_ledger.model_key` now returns registry identity — was authorised in terms by the Phase 2 completion note.
+  5. Frozen records: `reports/EXPERIMENT_REGISTRY.md` was **read** (§2, §6, §7, §8) along with `reports/PROGRESS_V3.md`, `reports/PROGRESS_V4.md`, `reports/V4_SUE_POWER_GATE.md`, `reports/FAMILY10_ADMISSIBILITY.md`, `reports/AGENT_META_SIGNAL_RESULT.md`. **None was modified.** Every number quoted into the registry was copied from them, never recomputed.
+  6. Closed programmes: this phase deliberately touched all of them, and registered them as `REJECTED` so they stay closed. Nothing was reopened, re-tested, or re-scored. `assert_not_reopened` is the callable form of that bar; six programmes are covered.
+  7. Measurement: **none.** Every status was assigned from the existing record. No model was promoted, demoted, retired, or reopened on the strength of a number computed in this phase.
+  8. Sealed exam accessed: **no.**
 - Notes for Phase 4: **There is no admissible RL candidate.** All 19 trainable agents are PIT-INADMISSIBLE for a structural reason (whole-series training, replay from bar zero) and none carries a `record_key`, so none can appear in a frozen forecast; reopening that means building a PIT-safe training protocol, which is Phase 7 work and not a Phase 4 shortcut. `closed.pit1_single_name` — 9 components, 0 beat always-up, unanimous sign — is the prior for single-name direction and the candidate set must be justified against it. `closed.ams1_agent_meta` constrains Phase 5: weighting by cross-family agent agreement reopens a refused result. Rank by `score_class`: only `RETURN_AND_DIRECTIONAL` models may be compared on MAE/RMSE. `outcome_ledger.model_key` now returns registry identity (authorised in terms by the Phase 2 completion record) and `performance_frame` carries a separate `model_version` column, so Phase 4 must choose explicitly whether to group by identity or by identity and version. A model-assisted incumbent record still resolves to `ensemble.ultimate`; use `constituent_ids(record)` when that distinction matters. Call `assert_record_admissible` on any record entering an evaluation. The Phase 2 interval caveat is unchanged: nominal intervals, not a significance test. `app/streamlit_app.py` and `app/tests/test_ui.py` keep their pre-existing uncommitted modifications and were not touched.
 
 ---
@@ -362,6 +429,7 @@ Proceed only with candidates that either:
 - Status: PENDING
 - Result:
 - Commit:
+- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
 - Notes:
 
 ---
@@ -418,6 +486,7 @@ Adaptive weighting must add credible OOS value over the simple baseline/static a
 - Status: PENDING
 - Result:
 - Commit:
+- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
 - Notes:
 
 ---
@@ -462,6 +531,7 @@ Only validated regime effects may influence ensemble weights or model selection.
 - Status: PENDING
 - Result:
 - Commit:
+- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
 - Notes:
 
 ---
@@ -505,6 +575,7 @@ No automatic production promotion without explicit evidence gate.
 - Status: PENDING
 - Result:
 - Commit:
+- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
 - Notes:
 
 ---
@@ -599,6 +670,7 @@ The user should be able to understand whether the system is improving without re
 - Status: PENDING
 - Result:
 - Commit:
+- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
 - Notes:
 
 ---
@@ -650,6 +722,7 @@ Any new dataset must have a precise hypothesis and measurable expected role.
 - Status: PENDING
 - Result:
 - Commit:
+- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
 - Notes:
 
 ---
@@ -709,6 +782,7 @@ V5 may only be called better if it demonstrates credible OOS improvement on metr
 - Status: PENDING
 - Result:
 - Commit:
+- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
 - Notes:
 
 ---
@@ -747,6 +821,7 @@ Must include:
 - Status: PENDING
 - Result:
 - Commit:
+- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
 - Notes:
 
 ---
@@ -755,7 +830,7 @@ Must include:
 
 After `/clear`, use only this short prompt:
 
-> Read `V5_ADAPTIVE_PREDICTION_ROADMAP.md`. Treat it as the persistent project state. Check git status/history, identify the ACTIVE PHASE and first unchecked task, then continue that phase only. Read historical reports only when the active phase requires exact evidence. Do not redo completed work. At the end, update the roadmap checkboxes, result, commit hash, and ACTIVE PHASE.
+> Read `V5_ADAPTIVE_PREDICTION_ROADMAP.md`. Treat it as the persistent project state. Check git status/history, identify the ACTIVE PHASE and first unchecked task, then continue that phase only. Read historical reports only when the active phase requires exact evidence. Do not redo completed work. Record the baseline suite result before your first edit — it is item 1 of the mandatory Examined block in §0. At the end, update the roadmap checkboxes, result, commit hash, **the Examined block**, and ACTIVE PHASE.
 
 ---
 
@@ -767,8 +842,20 @@ At the end of every phase, update its record:
 Status: COMPLETE / REJECTED / BLOCKED
 Result: <1–4 sentence decision>
 Commit: <hash>
+Examined:
+  1. Baseline suite: <passed/skipped before any edit; green?>
+  2. Final suite: <passed/skipped after; delta>
+  3. Leak detector: <prediction path touched? explicit test result>
+  4. Methodology surfaces (§1.2): <which, and the authorising amendment — or none touched>
+  5. Frozen records: <which append-only records were read; none modified>
+  6. Closed programmes: <what this could reopen, and why it does not — or none>
+  7. Measurement: <what was measured, or "none">
+  8. Sealed exam accessed: <no>
 Notes: <only information required by the next phase>
 ```
+
+The **Examined** block is mandatory and is filled from the standing rule in
+§0. It is written before the phase is declared COMPLETE.
 
 Then:
 
