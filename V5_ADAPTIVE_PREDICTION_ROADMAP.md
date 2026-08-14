@@ -133,8 +133,10 @@ Do not treat this summary as a substitute for repository evidence when exact val
 - [x] **PHASE 1 — Forecast Ledger**
 - [x] **PHASE 2 — Outcome Scoring & Performance Memory**
 - [x] **PHASE 3 — Unified Model Registry**
-- [ ] **PHASE 4 — Baseline + Challenger Evaluation**
-- [ ] **PHASE 5 — Adaptive Ensemble**
+- [x] **PHASE 4 — Baseline + Challenger Evaluation**
+- [ ] **PHASE 5 — Adaptive Ensemble** — **BLOCKED**, premise contradicted by the
+      record; awaiting a scope decision between the two reformulations in
+      `reports/V5_PHASE4_CHALLENGER_EVAL.md` §10.2
 - [ ] **PHASE 6 — Regime-Aware Evaluation**
 - [ ] **PHASE 7 — Retraining & Promotion Policy**
 - [ ] **PHASE 8 — Research & Learning UI**
@@ -142,7 +144,9 @@ Do not treat this summary as a substitute for repository evidence when exact val
 - [ ] **PHASE 10 — V5 Integrated Validation**
 - [ ] **PHASE 11 — Production Decision**
 
-**ACTIVE PHASE:** PHASE 4
+**ACTIVE PHASE:** PHASE 5 — **BLOCKED.** Do not begin Phase 5 as written. Read
+`reports/V5_PHASE4_CHALLENGER_EVAL.md` §10.1–§10.2 first and obtain a scope
+decision from the programme owner.
 
 ---
 
@@ -406,12 +410,16 @@ Start with a compact set:
 
 ## Tasks
 
-- [ ] Define the exact production target.
-- [ ] Define metrics matching displayed app claims.
-- [ ] Evaluate all candidates on identical PIT splits.
-- [ ] Compare every candidate against baseline.
-- [ ] Separate single-name metrics from cross-sectional metrics.
-- [ ] Reject complexity with no incremental evidence.
+- [x] Define the exact production target. (§3 of the report)
+- [x] Define metrics matching displayed app claims. (§4)
+- [x] Evaluate all candidates on identical PIT splits. — **discharged from the
+      frozen PIT-1 record, not re-run.** Re-running it reopens a closed
+      programme; see §2. (§6.1)
+- [x] Compare every candidate against baseline. — same basis. (§6.2, §6.4)
+- [x] Separate single-name metrics from cross-sectional metrics. — separated.
+      Single-name is fully covered; **cross-sectional has never been measured for
+      this engine and remains open**, needing its own preregistration. (§7)
+- [x] Reject complexity with no incremental evidence. (§8)
 
 ## Required Deliverable
 
@@ -426,15 +434,93 @@ Proceed only with candidates that either:
 
 ## Completion Record
 
-- Status: PENDING
-- Result:
-- Commit:
-- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
-- Notes:
+- Status: COMPLETE
+- Result: **STOP on route 1 for every candidate.** Phase 4 was executed as an
+  evidence synthesis over the frozen record, with **no new measurement**: the
+  88-cutoff design first drafted for this phase was found to be a higher-powered
+  re-run of the CLOSED `PIT-1` programme (same object, harness, code paths,
+  baselines and clustered statistics), the conflict was flagged under CLAUDE.md
+  §1.3 before any forecast was frozen, and the programme owner directed synthesis
+  rather than re-measurement. On PIT-1's frozen numbers every candidate is below
+  `always_bullish` on identical rows and the single individually significant
+  difference is negative (−22.4 pts [−40.0, −4.9], p = 0.017); both
+  return-emitting candidates lose to no-change on level and carry no magnitude
+  information (corr −0.011 and −0.073); the neural challenger changed **zero**
+  verdicts across 257 of 257 gated horizon-slots; confidence is non-monotone and
+  inverts at the top band; and the RL slot is structurally empty. No candidate was
+  promoted or demoted and no production weight changed.
+- Commit: PENDING — record the applying commit hash when this report and roadmap
+  update are committed.
+- Examined: *(recorded during the phase, under the §0 standing rule.)*
+  1. Baseline suite: **904 passed, 63 skipped** — green, run before any edit,
+     matching the Phase 3 record exactly.
+  2. Final suite: **904 passed, 63 skipped.** Delta **0** — the phase changed no
+     code, only documentation. No assertion relaxed.
+  3. Leak detector: **no prediction path touched.** No module was added or
+     modified. `app/tests/test_validation.py::test_future_cannot_change_the_verdict`
+     was run **explicitly and individually: 1 passed.**
+  4. Methodology surfaces (§1.2): **none touched.** No target, feature, model
+     parameter, exam set, walk-forward or `validation/pit.py` change, so no
+     amendment was required.
+  5. Frozen records: **read** — `reports/EXPERIMENT_REGISTRY.md` (§2, §5),
+     `validation/REPORT.md` (§1–§20), `reports/SINGLE_NAME_PHASE1.md`. **None was
+     modified.** Every number quoted into the Phase 4 report was copied from them,
+     never recomputed. `reports/EXPERIMENT_REGISTRY.md` was **appended to** — a new
+     §12 registering the aborted design, under the registry's own rule that a run
+     which aborted gets a row saying so. No existing wording was altered, and no
+     row was inserted into the §2 index.
+  6. Closed programmes: **this phase exists because of one.** The drafted design
+     would have reopened `closed.pit1_single_name`; it was refused and not run.
+     `closed.ams1_agent_meta` is named as foreclosing agent-agreement weighting in
+     Phase 5. The V2/V3/V4 cross-sectional record is recorded as a *different
+     target*, so §7.2's open cross-sectional question does not reopen it. Nothing
+     was re-tested, re-scored or reopened.
+  7. Measurement: **none.** No forecast was frozen, no outcome resolved, no ledger
+     written, no estimate produced. Three exploratory probes ran *before* the
+     conflict was identified — one timed `ultimate.evaluate`, three timed
+     `forecast.project` fits, two coverage probes over 6 symbols × 12 cutoffs. All
+     called the prediction side only; **none read a realised return, an outcome, or
+     any bar after its cutoff.** None is used as evidence. They are recorded in the
+     report §2.1 and in registry §12. The one fact carried forward from them (§7.3
+     — a neutral verdict is an abstention with `coverage == 0`, never a cancelled
+     signal) involves no forward return.
+  8. Sealed exam accessed: **no.**
+- Notes for Phase 5: **Phase 5 as written cannot be entered.** It presupposes
+  constituents with differing measurable OOS usefulness to reallocate weight
+  between; the record supplies none — combined agent accuracy 50.2% (n = 325,
+  −8.9 pts vs always-long), best single agent −2.2 pts [−16.9, +12.6] and long 55%
+  of the time in a rising market, worst agent the fading variant and short most of
+  the time in the same market, i.e. both measuring drift in opposite directions.
+  Agent-agreement weighting is foreclosed by `closed.ams1_agent_meta`, whose
+  measured direction was the reverse of the hypothesis. Two admissible
+  reformulations are set out in report §10.2 — **(a)** weight-to-abstain, testing
+  whether the existing `coverage`/`agreement` gating identifies in advance where
+  calls are worth acting on (the one validated property of the system), and
+  **(b)** skipping to Phase 9 Data Gap Analysis, since the engine reads price and
+  volume only and the resolution arithmetic says the instrument cannot see effects
+  of the size that information plausibly carries. Recommendation: **(b) with (a)
+  as a cheap prerequisite.** Either needs a preregistration committed before
+  measurement. Carry forward unchanged: cluster by cutoff date; `known_as_of()` is
+  the only admissible slice for a weight; declare the abstained/spoken split before
+  any MAE comparison; no `probability_positive` exists anywhere, so Brier, log loss
+  and calibration error are not computable and confidence is never substituted for
+  a probability; the Phase 2 nominal-interval caveat stands; and PIT-1's three
+  residual look-aheads are unrepaired, so **this harness cannot support a
+  believable positive result** until they are. `app/streamlit_app.py` and
+  `app/tests/test_ui.py` keep their pre-existing uncommitted modifications and were
+  not touched.
 
 ---
 
 # PHASE 5 — Adaptive Ensemble
+
+> **BLOCKED — do not begin this phase as written.** Phase 4 found its premise
+> contradicted by the frozen record: there is no set of constituents with
+> differing, measurable out-of-sample usefulness to reallocate weight between.
+> Read `reports/V5_PHASE4_CHALLENGER_EVAL.md` §10.1–§10.2 and obtain a scope
+> decision from the programme owner before doing anything below. Reweighting
+> components that are collectively indistinguishable from the market's drift
+> produces a different number, not a better forecast.
 
 ## Goal
 

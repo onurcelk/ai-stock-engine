@@ -1003,3 +1003,56 @@ still found nothing. That is the strongest form the null has taken in this progr
 three families agree unanimously on 28.3% of rows; seven agents agree unanimously on 1.2%.
 A surface that displays "18 of 22 agents agree" as a confidence signal is counting
 coincidence, not evidence — and this repository's Trading-agents tab does exactly that.
+
+---
+
+## 12. V5 Phase 4 — a designed study that was not run, 2026-08-14
+
+Registered under the §2 rule that **no failed run is silently discarded**: *"A run
+that aborted, was superseded, or departed from its protocol gets a row saying
+so."* This one aborted **before its first forecast was frozen**, and the reason
+is a governance conflict rather than a technical failure.
+
+No row was added to the §2 index. The index enumerates arms, this entry spends no
+arm and no budget slot, and inserting a row directly above the frozen
+"Architecture verdict" paragraph would have changed what that paragraph appears to
+comment on. The entry is recorded here in full instead.
+
+| Field | |
+|---|---|
+| ID / date | `V5-P4-ABORTED` · 2026-08-14 |
+| Study | V5 roadmap Phase 4 — Baseline + Challenger Evaluation |
+| Design | 88 point-in-time cutoffs (5-trading-day spacing, non-overlapping) × 19 cached US-session symbols; horizons `4h`/`1d`/`1w`; `ensemble.ultimate` and its 13 constituents against `zero_return` and `always_bullish`; a neural sub-grid of 3 recurrent architectures; block-clustered intervals by cutoff date; routed through the Phase 1–3 forecast ledger, outcome scorer and model registry |
+| Arms declared | 4 named candidates + 13 diagnostic constituents + 2 baselines |
+| **Status** | **NOT RUN.** No forecast was frozen, no outcome resolved, no ledger written |
+| Reason | The design is a higher-powered re-run of `PIT-1` (§2, decision REJECT), which is CLOSED. Same object, same harness, same production code paths, same baselines, same clustered statistics. Adding GRU and Vanilla RNN is *"a different learner"* on a rejected arm; raising 12 cutoffs to 88 is *"repeated mining until something passes"*. CLAUDE.md §1.3 |
+| Considered against | PIT-1 named this follow-up in its own conclusion before its REJECT was registered, and PIT-1 carried no pre-registered MDE — so its REJECT is arguably a study-quality failure. Neither was decisive, because PIT-1 also disclosed three residual look-aheads (adjusted prices, today's-cache universe, intraday depth) and stated all three would have to be repaired before a *positive* result could be believed. More cutoffs repair power and none of those three |
+| Budget slots spent | **0.** No new information family. V3 and V4 remain CLOSED |
+| Exam cutoffs touched | **0** |
+| Production weight | unchanged. No model promoted, demoted, retired or reopened |
+| Disposition | Phase 4 was completed as an evidence synthesis over the frozen record. `reports/V5_PHASE4_CHALLENGER_EVAL.md` |
+| Tests | 904 passed, 63 skipped — unchanged from the Phase 3 baseline; the phase changed no code |
+
+**Exploratory work performed before the conflict was identified**, recorded rather
+than omitted: one timed `ultimate.evaluate` call, three timed `forecast.project`
+fits, and two coverage probes over 6 symbols × 12 cutoffs. All called the
+prediction side only. **None read a realised return, an outcome, or any bar after
+its cutoff.** No number from them is used as evidence.
+
+**What the synthesis concluded.** No candidate clears the Phase 4 gate on route 1;
+every one is below `always_bullish` on identical rows in the frozen PIT-1 record,
+and the one individually significant difference is negative. The RL slot is
+structurally empty — all 19 trainable agents are PIT-INADMISSIBLE. Phase 5's
+premise is contradicted by the record and Phase 5 is **BLOCKED** pending a scope
+decision.
+
+**One correction to a prior reading, appended rather than edited.**
+`validation/REPORT.md` §15 reads the unanimity of nine below-baseline systems as
+*"nine coin flips landing the same way is a 1-in-256 event."* That figure
+overstates the evidence: the nine systems share the same 12 cutoff dates and
+largely the same 30 symbols, and the consensus is a weighted function of its own
+constituents, so they cannot land independently. The original wording stands and
+remains visible in that report; this note records that the unanimity argument is
+weaker than stated. It does not rescue any candidate — no candidate's own interval
+approaches zero from above, and the PIT-1 verdict rests on those intervals rather
+than on the unanimity argument.
