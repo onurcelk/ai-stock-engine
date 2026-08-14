@@ -615,8 +615,9 @@ put against this gate.
   120 spoken rows at one family's breadth, 66 at full breadth, 7 in between — so
   coverage is not a continuous dial and no future design may treat it as one.
 - Commit: `f53aa96` (pre-registration, before any statistic), `660ce25` (gate
-  code, before it was run), and the commit carrying this roadmap update with
-  `reports/V5_PHASE5A_ABSTENTION.md`.
+  code, before it was run), `ade0305` (result and roadmap update, after the
+  measurement). The temporal ordering of those three hashes is the verifiable
+  form of "declared in advance" (CLAUDE.md §5.2).
 - Examined: *(recorded during the phase, under the §0 standing rule.)*
   1. Baseline suite: **904 passed, 63 skipped** — green, run before any edit,
      matching the Phase 3 and Phase 4 records exactly.
