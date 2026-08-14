@@ -100,7 +100,7 @@ Do not treat this summary as a substitute for repository evidence when exact val
 
 - [x] **PHASE 0 — Architecture Audit**
 - [x] **PHASE 1 — Forecast Ledger**
-- [ ] **PHASE 2 — Outcome Scoring & Performance Memory**
+- [x] **PHASE 2 — Outcome Scoring & Performance Memory**
 - [ ] **PHASE 3 — Unified Model Registry**
 - [ ] **PHASE 4 — Baseline + Challenger Evaluation**
 - [ ] **PHASE 5 — Adaptive Ensemble**
@@ -111,7 +111,7 @@ Do not treat this summary as a substitute for repository evidence when exact val
 - [ ] **PHASE 10 — V5 Integrated Validation**
 - [ ] **PHASE 11 — Production Decision**
 
-**ACTIVE PHASE:** PHASE 2
+**ACTIVE PHASE:** PHASE 3
 
 ---
 
@@ -244,15 +244,15 @@ Where appropriate:
 
 ## Tasks
 
-- [ ] Match matured forecasts to outcomes.
-- [ ] Never overwrite original forecast fields.
-- [ ] Implement horizon-aware scoring.
-- [ ] Maintain sample counts.
-- [ ] Add rolling and expanding performance summaries.
-- [ ] Measure by model and horizon first.
-- [ ] Add symbol/sector breakdown only when sample size is sufficient.
-- [ ] Add calibration metrics where probabilities exist.
-- [ ] Add baseline-relative metrics.
+- [x] Match matured forecasts to outcomes.
+- [x] Never overwrite original forecast fields.
+- [x] Implement horizon-aware scoring.
+- [x] Maintain sample counts.
+- [x] Add rolling and expanding performance summaries.
+- [x] Measure by model and horizon first.
+- [x] Add symbol/sector breakdown only when sample size is sufficient.
+- [x] Add calibration metrics where probabilities exist.
+- [x] Add baseline-relative metrics.
 
 ## Required Deliverable
 
@@ -264,10 +264,10 @@ Where appropriate:
 
 ## Completion Record
 
-- Status: PENDING
-- Result:
-- Commit:
-- Notes:
+- Status: COMPLETE
+- Result: GO. The new `app/core/outcome_ledger.py` matches matured forecasts to realised bars in a separate append-only `outcomes` table keyed by `forecast_id`, scores them horizon-aware against a declared baseline, and builds rolling/expanding performance memory in which every point estimate carries its sample size and interval. Scoring is a pure function of a frozen record plus realised prices — it was demonstrated with `ultimate.evaluate` and `forecast.project` patched to raise, which is the Phase 2 gate. The complete fast suite passed with 876 tests passed and 63 skipped, the 848-pass Phase 1 baseline plus 28 new tests, with nothing weakened.
+- Commit: PENDING — record the applying commit hash when this phase and roadmap update are committed.
+- Notes for Phase 3: `model_key()` in `outcome_ledger` is a placeholder identity (`ultimate_ensemble`, or the challenger's `neural_challenger` version) that Phase 3 should replace with real registry identity; keep the scoring API stable when it does. The reported Wilson/normal intervals are **nominal and assume independent observations** — overlapping horizons on one series violate that, so they describe performance but are not a significance test and must not be used as one by Phase 4 or Phase 10. Performance memory becomes known at `matured_at`, never at `cutoff_at`: Phase 5 must build weights through `known_as_of()`. `probability_positive`, Brier, and calibration remain null because no production path emits a probability, and confidence must never be substituted for one. Sector-relative outcomes stay unavailable pending a PIT sector map (Phase 9 candidate). No weight, status, or promotion was changed. `app/streamlit_app.py` and `app/tests/test_ui.py` keep their pre-existing uncommitted modifications and were not touched.
 
 ---
 
