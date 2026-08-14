@@ -189,6 +189,35 @@ one that binds.
 GATE 1 (POWER): computed by alpha/abs1_power_gate.py, committed before it is run
 ```
 
+### §6.1 Specification appended 2026-08-14, before the gate was run
+
+Appended under CLAUDE.md §1.1. The original §6 wording above is unaltered. This
+settles three details §6 left to the implementation, and it is committed in
+`alpha/abs1_power_gate.py` **before that module is executed**, so none of them
+can be chosen after seeing a number.
+
+1. **MDE convention.** Reported at the standard two-sided 5% / 80% power
+   convention, factor `1.96 + 0.8416 = 2.8016`. The bare 1.96 half-width is
+   emitted alongside it, but **Gate 1 is decided on the 80%-power figure**,
+   which is the stricter of the two.
+2. **Worst-case variance.** Accuracy is unknown before outcomes are read, so
+   `p = 0.5` is used throughout, maximising binomial variance and making the MDE
+   as large as it can honestly be at a given geometry.
+3. **The geometry is an upper bound.** A horizon can be available and lean at
+   its cutoff yet drop out of `calls.csv` for want of a complete outcome window,
+   so the gate runs on at least as many rows as the study would have and its MDE
+   therefore errs toward **passing**. Binding consequence: a **FAIL is
+   conclusive**, because the real geometry is never better than this one; a
+   **PASS must be re-verified** against the actual scoreable row count before
+   Gate 2 is computed, using the join key only and never the `correct` column.
+
+The clustered design effect is re-derived from PIT-1's own *published* interval
+(`validation/REPORT.md` §8: n = 134, 53.7%, [40.6, 66.8]) rather than recomputed
+from any outcome — the same quote-don't-recompute rule Phase 4 worked under.
+Backing an intra-cluster correlation out of that published half-width lets the
+design effect be re-derived at each band's own cluster size instead of assumed
+constant.
+
 ## §7 Acceptance gates — numeric, frozen, not adjustable after a result
 
 | # | gate | threshold |
