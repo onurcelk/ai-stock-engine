@@ -449,8 +449,8 @@ Proceed only with candidates that either:
   verdicts across 257 of 257 gated horizon-slots; confidence is non-monotone and
   inverts at the top band; and the RL slot is structurally empty. No candidate was
   promoted or demoted and no production weight changed.
-- Commit: PENDING — record the applying commit hash when this report and roadmap
-  update are committed.
+- Commit: `cb5d2eb` (`v5 phase 4 baseline and challenger evaluation: STOP, no
+  candidate advances`)
 - Examined: *(recorded during the phase, under the §0 standing rule.)*
   1. Baseline suite: **904 passed, 63 skipped** — green, run before any edit,
      matching the Phase 3 record exactly.
