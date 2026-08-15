@@ -12,10 +12,15 @@
 
 At the beginning of a fresh Claude Code context:
 
+0. **Read §3, then the highest-numbered §3.x session record, then §3.3.** As of
+   2026-08-15 that is §3.2, and §3.3 tells a session arriving without the owner
+   decision what to do — and what not to do. An unchecked box in §3 is **not**
+   an invitation to start work; Phases 6, 10 and 11 are all blocked at entry for
+   reasons that are not effort.
 1. Read this file.
 2. Read only the files explicitly referenced by the **ACTIVE PHASE**.
 3. Check `git status` and recent relevant commits.
-4. Continue from the first unchecked phase.
+4. Continue from the first unchecked phase **that is not entry-blocked**.
 5. Do **not** restart completed research.
 6. Do **not** begin a later phase until the current phase meets its STOP/GO gate.
 7. At the end of the phase:
@@ -389,6 +394,47 @@ Nothing is left to build: the forecast ledger, the outcome scorer, the promotion
 gate and the research UI all exist, are tested, and have never been switched on.
 The programme is waiting on one owner decision — whether to start freezing live
 forecasts — and **no amount of work substitutes for it.**
+
+**Still true after 2026-08-15's RR-1 structural gate**, and now true with no
+exceptions: §3's *"Precision on 'no free item left'"* named one latent
+engineering item, and §3.2 records that it is spent. There is no longer a
+research item **or** an engineering item that can proceed without the decision.
+
+## 3.3 What a session arriving without the decision should do
+
+This section exists because the failure mode is predictable and expensive:
+a fresh context reads a 1,700-line roadmap, finds unchecked boxes at Phases 6,
+10 and 11, and **invents work to fill the silence.** All three are blocked, and
+the blocks are not effort problems.
+
+1. **Do not enter Phase 6.** INADMISSIBLE AS WRITTEN. RR-1 resolved Ground 2;
+   Grounds 1 and 3 stand and neither is about effort. The replacement gate's
+   domain is empty.
+2. **Do not enter Phase 10 or 11.** Both need a record of frozen forecasts.
+   None exists. Phase 9 established no dataset can supply one.
+3. **Do not create `app/forecast_ledger.sqlite3` for any reason** — not to test,
+   not to demo, not "just to see the UI populated". Its absence is load-bearing
+   for Phase 7 §6, Phase 9 §6, and Phase 8's no-manufacture test. Note that
+   `ForecastLedger.__init__` *creates* its file, so touching that constructor
+   outside a `tmp_path` destroys the guarantee silently. Switching the ledger on
+   is **the owner's decision and only the owner's**.
+4. **Do not weaken or remove `G0`/`D0`** on the view that D0 exceeded RR-1 §8's
+   wording. That objection is anticipated and answered in
+   `reports/V5_RR1_STRUCTURAL_GATE.md` §2.2.
+5. **Do not re-derive the RR-1 dissent.** An independent review already argued
+   Phase 6 should be struck permanently; it was rejected on stated grounds in
+   `reports/V5_REGIME_RULE_RESOLUTION.md` §7. Re-deriving it is not new evidence.
+6. **What to do instead: ask.** Put the ledger decision to the owner. If they
+   decline to decide, the correct output is a report, not a code change.
+   Read-only work — auditing a report, answering a question about the record,
+   re-running the suite — is always available and always safe.
+
+**The five files that hold the whole state**, if more than this roadmap is
+needed: `reports/V5_PHASE9_DATA_GAP_ANALYSIS.md` (why no dataset helps),
+`reports/V5_PHASE7_RETRAINING_POLICY.md` (the promotion policy),
+`reports/V5_REGIME_RULE_RESOLUTION.md` (RR-1, the regime rule),
+`reports/V5_RR1_STRUCTURAL_GATE.md` (RR-1 in code), and
+`reports/EXPERIMENT_REGISTRY.md` (every arm ever run, append-only).
 
 ---
 
