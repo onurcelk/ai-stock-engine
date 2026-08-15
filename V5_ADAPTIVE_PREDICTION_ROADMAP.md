@@ -1157,8 +1157,9 @@ The user should be able to understand whether the system is improving without re
   Phase 6's result is carried to the point of use: the explanation panel states
   *"Regime conditioning: not validated, and not applied"* rather than omitting
   the row the roadmap asks for.
-- Commit: hash recorded in the follow-up commit, per the convention used at
-  `2105d4f`, `41a0273`, `23aaed8`, `73903c0`.
+- Commit: `b3de55f` — the Research tab, `research_view.py`, both test files, the
+  report and this roadmap update together. Hash recorded in the follow-up
+  commit, per the convention used at `2105d4f`, `41a0273`, `23aaed8`, `73903c0`.
 - Examined:
   1. Baseline suite: **927 passed, 65 skipped — green**, run before any edit on
      a clean tree immediately after the Phase 7 commits.
