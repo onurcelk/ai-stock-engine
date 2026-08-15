@@ -1597,7 +1597,29 @@ with portfolio_tab:
 
     elif view == "My portfolio":
         realised = holdings.realised_total(ledger)
-        columns = st.columns(6 if pro else 5)
+
+        # ------------------------------------------------- change on the bar
+        #
+        # The book is priced off whatever interval the toolbar is on, so the
+        # move since the previous bar is only a *daily* move when those are
+        # daily bars. Name it after the bar rather than claim a day the data
+        # does not cover. A position with a single bar has nothing to compare
+        # against and reads as absent, not zero — NaN rather than None so the
+        # column stays a float and `theme.signed` renders it the same "—" an
+        # unpriced holding gets, even when every position is missing one.
+        bar_pnl: dict[str, float] = {}
+        for position in book.priced:
+            frame = frames.get(position.symbol)
+            if frame is None or len(frame) < 2:
+                bar_pnl[position.symbol] = float("nan")
+                continue
+            previous_close = float(frame["close"].iloc[-2])
+            bar_pnl[position.symbol] = round(
+                (position.last_price - previous_close) * position.holding.quantity, 2)
+        bar_label = f"{NAME_FOR_CODE.get(interval, 'Session')} P&L"
+        total_bar_pnl = round(sum(v for v in bar_pnl.values() if v == v), 2)
+
+        columns = st.columns(7 if pro else 6)
         columns[0].metric("Market value", f"${book.market_value:,.2f}",
                           f"{book.pnl:+,.2f}")
         columns[1].metric("Cost basis", f"${book.cost_basis:,.2f}")
@@ -1605,9 +1627,12 @@ with portfolio_tab:
         columns[3].metric("Realised", f"${realised:+,.2f}",
                           help="Booked on sells, commission deducted. Comes "
                                "from the trade ledger, not from prices.")
-        columns[4].metric("Positions", f"{len(book.priced)}")
+        columns[4].metric(bar_label, f"${total_bar_pnl:+,.2f}",
+                          help="Change in market value since the previous bar "
+                               "close, across every position that has one.")
+        columns[5].metric("Positions", f"{len(book.priced)}")
         if pro:
-            columns[5].metric("Largest position", f"{book.concentration_pct:.1f}%",
+            columns[6].metric("Largest position", f"{book.concentration_pct:.1f}%",
                               help="Share of the book in its single biggest holding.")
 
         # -------------------------------------------------- the book's signal
@@ -1656,8 +1681,10 @@ with portfolio_tab:
         table = book.table().merge(
             calls[["Symbol", "Call", "Signal", "Confidence %"]],
             on="Symbol", how="left")
+        table[bar_label] = table["Symbol"].map(bar_pnl)
         st.dataframe(
-            theme.signed(table, ("P&L", "P&L %", "Signal"), calls=("Call",)),
+            theme.signed(table, ("P&L", "P&L %", bar_label, "Signal"),
+                         calls=("Call",)),
             use_container_width=True, hide_index=True,
             height=min(640, 40 + 35 * len(table)))
         st.caption(
@@ -1665,6 +1692,13 @@ with portfolio_tab:
             "measured the same way the Signal tab measures it. `HOLD` at a "
             "signal of 0 means nothing cleared significance — which is the "
             "ordinary result, not a missing number."
+        )
+        st.caption(
+            f"`{bar_label}` is the change in market value from the previous "
+            f"{NAME_FOR_CODE.get(interval, 'session').lower()} bar's close to "
+            "the latest price, so it follows the interval the toolbar is on "
+            "rather than always meaning a day. A dash means the symbol has "
+            "only one bar to stand on."
         )
 
         if pro:

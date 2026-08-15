@@ -529,7 +529,7 @@ def test_the_portfolio_list_carries_the_ultimate_signal(mode):
     for table in app.dataframe:
         frame = getattr(table, "value", None)
         columns = set(getattr(frame, "columns", []))
-        if {"Symbol", "P&L", "Call", "Signal"} <= columns:
+        if {"Symbol", "P&L", "Daily P&L", "Call", "Signal"} <= columns:
             positions = frame
             break
 
@@ -540,6 +540,29 @@ def test_the_portfolio_list_carries_the_ultimate_signal(mode):
     labels = [m.label for m in app.metric]
     assert "Book signal" in labels
     assert "Reading sell" in labels
+    assert "Daily P&L" in labels, "Daily P&L metric missing from portfolio overview"
+
+
+@pytest.mark.parametrize("mode", ["Lite", "Pro"])
+def test_the_bar_pnl_is_named_after_the_bar_it_measures(mode):
+    """On weekly bars the prior close is a week back, so it is not "Daily".
+
+    The portfolio prices off whatever interval the toolbar is on. Measuring
+    the move since the previous bar and calling it a day would overstate a
+    weekly move as a daily one — the label has to follow the data.
+    """
+    from core import holdings
+
+    holdings.save([holdings.Holding(SEEDED_SYMBOLS[0], 1.0, 100.0)])
+
+    app = fresh_app(mode=mode)
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    next(w for w in app.radio if w.key == "interval_pill").set_value("W").run()
+    assert_clean(app, f"{mode} portfolio on weekly bars")
+
+    labels = [m.label for m in app.metric]
+    assert "Weekly P&L" in labels, f"bar P&L not named for the bar: {labels}"
+    assert "Daily P&L" not in labels, "weekly bars still labelled Daily"
 
 
 def test_the_scan_agrees_with_the_signal_tab():
