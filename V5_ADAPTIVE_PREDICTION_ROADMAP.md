@@ -148,17 +148,40 @@ Do not treat this summary as a substitute for repository evidence when exact val
       a record that could resolve it. See `reports/V5_PHASE6_REGIME_EVAL.md`
 - [ ] **PHASE 7 — Retraining & Promotion Policy**
 - [ ] **PHASE 8 — Research & Learning UI**
-- [ ] **PHASE 9 — Data Gap Analysis**
+- [x] **PHASE 9 — Data Gap Analysis** — **COMPLETE** (2026-08-15).
+      `NO NEW DATASET AUTHORISED. THE GAP IS DATES, NOT DATA`. All eight
+      candidate families already carry a disposition in two frozen surveys, and
+      none is both un-surveyed and admissible. The calibrated resolution model
+      shows why no family could help: on the V5 record adding *infinitely many*
+      symbols narrows the interval **3.8%**, while 12 → 50 dates narrows it
+      **51%**. The one free, PIT-by-construction, compounding source of dates is
+      the Phase 1 forecast ledger, which has never been switched on.
+      See `reports/V5_PHASE9_DATA_GAP_ANALYSIS.md`
 - [ ] **PHASE 10 — V5 Integrated Validation**
 - [ ] **PHASE 11 — Production Decision**
 
-**ACTIVE PHASE:** PHASE 9 — Data Gap Analysis, taken **out of order** and ahead
-of Phases 6, 7 and 8. Read `reports/V5_PHASE5A_ABSTENTION.md` §6 and §8 first.
-The reordering is the standing Phase 4 §10.2(b) recommendation, now the only
-remaining one: Phase 5 is closed in both forms, and the binding constraint on
-this programme is resolution, not model choice. Phases 6, 7 and 8 are not
-skipped — they are deferred behind the question of whether any dataset exists
-that this instrument could resolve.
+**ACTIVE PHASE:** **PHASE 7 — Retraining & Promotion Policy.** Read
+`reports/V5_PHASE9_DATA_GAP_ANALYSIS.md` §6 first; nothing else is required.
+
+**Superseded, kept visible.** Until 2026-08-15 the ACTIVE PHASE was PHASE 9 —
+Data Gap Analysis, taken **out of order** and ahead of Phases 6, 7 and 8, on the
+standing Phase 4 §10.2(b) recommendation: Phase 5 is closed in both forms, and
+the binding constraint on this programme is resolution, not model choice. Phases
+6, 7 and 8 were deferred behind the question of whether any dataset exists that
+this instrument could resolve. **Phase 9 has now answered that question: none
+does, and none could — the shortfall is independent dates, which no dataset
+supplies.** The deferral therefore expires on its own terms rather than being
+overridden.
+
+**Why Phase 7 and not Phase 10.** Phase 10 (V5 Integrated Validation) needs a
+record to validate on, and Phase 9 established that the existing 12-cutoff record
+cannot resolve anything worth validating. Phase 7 is a **policy** phase — "write
+policy before automating retraining" — so it requires no resolution, costs no
+data, and is the precondition for the only accumulation route Phase 9 authorises:
+its gate, *"no automatic production promotion without explicit evidence gate"*, is
+exactly what must govern what gets frozen into the forecast ledger and under what
+versioning. Phase 8 (Research & Learning UI) follows and now has a defined
+empty-state story to build against. Phase 6 remains open and unentered.
 
 **Reaffirmed 2026-08-14 after a Phase 6 admissibility audit.** The programme
 owner asked to start Phase 6 out of this order. Phase 6 was audited rather than
@@ -743,6 +766,13 @@ Only validated regime effects may influence ensemble weights or model selection.
 > action under one rule and forbids it under the other. Resolving this is a
 > programme-owner decision and it is a precondition for entering Phase 6 on any
 > record. See `reports/V5_PHASE6_REGIME_EVAL.md` §3.2.
+>
+> **Still open after Phase 9 (2026-08-15).** Phase 9 was entered and completed
+> without touching this, by design — it is not a data question. It is now the
+> **only** free, unblocked item left in the programme that requires no data, no
+> resolution and no accumulation: settling it costs one documentation act and
+> unblocks Phase 6 on every future record, including the one Phase 9 recommends
+> building. Left open here rather than decided, for the same reason as before.
 
 ## Completion Record
 
@@ -1020,11 +1050,88 @@ Any new dataset must have a precise hypothesis and measurable expected role.
 
 ## Completion Record
 
-- Status: PENDING
-- Result:
-- Commit:
-- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
-- Notes:
+- Status: **COMPLETE** (2026-08-15). The gate was applied and **no candidate
+  cleared it**, which is a completed analysis, not a blocked one.
+- Result: `PHASE 9 VERDICT: NO NEW DATASET AUTHORISED. THE GAP IS DATES, NOT
+  DATA`. Deliverable `reports/V5_PHASE9_DATA_GAP_ANALYSIS.md`. Three findings,
+  each sufficient alone:
+  **(1) All eight candidate families already carry a disposition** in two frozen
+  surveys (`reports/INFORMATION_AUDIT.md`, `reports/ABSOLUTE_ALPHA_SOURCE_SURVEY.md`,
+  the latter having ranked ten families). Three were tested and REJECTED
+  (earnings surprise `V3-1`/`V4-1`; sector-relative `V2-B`; vol/regime `V2-E`),
+  two are blocked on paid data with no free PIT vintage (analyst revisions,
+  options-implied — **verified 2026-08-11**), two are vetoed as derivable from
+  `alpha/cache` or cutoff-constant (vol term structure; macro, which `V2.1-B`
+  measured at −0.00269), and the strongest — corporate events, the survey's own
+  winner after ranking ten — was opened as Family 10 and **FAILED its power
+  gate**, with a half-width that floors at 49.0 bp as n → ∞. **0 of 8 are both
+  un-surveyed and admissible.** The failures cluster on power and availability,
+  not on information content.
+  **(2) The constraint is arithmetic and no family moves it.** The survey's
+  calibrated model `hw = 1.077 · 1.96 · √(V·[ρ+(1−ρ)/k]/D)` was re-evaluated and
+  reproduces **both** published anchors exactly — 39.0 bp at k=230/D=177 and
+  35 bp / 3.0 pp at D=215 — so it is an instrument, not an assumption. Read at
+  the V5 record's own geometry (**D=12, k=30**) it gives **154.8 bp / 13.74 pp**,
+  corroborated within ~5% by ABS-1's independently derived 29.15 pp two-band MDE.
+  Because the bracket tends to ρ as k → ∞, on that record **infinite breadth buys
+  3.8%** while **12 → 50 dates buys 51%**. A data family is a column and some
+  names; neither is the axis the interval lives on.
+  **(3) The gate therefore cannot be cleared by anything.** A "measurable
+  expected role" is a claim relative to resolution, and every candidate's
+  plausible effect sits below it. Criteria 2–7 separate the candidates cleanly;
+  criterion 1 collapses all eight identically, and criterion 1 is what the gate
+  is written on.
+  **What is authorised is not a purchase.** The gap is independent dates, and the
+  repository already owns the only free source of them: `app/forecast_ledger.sqlite3`
+  **does not exist** — Phase 1 built the ledger and Phase 2 the outcome scorer,
+  both COMPLETE and tested, and no live forecast has ever been frozen into them.
+  A frozen forward forecast is free, PIT **by construction rather than by repair**,
+  immune to every veto above, and the only asset that compounds. It is also slow:
+  at V5's k=30, **~29 dates → 100 bp, ~115 → 50 bp, ~189 → 39 bp** (≈ 0.6 / 2.2 /
+  3.6 years at weekly spacing). No expenditure shortens that.
+- Commit: hash recorded in the follow-up commit, per the convention used at
+  `2105d4f`, `41a0273`, `62b5f2b`.
+- Examined:
+  1. Baseline suite: **904 passed, 65 skipped — green**, run before any edit and
+     on a clean tree immediately after the Phase 6 commits.
+  2. Final suite: **904 passed, 65 skipped. Delta 0.** This phase edited no code.
+     The only files written are `reports/V5_PHASE9_DATA_GAP_ANALYSIS.md` (new)
+     and this roadmap.
+  3. Leak detector: this phase touched **no prediction path**. Run anyway —
+     `app/tests/test_validation.py::test_future_cannot_change_the_verdict`
+     **1 passed**.
+  4. Methodology surfaces: **none touched.** No targets, features, model params,
+     examset, ladder or `validation/pit.py`. No amendment required or made.
+  5. Frozen records: **read** — `reports/EXPERIMENT_REGISTRY.md` (§2, §6–§12),
+     `reports/INFORMATION_AUDIT.md`, `reports/ABSOLUTE_ALPHA_SOURCE_SURVEY.md`.
+     **None was modified, and none was appended to.** Every disposition and every
+     model input was copied from them, never refitted.
+  6. Closed programmes: **this phase's entire subject matter is closed work**, and
+     that is why the verdict is the conservative one. It re-ranks nothing into
+     admissibility, re-runs no failed gate at a friendlier parameter, and revisits
+     no spent slot. V3 (3/3, CLOSED), V4 (slot 1 spent, slot 2 BARRED) and
+     Family-10 (unspent, power FAIL) are **unchanged**. Registry §10.3's bars on a
+     shorter block, an enlarged item set and another horizon are undisturbed;
+     424B5 and GDELT stay WATCHLIST.
+  7. Measurement: **nothing measured on any outcome, and no data ingested.** No
+     network call, no source opened, no family panel built. One computation ran:
+     the published resolution formula re-evaluated at stated (D, k) pairs, using
+     inputs quoted from `ABSOLUTE_ALPHA_SOURCE_SURVEY.md` §1. It reads no outcome
+     and **gates nothing** — any actual study still needs its own §2.6 gate,
+     computed and committed before it is run.
+  8. Sealed exam accessed: **no.**
+- Notes for whoever takes this next: the deliverable filename is
+  `reports/V5_PHASE9_DATA_GAP_ANALYSIS.md` as this section specifies — note it
+  differs from the shorter `V5_PHASE9_DATA_GAP.md` used in passing elsewhere.
+  Phase 9 explicitly **does not** resolve the §2.5 versus Phase-6-gate
+  contradiction recorded at the Phase 6 STOP/GO gate; that stays open and remains
+  the programme owner's. The three prior nulls (SN-1 39 bp, Family-10 49 bp floor,
+  AMS-1 31 bp) should be read alongside §4.4 of the report: the resolution at
+  which each of them independently found nothing is ~3.6 years of accumulation
+  away at V5's breadth. That is the honest size of the prize, and it argues for
+  writing Phase 7's policy well rather than quickly — it governs what is frozen,
+  and a badly specified freeze cannot be re-run, because the dates only happen
+  once.
 
 ---
 
