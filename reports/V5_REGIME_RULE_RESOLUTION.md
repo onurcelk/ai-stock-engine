@@ -5,6 +5,16 @@ measurement, no model promoted or demoted.**
 
 **Verdict: `§2.5 TAKES PRECEDENCE. THE PHASE 6 GATE AS WRITTEN IS VOID.`**
 
+**Commit: `cbeaa1e`** — this document, the registry append and the roadmap
+update together. Like Phases 6 and 9 this chain carries a single hash, and for
+the same reason: it gates no study and computes nothing, so there is no
+measurement for an earlier commit to precede (CLAUDE.md §5.2). What *is*
+temporally load-bearing here is §4's claim that the replacement gate was written
+while its domain was empty — `git log` shows this commit precedes any forecast
+ledger, exactly as `e1d2947` precedes any scored outcome. Hash recorded in the
+follow-up commit, per the convention used at `2105d4f`, `41a0273`, `23aaed8`,
+`73903c0`, `19c620d`.
+
 This document settles a conflict between two live programme rules. It was
 requested by the programme owner on 2026-08-15 as option (c) of
 `reports/V5_PHASE6_REGIME_EVAL.md` §6, which recorded the conflict and
