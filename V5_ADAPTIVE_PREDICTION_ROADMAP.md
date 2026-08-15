@@ -239,6 +239,23 @@ model moved, and all five frozen applications of §2.5 were re-derived and
 programme is downstream of the one decision above, and the roadmap has nothing
 further to offer a session that arrives without it.
 
+**Precision on "no free item left", appended 2026-08-15 the same day.** The
+sentence above is true of **research** items and it overstates the case
+generally. One **latent engineering** item exists and a future session must not
+discover it as a surprise: `reports/V5_REGIME_RULE_RESOLUTION.md` §8 records that
+RR-1 is prose and could be made structural in `app/core/promotion.py` — a gate
+clause rejecting any promotion whose supporting evidence is regime-conditional,
+plus a test — the way `MIN_INDEPENDENT_CUTOFFS` already carries Phase 5(a)'s
+lesson into enforcement. It needs no data. It is nonetheless **not** a free item
+in this roadmap's sense, on three counts: it **changes code on a
+research-integrity surface**, so it needs owner sign-off rather than a resume
+prompt; it has **no urgency**, because the gate's domain is empty and stays empty
+until a model clears RR-1.1; and it was **deliberately not done** when RR-1 was
+written, because the owner scoped that as a documentation act. Recorded here so
+the omission is visible rather than lost. The one thing that *is* time-ordered
+about it: it should be built **before** the domain becomes non-empty, not after,
+for the same reason Phase 7's thresholds were set on an empty ledger.
+
 **Superseded 2026-08-15, kept visible.** ACTIVE PHASE ran PHASE 9 → PHASE 7 →
 PHASE 8 across this session, on the reasoning preserved below. All three are now
 COMPLETE.
@@ -273,6 +290,47 @@ same 12 draws to support two or three accuracy estimates instead of one, so it
 **Phase 9**. One item is now available to be settled independently and for free,
 with no data touched: the §2.5 versus Phase-6-gate contradiction recorded at the
 Phase 6 STOP/GO gate below, which blocks every future Phase 6 on every record.
+
+## 3.1 Session record — 2026-08-15 (RR-1)
+
+Written so the next context needs this file and nothing else. This is a session
+log, not a phase record: RR-1 is a rule clarification and spends no phase.
+
+- **What ran.** One item only: the §2.5 versus Phase-6-gate contradiction,
+  settled as **RR-1**. The owner was offered four options — settle §2.5, switch
+  the forecast ledger on, both, or hold — and chose to settle §2.5. **The ledger
+  was not switched on. It was not asked about again and remains open.**
+- **Commits.** `cbeaa1e` (resolution, registry §13 append, roadmap update),
+  `82a7f9d` (hash record). Tree clean at both.
+- **Suite.** Baseline **942 passed, 69 skipped — green**, taken before any edit
+  and matching the Phase 8 record exactly. Final **942 / 69, delta 0** — no code
+  changed. Leak detector run explicitly: **1 passed**. A next session should
+  still re-measure its own baseline rather than inherit this one.
+- **Ledger.** `app/forecast_ledger.sqlite3` **still does not exist.** Verified
+  before and after. Every guarantee resting on its absence — Phase 7 §6, Phase 9
+  §6, Phase 8's no-manufacture test — is intact.
+- **Nothing measured.** No outcome, return, bar or accuracy. No model promoted,
+  demoted, retired or reopened. No budget slot spent. No production weight moved.
+  No frozen record modified; the registry was appended to under its own rule.
+- **An independent review was obtained and partly rejected.** It agreed on
+  precedence and reached RR-1's two-gate separation on its own; it dissented on
+  disposition, arguing Phase 6 should be struck permanently rather than narrowed.
+  Not adopted, reasons in `reports/V5_REGIME_RULE_RESOLUTION.md` §7. **If a
+  future session finds itself arguing RR-1 is too strict, read that section
+  first** — the counter-argument is already written down and was rejected on
+  stated grounds, so re-deriving it is not new evidence.
+- **State on exit: unchanged where it matters.** ACTIVE PHASE is still **none**.
+  Phase 6 is still INADMISSIBLE AS WRITTEN, not entered — RR-1 resolved Ground 2
+  only, and Grounds 1 and 3 stand. Phases 10 and 11 are still ⛔ ENTRY BLOCKED.
+  The programme is still waiting on the ONE DECISION in §3, and RR-1 did not move
+  it in either direction.
+
+**The three-line version for a cold start.** The V5 programme is complete through
+Phase 9 except Phase 6, which is blocked on admissibility rather than effort.
+Nothing is left to build: the forecast ledger, the outcome scorer, the promotion
+gate and the research UI all exist, are tested, and have never been switched on.
+The programme is waiting on one owner decision — whether to start freezing live
+forecasts — and **no amount of work substitutes for it.**
 
 ---
 
@@ -1566,7 +1624,10 @@ stands.** The §2.5 contradiction was settled as **RR-1**
 (`reports/V5_REGIME_RULE_RESOLUTION.md`). **No free item remains.** A session
 resuming after this date and finding `ACTIVE PHASE: none` should stop and report
 without looking for something to do: the honest answer is that the programme is
-waiting on the ONE DECISION in §3 and nothing else is available. Manufacturing
+waiting on the ONE DECISION in §3 and nothing else is available. **Read §3.1
+first** — it is the latest session record and carries the current suite counts,
+the last commit hashes, the one latent engineering item, and the three-line cold
+start summary. Manufacturing
 work to fill the gap — a diagnostic, a probe, "just to see" — is the failure this
 roadmap exists to prevent, and it is more tempting now that the last legitimate
 free item is gone.
