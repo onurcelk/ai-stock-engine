@@ -125,6 +125,32 @@ Known programme conclusions entering V5:
 
 Do not treat this summary as a substitute for repository evidence when exact values are required.
 
+**Appended 2026-08-15 — where those conclusions landed.** The original wording
+above is unaltered; this records what the V5 programme did to it.
+
+- *"The key missing concept is a durable forecast → outcome → error → learning
+  loop"* — **the loop is built and has never been switched on.** Phase 1 froze
+  forecasts, Phase 2 scored outcomes, Phase 3 gave every component an identity,
+  Phase 7 wrote the promotion policy governing what the loop may conclude, and
+  Phase 8 built the surface that displays it. `app/forecast_ledger.sqlite3` has
+  still never been created. The missing concept turned out to be missing *data*,
+  not missing machinery.
+- *"The next priority is not indicator proliferation"* — **confirmed, and
+  sharpened.** Phase 9 found the priority is not new information of any kind.
+  All eight candidate data families already carry a disposition, and the binding
+  constraint is **independent dates**, which no dataset supplies at any price.
+- *"Many candidate feature families have already failed clean PIT evaluation"* —
+  still true, and Phase 9 §3 is now the single index of which, with the reason
+  each is closed.
+- *"Existing ML/RL complexity must not be assumed useful without OOS evidence"* —
+  enforced structurally rather than assumed. All 19 RL agents are
+  PIT-INADMISSIBLE, and the Phase 7 gate's G3 means no amount of evidence buys
+  production weight for a leaking model.
+
+**The one-line state of the programme:** every phase that could be completed
+without a record has been; the record does not exist; and creating it is a
+decision, not a task.
+
 ---
 
 # 3. Global V5 Phase Tracker
@@ -1335,6 +1361,31 @@ Any new dataset must have a precise hypothesis and measurable expected role.
 
 # PHASE 10 — V5 Integrated Validation
 
+> ## ⛔ ENTRY BLOCKED — do not start this phase (recorded 2026-08-15)
+>
+> **This is the first unchecked phase in §3, and it must not be entered on that
+> basis.** A session resuming with §4's prompt will identify it as the next
+> unchecked item; that instruction assumes a phase is enterable, and this one is
+> not.
+>
+> **Why.** Phase 10 evaluates V5 "as a complete forecasting system" against
+> baselines on out-of-sample evidence. That evidence does not exist:
+> `app/forecast_ledger.sqlite3` has never been created and no forecast has ever
+> been frozen. The only alternative record is the frozen PIT-1 result, which is
+> **CLOSED**, and Phase 4 already registered `V5-P4-ABORTED` for exactly this
+> error — a higher-powered re-run of a closed study is *"repeated mining until
+> something passes"* under CLAUDE.md §1.3.
+>
+> **What would unblock it.** Only accumulated independent cutoffs — see the ONE
+> DECISION note under ACTIVE PHASE in §3, and `reports/V5_PHASE9_DATA_GAP_ANALYSIS.md`
+> §4.4 for the arithmetic (~29 cutoffs to 100 bp, ~115 to 50 bp, ~189 to 39 bp,
+> i.e. roughly 0.6 / 2.2 / 3.6 years at weekly spacing). No dataset shortens it;
+> Phase 9 established that.
+>
+> **Do not** substitute cached history, re-score PIT-1, widen the symbol set to
+> manufacture rows, or re-run Phase 4's design at more cutoffs. Breadth does not
+> buy resolution — on this geometry infinite breadth buys 3.8%.
+
 ## Goal
 
 Evaluate V5 as a complete forecasting system.
@@ -1395,6 +1446,21 @@ V5 may only be called better if it demonstrates credible OOS improvement on metr
 
 # PHASE 11 — Production Decision
 
+> ## ⛔ ENTRY BLOCKED — downstream of Phase 10 (recorded 2026-08-15)
+>
+> Phase 11 chooses one final disposition for V5, and every option is a claim
+> about measured performance. Phase 10 is the phase that measures it and Phase
+> 10 is itself blocked, so a Phase 11 entered now would be choosing between
+> dispositions on no evidence.
+>
+> **One thing here is genuinely owed, and it is not a decision about V5.**
+> Phase 7 recorded that `ensemble.ultimate` holds PRODUCTION **by history, not
+> by evidence** (`promotion.GRANDFATHERED`, reason `_INCUMBENT_DEBT`), and
+> deferred the question of whether it keeps production weight to this phase.
+> That debt is real and it is already written down; it does not become
+> answerable until there is a record, so it waits here rather than being settled
+> early in either direction.
+
 ## Goal
 
 Make an explicit final decision.
@@ -1437,6 +1503,23 @@ Must include:
 After `/clear`, use only this short prompt:
 
 > Read `V5_ADAPTIVE_PREDICTION_ROADMAP.md`. Treat it as the persistent project state. Check git status/history, identify the ACTIVE PHASE and first unchecked task, then continue that phase only. Read historical reports only when the active phase requires exact evidence. Do not redo completed work. Record the baseline suite result before your first edit — it is item 1 of the mandatory Examined block in §0. At the end, update the roadmap checkboxes, result, commit hash, **the Examined block**, and ACTIVE PHASE.
+
+**Amendment, 2026-08-15 — "ACTIVE PHASE: none" is a valid state, and this prompt
+does not handle it.** The instruction above assumes the first unchecked phase is
+enterable. As of this date it is not: ACTIVE PHASE is **none**, the first
+unchecked item is Phase 10, and Phase 10 and Phase 11 both carry ⛔ ENTRY
+BLOCKED notices explaining why they cannot be started. A session resuming with
+this prompt must therefore **stop and report**, not begin Phase 10.
+
+The correct response to `ACTIVE PHASE: none` is: state what the programme is
+waiting on (see the ONE DECISION note in §3), confirm the working tree and suite
+are clean, and hand back. The only work available without that decision is the
+free item named in §3 — the §2.5 versus Phase-6-gate contradiction — and it is a
+documentation act requiring no data.
+
+Entering a blocked phase because a checklist said "first unchecked" would be
+this roadmap's own version of the error it exists to prevent: doing the next
+thing because it is next, rather than because the evidence supports it.
 
 ---
 
