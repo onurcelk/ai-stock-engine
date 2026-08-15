@@ -146,7 +146,16 @@ Do not treat this summary as a substitute for repository evidence when exact val
       phase's own STOP/GO gate; and a regime split partitions 12 cutoffs that are
       not 12 independent draws. Nothing measured. The question stays **open** on
       a record that could resolve it. See `reports/V5_PHASE6_REGIME_EVAL.md`
-- [ ] **PHASE 7 — Retraining & Promotion Policy**
+- [x] **PHASE 7 — Retraining & Promotion Policy** — **POLICY ADOPTED, nothing
+      promoted or demoted** (2026-08-15). All nine required items defined, and
+      `app/core/promotion.py` makes the gate structural: every PRODUCTION model
+      must be declared in `GRANDFATHERED` or `PROMOTED` or **the suite fails**.
+      The gate counts **independent cutoffs, not rows** — 60 daily cutoffs at a
+      weekly horizon are 9 draws — and BLOCKs every model today, correctly, on
+      an empty ledger. Every threshold was declared **while the ledger was
+      empty**, which is a guarantee available exactly once. One task is
+      **NOT DONE** and recorded as such: versioned fitted artefacts.
+      See `reports/V5_PHASE7_RETRAINING_POLICY.md`
 - [ ] **PHASE 8 — Research & Learning UI**
 - [x] **PHASE 9 — Data Gap Analysis** — **COMPLETE** (2026-08-15).
       `NO NEW DATASET AUTHORISED. THE GAP IS DATES, NOT DATA`. All eight
@@ -160,8 +169,16 @@ Do not treat this summary as a substitute for repository evidence when exact val
 - [ ] **PHASE 10 — V5 Integrated Validation**
 - [ ] **PHASE 11 — Production Decision**
 
-**ACTIVE PHASE:** **PHASE 7 — Retraining & Promotion Policy.** Read
-`reports/V5_PHASE9_DATA_GAP_ANALYSIS.md` §6 first; nothing else is required.
+**ACTIVE PHASE:** **PHASE 8 — Research & Learning UI.** Read
+`reports/V5_PHASE7_RETRAINING_POLICY.md` §3 and §5 first — the promotion policy
+is the main thing Phase 8 has to render, and `promotion.policy()` already
+returns it as data so the UI need not parse a docstring. Phase 8's empty-state
+handling is not an edge case here but the **normal** case: the ledger is empty,
+every gate BLOCKs, and the honest screen says so.
+
+**Superseded 2026-08-15, kept visible.** The ACTIVE PHASE was PHASE 7 —
+Retraining & Promotion Policy, set after Phase 9 on the reasoning below. Phase 7
+is now COMPLETE.
 
 **Superseded, kept visible.** Until 2026-08-15 the ACTIVE PHASE was PHASE 9 —
 Data Gap Analysis, taken **out of order** and ahead of Phases 6, 7 and 8, on the
@@ -903,11 +920,86 @@ No automatic production promotion without explicit evidence gate.
 
 ## Completion Record
 
-- Status: PENDING
-- Result:
-- Commit:
-- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
-- Notes:
+- Status: **COMPLETE** (2026-08-15), with one task recorded **NOT DONE** rather
+  than reinterpreted — see the task list in
+  `reports/V5_PHASE7_RETRAINING_POLICY.md` §9.
+- Result: `PHASE 7 POLICY ADOPTED. NOTHING PROMOTED, NOTHING DEMOTED`.
+  Deliverables `reports/V5_PHASE7_RETRAINING_POLICY.md`, `app/core/promotion.py`
+  (new), `app/tests/test_promotion.py` (new, 23 tests). **0 models promoted,
+  0 demoted, 0 retired. `alpha/adapter.py` untouched, production weight
+  unchanged.**
+  **The finding that shaped the policy: this system does not retrain, it
+  recomputes.** No component persists a trained artefact — no checkpoint, no
+  saved weights, nothing serialised on the production path — so half the
+  conventional retraining vocabulary addresses a hazard this repository does not
+  have. The hazard it *does* have is the one the phase goal names: the single
+  production component that genuinely adapts, `ensemble.ultimate`, re-derives its
+  weights from the tail holdout **on every evaluation**, at unbounded frequency,
+  with no version and no gate. The policy therefore constrains *re-derivation*,
+  not checkpoint loading.
+  **All nine required items defined** (§2 of the report). The two
+  non-obvious ones: **expanding, not rolling** — because Phase 9 established
+  independent dates are the scarcest asset the programme owns and a rolling
+  window discards them, so the burden sits on any future proposal for rolling;
+  and **hyperparameters frozen** — a refit re-estimates parameters and never
+  re-selects hyperparameters, extending the existing `MODEL_A_PARAMS` rule,
+  because an automatic search over a 50-cutoff record is mining.
+  **The gate counts independent cutoffs, not rows.** Rows within a cutoff are
+  averaged first, and overlapping forecast windows are collapsed by greedy
+  earliest-finishing selection before counting: **60 daily cutoffs at a weekly
+  horizon are 9 draws, not 60**, and a test asserts it. This carries Phase 5(a)'s
+  and Phase 6's hardest-won lesson into enforcement rather than prose.
+  **The enforcement is structural.** `promotion.assert_production_is_declared`
+  fails the suite if any PRODUCTION model appears in neither `GRANDFATHERED` nor
+  `PROMOTED`. `PROMOTED` is empty and is meant to be. The 13 closed-form
+  components and the adapting incumbent are grandfathered for **two different
+  stated reasons**, and a test forbids them collapsing into one blanket excuse.
+  **Every threshold was declared while the ledger was empty** — a guarantee
+  available exactly once, which the first written outcome ends permanently.
+- Commit: hash recorded in the follow-up commit, per the convention used at
+  `2105d4f`, `41a0273`, `23aaed8`.
+- Examined:
+  1. Baseline suite: **904 passed, 65 skipped — green**, run before any edit on
+     a clean tree immediately after the Phase 9 commits.
+  2. Final suite: **927 passed, 65 skipped. Delta +23**, all of them the new
+     `app/tests/test_promotion.py`. No existing test was modified, weakened or
+     skipped.
+  3. Leak detector: this phase touched **no prediction path** — `promotion.py`
+     reads a performance frame and returns a verdict, and nothing calls it from
+     a forecast path. Run anyway —
+     `app/tests/test_validation.py::test_future_cannot_change_the_verdict`
+     **1 passed**.
+  4. Methodology surfaces: **none touched.** No targets, features, model params,
+     examset, ladder or `validation/pit.py`. `alpha/` was not modified at all.
+     No amendment required or made.
+  5. Frozen records: **read** — none modified, none appended to. This phase
+     quoted `model_registry`'s own retraining-policy strings and `ROADMAP.md`'s
+     ≥ 50-cutoff criterion; both were copied, not restated from memory.
+  6. Closed programmes: **none reopened, and none could be.** The gate's G2
+     restricts promotion to CHALLENGER models, so REJECTED and RETIRED
+     components have no route into production by construction — the gate makes
+     reopening *harder*, not possible. No arm re-evaluated, no threshold moved,
+     no budget slot touched.
+  7. Measurement: **nothing measured.** No outcome, no return, no bar, no
+     accuracy. The ledger does not exist, so §3.1 of the report is a count of an
+     empty set. Test frames are synthetic and built in-process.
+  8. Sealed exam accessed: **no.**
+- Notes for whoever takes this next: the report is honest that **two live
+  components violate §2.2 today** — `ensemble.ultimate` re-derives on every
+  evaluation and the three neural challengers refit on every UI fingerprint
+  change. Neither was repaired here, deliberately: repairing them changes the
+  production prediction path, and the phase's own first task is *write policy
+  before automating retraining*. Both bind prospectively, since neither fits on
+  the ledger today. The second open item is **versioned fitted artefacts**,
+  §4.2, which specifies the content-addressed store that would be needed and
+  states the condition that would make it necessary — a persisted fit — rather
+  than building infrastructure ahead of a need. Until then rollback is
+  commit-revert, which for this repository is better than an artefact store:
+  reviewable, atomic with the code that produced it, and recorded in the same
+  history as every preregistration. Finally, §6 is the one with a clock on it:
+  the thresholds are trustworthy *because* the ledger is empty, and the first
+  outcome ever written ends that guarantee permanently. Any later change to them
+  is a post-hoc threshold change and must be treated as one.
 
 ---
 
