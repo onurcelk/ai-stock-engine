@@ -357,6 +357,8 @@ a phase record: this spends no phase and no budget slot.
   `policy()`. The refusal happens **before** `evidence_for` is called, so a
   regime-scoped verdict carries `evidence is None` and no statistic exists to be
   quoted. See `reports/V5_RR1_STRUCTURAL_GATE.md`.
+- **Commits.** `21c7eff` (gate, tests, report, registry §14, roadmap), plus the
+  hash-record commit that follows it. Tree clean at both.
 - **Suite.** Baseline **942 passed, 69 skipped — green**, taken before any edit on
   a clean tree and matching the Phase 8 and RR-1 records exactly. Final
   **952 / 69, delta +10 passed** — seven new test functions, one parametrised four

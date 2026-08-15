@@ -10,6 +10,7 @@ ledger was **not** switched on.
 deliberately not done here."*
 **Not a phase.** This spends no phase and no budget slot. It is the engineering
 half of a rule that was already settled as RR-1.
+**Commit:** `21c7eff`. Tree clean before the edits and after them.
 
 ---
 
