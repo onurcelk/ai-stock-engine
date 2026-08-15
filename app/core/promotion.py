@@ -51,7 +51,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from . import model_registry, outcome_ledger
+from . import forecast_ledger, model_registry, outcome_ledger
 
 
 #: Bumped whenever a threshold changes.  A promotion records the version it was
@@ -198,6 +198,10 @@ class Evidence:
     advantage: float
     advantage_half_width: float
     directional_accuracy: float
+    #: Reconstructions dropped before any statistic was computed. Reported
+    #: rather than silently discarded: a caller who passed a mixed frame is
+    #: entitled to learn that the number below is not over what they handed in.
+    n_excluded_replays: int = 0
 
     @property
     def advantage_lower_bound(self) -> float:
@@ -306,10 +310,32 @@ def evidence_for(
         if frame.empty:
             return empty
 
+    # RR-2: reconstructions are refused before anything is measured.
+    #
+    # A `RETROSPECTIVE_REPLAY` row is a forecast computed for a session that
+    # had already closed, by someone who knew what the market did. It carries
+    # every retrospection artefact AB-1 §2 showed a prospective row escapes,
+    # and it can be re-run until it flatters. It may inform a diagnostic; it
+    # may never support a status change or count toward a resolution floor.
+    #
+    # Replays live in a different database file, so a frame built the normal
+    # way cannot contain one. This is the second lock, on the path that
+    # actually decides: it drops them, and reports how many it dropped, so a
+    # caller who assembled a mixed frame learns rather than quietly gets a
+    # number computed over both.
+    if "status" in frame.columns:
+        replays = frame.loc[frame["status"] == forecast_ledger.RETROSPECTIVE_REPLAY]
+        frame = frame.loc[frame["status"] != forecast_ledger.RETROSPECTIVE_REPLAY]
+    else:
+        replays = frame.iloc[0:0]
+    n_replays = int(len(replays))
+    if frame.empty:
+        return dataclasses.replace(empty, n_excluded_replays=n_replays)
+
     rows = frame.loc[(frame["model_key"] == model_id)
                      & (frame["horizon"] == horizon)]
     if rows.empty:
-        return empty
+        return dataclasses.replace(empty, n_excluded_replays=n_replays)
 
     # One window per cutoff: from the cutoff to the last maturity it produced.
     spans = rows.groupby("cutoff_at").agg(matured_at=("matured_at", "max"))
@@ -336,6 +362,7 @@ def evidence_for(
         n_symbols=int(independent["symbol"].nunique()),
         first_cutoff=rows["cutoff_at"].min(),
         last_cutoff=rows["cutoff_at"].max(),
+        n_excluded_replays=n_replays,
         advantage=float(np.mean(advantages)) if advantages else float("nan"),
         advantage_half_width=_half_width(advantages),
         directional_accuracy=(float(np.mean(directionals)) if directionals

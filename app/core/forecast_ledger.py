@@ -61,6 +61,31 @@ DEFAULT_PATH = pathlib.Path(__file__).resolve().parents[1] / "forecast_ledger.sq
 PRODUCTION_INCUMBENT = "PRODUCTION_INCUMBENT"
 CHALLENGER = "CHALLENGER"
 
+#: A forecast reconstructed for a session that was missed, run *after* that
+#: session closed.  It is evidence about the engine's behaviour and it is
+#: **not** prospective evidence about the future, because the person running it
+#: already knew the day had happened.
+#:
+#: Every retrospection artefact AB-1 §2 showed a prospective row escapes, a
+#: replay walks back into: the price history is back-adjusted for corporate
+#: actions that post-date the session, the symbol universe is the one someone
+#: watches *today*, and the intraday depth is whatever survives now.  That is
+#: the reason replays can never count toward a promotion gate, and it is a
+#: deeper reason than "they were labelled differently".
+RETROSPECTIVE_REPLAY = "RETROSPECTIVE_REPLAY"
+
+#: The only classes that may support a claim about future returns.
+PROSPECTIVE_CLASSES = frozenset({PRODUCTION_INCUMBENT, CHALLENGER})
+RECORD_CLASSES = PROSPECTIVE_CLASSES | {RETROSPECTIVE_REPLAY}
+
+#: Replays live in their own database file, never a column in the prospective
+#: one.  The separation is physical: the prospective ledger's own CHECK
+#: constraint rejects `RETROSPECTIVE_REPLAY` and the replay ledger's rejects
+#: everything else, so neither file can hold the other's rows even if a caller
+#: asks it to.  A filter can be forgotten; a constraint cannot.
+DEFAULT_REPLAY_PATH = (
+    pathlib.Path(__file__).resolve().parents[1] / "replay_ledger.sqlite3")
+
 
 class ForecastLedgerError(RuntimeError):
     """Base error for a forecast that cannot be frozen or trusted."""
@@ -282,8 +307,15 @@ class ForecastRecord:
             raise ValueError("probability_positive must be null or in [0, 1]")
         if self.confidence is not None and not 0 <= self.confidence <= 100:
             raise ValueError("confidence must be null or in [0, 100]")
-        if self.production_or_challenger not in {PRODUCTION_INCUMBENT, CHALLENGER}:
+        if self.production_or_challenger not in RECORD_CLASSES:
             raise ValueError("invalid production_or_challenger status")
+        if (self.production_or_challenger == RETROSPECTIVE_REPLAY
+                and not self.metadata.get("replay")):
+            # A replay must carry its own provenance. A row that says it is a
+            # reconstruction without saying when it was reconstructed, or of
+            # what, is exactly the ambiguous artefact this class exists to
+            # prevent.
+            raise ValueError("a RETROSPECTIVE_REPLAY record requires replay metadata")
         if not math.isfinite(self.price_at_cutoff) or self.price_at_cutoff <= 0:
             raise ValueError("price_at_cutoff must be finite and positive")
         if not math.isfinite(self.predicted_return):
@@ -430,8 +462,19 @@ def _incumbent_records(
     model_versions: Mapping[str, str] | None = None,
     regime_state: Mapping[str, Any] | None = None,
     baseline_prediction: Mapping[str, Any] | None = None,
+    record_class: str = PRODUCTION_INCUMBENT,
+    replay: Mapping[str, Any] | None = None,
 ) -> list[ForecastRecord]:
-    """Serialize each available incumbent horizon from its exact input frame."""
+    """Serialize each available incumbent horizon from its exact input frame.
+
+    `record_class` decides which store the results may enter, and the two
+    stores' CHECK constraints enforce it.  A replay additionally carries its
+    reconstruction provenance in `metadata["replay"]`.
+    """
+    if record_class not in RECORD_CLASSES:
+        raise ValueError(f"unknown record class {record_class!r}")
+    if (record_class == RETROSPECTIVE_REPLAY) != bool(replay):
+        raise ValueError("replay provenance is required for, and only for, replays")
     generated = _utc_iso(generated_at or dt.datetime.now(dt.timezone.utc))
     supplied_versions = dict(model_versions or {})
     reserved = {"ultimate_ensemble", "technical_sources", "rule_agents"}
@@ -512,9 +555,10 @@ def _incumbent_records(
             input_row_count=len(frame),
             input_fingerprint=fingerprint,
             source_path="app.core.ultimate.evaluate",
-            production_or_challenger=PRODUCTION_INCUMBENT,
+            production_or_challenger=record_class,
             basis_probes=basis_probes(frame),
             metadata={
+                **({"replay": dict(replay)} if replay else {}),
                 "aggregate_action": verdict.action,
                 "aggregate_score": verdict.score,
                 "aggregate_confidence": verdict.confidence,
@@ -710,6 +754,22 @@ class ForecastLedger:
             ids = [row["forecast_id"] for row in connection.execute(query, parameters)]
         return [self.load(forecast_id) for forecast_id in ids]
 
+    def assert_prospective_only(self) -> None:
+        """The stored rows are all prospective classes.  Cheap, and load-bearing.
+
+        The CHECK constraint already makes this true for any ledger this code
+        created.  It is asserted anyway, because the thing being protected is
+        a claim about the future made on rows nobody chose after the fact, and
+        a file handed to this class was not necessarily created by it.
+        """
+        with self._connect() as connection:
+            offenders = [row[0] for row in connection.execute(
+                "SELECT DISTINCT production_or_challenger FROM forecasts")]
+        rogue = set(offenders) - PROSPECTIVE_CLASSES
+        if rogue:
+            raise ForecastIntegrityError(
+                f"{self.path} holds non-prospective rows: {sorted(rogue)}")
+
     def has_frozen_input(
         self, *, symbol: str, horizon: str, input_fingerprint: str,
     ) -> bool:
@@ -783,6 +843,103 @@ class FreezeOutcome:
     @property
     def wrote_anything(self) -> bool:
         return bool(self.frozen)
+
+
+class ReplayLedger(ForecastLedger):
+    """Reconstructions of missed sessions, in their own file, under their own
+    constraint.
+
+    Everything the prospective ledger guarantees about immutability holds here
+    too — same triggers, same payload hashing, same identity digest.  What
+    differs is the one thing that matters: this table's CHECK admits *only*
+    `RETROSPECTIVE_REPLAY`, and the prospective table's admits only the two
+    prospective classes.  Neither file can be made to hold the other's rows,
+    so "is this evidence about the future?" is answered by which database a
+    row is in, and cannot be got wrong by a missing filter.
+    """
+
+    def __init__(self, path: str | pathlib.Path = DEFAULT_REPLAY_PATH):
+        super().__init__(path)
+
+    def _initialise(self) -> None:
+        with self._connect() as connection:
+            connection.executescript("""
+                CREATE TABLE IF NOT EXISTS forecasts (
+                    forecast_id TEXT PRIMARY KEY,
+                    generated_at TEXT NOT NULL,
+                    cutoff_at TEXT NOT NULL,
+                    symbol TEXT NOT NULL,
+                    horizon TEXT NOT NULL,
+                    source_path TEXT NOT NULL,
+                    production_or_challenger TEXT NOT NULL,
+                    input_fingerprint TEXT NOT NULL,
+                    payload TEXT NOT NULL,
+                    payload_sha256 TEXT NOT NULL,
+                    CHECK (production_or_challenger = 'RETROSPECTIVE_REPLAY')
+                );
+                CREATE INDEX IF NOT EXISTS replays_symbol_cutoff
+                    ON forecasts(symbol, cutoff_at, horizon);
+                CREATE TRIGGER IF NOT EXISTS replays_no_update
+                BEFORE UPDATE ON forecasts BEGIN
+                    SELECT RAISE(ABORT, 'replay records are immutable');
+                END;
+                CREATE TRIGGER IF NOT EXISTS replays_no_delete
+                BEFORE DELETE ON forecasts BEGIN
+                    SELECT RAISE(ABORT, 'replay records are immutable');
+                END;
+                CREATE TRIGGER IF NOT EXISTS replays_no_replace
+                BEFORE INSERT ON forecasts
+                WHEN EXISTS (
+                    SELECT 1 FROM forecasts WHERE forecast_id = NEW.forecast_id
+                ) BEGIN
+                    SELECT RAISE(ABORT, 'replay records are immutable');
+                END;
+            """)
+
+    def assert_prospective_only(self) -> None:
+        raise ForecastIntegrityError(
+            "a ReplayLedger holds no prospective rows by construction; asking "
+            "it this question means a caller has confused the two stores"
+        )
+
+
+def assert_replay(records: Iterable[ForecastRecord]) -> None:
+    """Refuse to store anything but an honestly-labelled reconstruction.
+
+    Three things are checked.  The class must be `RETROSPECTIVE_REPLAY`; the
+    provenance must name both the session and the moment of reconstruction;
+    and — the one that is not already guaranteed elsewhere — the declared
+    `reconstructed_at` must **equal** the record's own `generated_at`.
+
+    That last check exists because the other two are cheap to satisfy while
+    lying.  A row could claim to reconstruct session *S* while stamping a
+    `generated_at` of *S* itself, reading as though it had been frozen live.
+    Tying the two timestamps together means the row cannot describe itself as
+    a late reconstruction and simultaneously date itself to the session.
+
+    Note what is *not* checked here, because it cannot happen:
+    `ForecastRecord.__post_init__` already refuses `cutoff_at > generated_at`,
+    so a record generated strictly before its own session does not exist.  The
+    ordering check that looks natural here would be dead code.
+    """
+    for record in records:
+        if record.production_or_challenger != RETROSPECTIVE_REPLAY:
+            raise ForecastIntegrityError(
+                f"refusing to store {record.production_or_challenger} in the "
+                f"replay ledger: {record.forecast_id}")
+        replay = record.metadata.get("replay") or {}
+        if not replay.get("reconstructed_at") or not replay.get("session"):
+            raise ForecastIntegrityError(
+                f"replay {record.forecast_id} lacks reconstruction provenance")
+        if pd.Timestamp(replay["reconstructed_at"]) != pd.Timestamp(record.generated_at):
+            raise ForecastIntegrityError(
+                f"replay {record.forecast_id} dates itself to "
+                f"{record.generated_at} but claims reconstruction at "
+                f"{replay['reconstructed_at']}")
+        if pd.Timestamp(replay["session"]) != pd.Timestamp(record.cutoff_at):
+            raise ForecastIntegrityError(
+                f"replay {record.forecast_id} reconstructs "
+                f"{replay['session']} but is cut off at {record.cutoff_at}")
 
 
 def generate_incumbent_records(

@@ -29,6 +29,48 @@ sys.path.insert(0, str(APP_DIR))
 from core import ledger_lifecycle          # noqa: E402
 
 
+def _collect_then_replay() -> None:
+    """Freeze the current session, then recover missed ones. Never the reverse.
+
+    Neither step may stop the app starting. A data outage should cost you a
+    day's accumulation, not the ability to open the application, so both are
+    reported and neither propagates.
+    """
+    from core import collector, replay
+
+    try:
+        symbols = collector.read_universe()
+    except Exception as error:                                   # noqa: BLE001
+        print(f"[startup] no collection universe: {error}", file=sys.stderr)
+        return
+
+    # Before anything is frozen: what did the record already cover? The
+    # prospective freeze below advances every symbol's newest cutoff to today,
+    # so asking afterwards would answer "nothing was missed" however long the
+    # gap really was.
+    covered_through = replay.snapshot_cutoffs(symbols)
+
+    try:
+        run = collector.collect(symbols=symbols)
+        print(f"[startup] prospective: {run.summary()}")
+        for failure in run.failures:
+            print(f"[startup] prospective FAILED {failure.symbol}: "
+                  f"{failure.detail}", file=sys.stderr)
+    except Exception as error:                                   # noqa: BLE001
+        print(f"[startup] prospective freeze failed: {error}", file=sys.stderr)
+        # Deliberately still attempt replays: they write to a different store
+        # and cannot corrupt the prospective record whatever happened above.
+
+    try:
+        replayed = replay.replay_missed(symbols, since_by_symbol=covered_through)
+        print(f"[startup] replay: {replayed.summary()}")
+        for failure in replayed.failures:
+            print(f"[startup] replay FAILED {failure.symbol}: "
+                  f"{failure.detail}", file=sys.stderr)
+    except Exception as error:                                   # noqa: BLE001
+        print(f"[startup] missed-session replay failed: {error}", file=sys.stderr)
+
+
 def main(argv: list[str] | None = None) -> int:
     from streamlit.web import cli as streamlit_cli
 
@@ -40,6 +82,14 @@ def main(argv: list[str] | None = None) -> int:
     ledger_lifecycle.start()
     # Then arrange for the normal path however this process ends.
     ledger_lifecycle.install()
+
+    # START -> CURRENT PROSPECTIVE FREEZE -> MISSED-DAY REPLAYS -> UI.
+    #
+    # The order is the whole point. Today's bar must be claimed by the genuine
+    # prospective freeze before any reconstruction runs, so a replay can never
+    # be the row that owns the current session. Replays then fill in sessions
+    # that were missed — into a different database, as diagnostics.
+    _collect_then_replay()
 
     try:
         sys.argv = ["streamlit", "run", script, *arguments]

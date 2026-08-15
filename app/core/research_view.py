@@ -52,10 +52,22 @@ class ResearchState:
 
     @property
     def n_independent_cutoffs(self) -> int:
-        """Draws, not rows — the only count a claim may be built on."""
+        """Draws, not rows — the only count a claim may be built on.
+
+        Reconstructions are excluded here as well as in `promotion`. A replay
+        is a forecast for a session that had already closed, so counting one
+        toward a resolution floor would let a missed week be recovered into
+        evidence — the exact substitution the separation exists to prevent.
+        """
         if self.performance.empty:
             return 0
-        spans = self.performance.groupby("cutoff_at").agg(
+        prospective = self.performance
+        if "status" in prospective.columns:
+            prospective = prospective.loc[
+                prospective["status"] != forecast_ledger.RETROSPECTIVE_REPLAY]
+        if prospective.empty:
+            return 0
+        spans = prospective.groupby("cutoff_at").agg(
             matured_at=("matured_at", "max"))
         windows = [(cutoff, spans.at[cutoff, "matured_at"])
                    for cutoff in spans.index]

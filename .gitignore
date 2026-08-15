@@ -11,6 +11,14 @@ app/forecast_ledger.sqlite3
 app/forecast_ledger.sqlite3-wal
 app/forecast_ledger.sqlite3-shm
 app/forecast_ledger.sqlite3-journal
+# Reconstructions of missed sessions. A separate file on purpose — the
+# prospective ledger's CHECK constraint rejects these rows and this one's
+# rejects prospective rows, so neither can hold the other's. Regenerable by
+# construction, unlike the prospective record, so it needs no backup.
+app/replay_ledger.sqlite3
+app/replay_ledger.sqlite3-wal
+app/replay_ledger.sqlite3-shm
+app/replay_ledger.sqlite3-journal
 # Copies of the ledger are the same evidence, so the same rule: never a
 # git-tracked binary. Backups live on a separate physical drive
 # (D:\prediction market backup), outside the repository entirely — see

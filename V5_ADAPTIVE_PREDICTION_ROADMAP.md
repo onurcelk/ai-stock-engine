@@ -585,6 +585,50 @@ ledger exists. `app/forecast_ledger.sqlite3` is now real evidence — do not
 delete it, do not add synthetic rows to it, and do not regenerate it. The
 current standing instructions are §3.6.
 
+## 3.8 Session record — 2026-08-15 (RR-2: missed-session replays)
+
+Infrastructure only. No phase spent, no prediction path changed.
+
+- **What ran.** Startup now goes **prospective freeze → missed-session replays →
+  UI**. Missed sessions are reconstructed point-in-time and stored as
+  `RETROSPECTIVE_REPLAY` in a **separate database**, `app/replay_ledger.sqlite3`.
+  Registered as **RR-2** (`reports/EXPERIMENT_REGISTRY.md` §19).
+- **What changed.** `app/core/forecast_ledger.py` (`RETROSPECTIVE_REPLAY`,
+  `PROSPECTIVE_CLASSES`, `ReplayLedger`, `assert_replay`, `record_class` on
+  `_incumbent_records`), new `app/core/replay.py`, `app/core/promotion.py`
+  (replays dropped before measurement, `Evidence.n_excluded_replays`),
+  `app/core/research_view.py` (cutoff counter excludes replays), `run_app.py`,
+  `.gitignore`. New `app/tests/test_replay.py` (26).
+- **Suite.** Baseline **1039 / 69 green**. Final **1065 / 69, delta +26**; slow
+  suite 1132 passed. Leak detector run explicitly: **1 passed**.
+- **Ledgers.** Prospective untouched — 86 rows, digest `cabcf1bd…3b0b0e`,
+  unchanged. Replay ledger not created by any test. Independent cutoffs still
+  **0 of 50**, and replays cannot move that number by construction.
+- **The separation is four locks, not a label.** The prospective ledger's Phase 1
+  CHECK constraint rejects replay rows and the replay ledger's rejects
+  prospective rows, so neither file can hold the other's; provenance must tie
+  `reconstructed_at` to `generated_at`; `evidence_for` drops replays before
+  measuring and reports how many; the resolution counter ignores them.
+- **One ordering bug, found and pinned.** The prospective freeze runs first and
+  advances every symbol's newest cutoff to today, so a reference point read
+  *afterwards* reports nothing missed — a fortnight of gaps would have produced
+  no replays while looking like success. `replay.snapshot_cutoffs` is taken
+  before collection; a test demonstrates both the bug and the fix.
+- **What was deliberately not done.** Replays are **not** backed up: unlike
+  prospective rows they are regenerable by construction, so the D: backup stays
+  focused on the irreplaceable file. No challenger or model-assisted replay. No
+  outcome scoring of replays.
+- **Traps.** (1) A replay's `generated_at` is the real reconstruction time, so
+  `assert_prospective` would refuse it — that is correct and is why replays use
+  `assert_replay` instead. (2) `ForecastRecord.__post_init__` already forbids
+  `generated_at < cutoff_at`, so the ordering check that looks natural in
+  `assert_replay` would be dead code; the live check is the
+  `reconstructed_at == generated_at` tie. (3) Replays inherit AB-1's three
+  retrospection artefacts by definition — that is the deepest reason they are
+  not evidence, deeper than any label.
+- **State on exit.** **ACCUMULATION.** No active phase. 0 of 50 independent
+  cutoffs. Phases 10 and 11 still entry-blocked.
+
 ## 3.7 Session record — 2026-08-15 (protection and accumulation infrastructure)
 
 Infrastructure only. No phase spent, no budget slot, no prediction path touched.
@@ -679,6 +723,14 @@ things follow for a session arriving now:
     failure, not a lost or destroyed machine. Copying
     `D:\prediction market backup` somewhere else occasionally is the whole fix
     and needs no preregistration.
+11. **Never count a `RETROSPECTIVE_REPLAY` as evidence** (RR-2, registry §19).
+    Replays live in `app/replay_ledger.sqlite3` and are diagnostics: they carry
+    every retrospection artefact AB-1 §2 says a prospective row escapes, and
+    whoever ran them already knew what the market did. They may be shown and
+    compared; they may never support a promotion or move the independent-cutoff
+    count. Four locks enforce this — do not weaken any of them, and in
+    particular **do not "simplify" the two ledgers into one file with a status
+    column.** The separate CHECK constraints are the guarantee.
 
 ## 3.5 Session record — 2026-08-15 (AB-1 implemented, ledger switched on)
 

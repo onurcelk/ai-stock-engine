@@ -1321,3 +1321,60 @@ content digest `cabcf1bd003a73e8456a289b9797e1faca90661c03c72012c5beb23b9c3b0b0e
 before and after, 86 forecasts, 30 symbols. No model promoted, demoted, retired
 or reopened. V2 ABANDONED, V3 3 of 3 CLOSED, V4 slot 1 SPENT, PIT-1 CLOSED,
 Phase 6 INADMISSIBLE AS WRITTEN, RR-1 in force.
+
+---
+
+## 19. RR-2 — RETROSPECTIVE_REPLAY, a class that can never be evidence, 2026-08-15
+
+**Not an experiment.** No hypothesis, no arm, no fit, no budget slot, no
+measurement. This registers a new record class and, more importantly, the rule
+that bounds it.
+
+**RR-2.** `A RECONSTRUCTION OF A CLOSED SESSION MAY INFORM A DIAGNOSTIC AND MAY
+NEVER SUPPORT A STATUS CHANGE OR COUNT TOWARD A RESOLUTION FLOOR.`
+
+**Why, at the level that matters.** It is tempting to treat a faithful
+point-in-time reconstruction as equivalent to the real thing. It is not, and the
+reason is not sloppy reconstruction. AB-1 §2 established that a *prospective*
+forecast escapes three retrospection artefacts precisely because its cutoff is
+the present: no corporate action has yet back-adjusted its price history, the
+watchlist is the live one, and the bar depth is production depth. A replay walks
+back into all three. And there is a fourth, worse than the others: **the person
+running the replay already knows what the market did**, and nothing prevents a
+session being replayed, inspected, and replayed again under a different universe.
+That is harmless for diagnostics and fatal for a gate.
+
+**How the separation is enforced — four locks, none of them a label.**
+1. **Physical.** Replays live in `app/replay_ledger.sqlite3`. The prospective
+   ledger's CHECK constraint — unchanged since Phase 1 — rejects
+   `RETROSPECTIVE_REPLAY`, and the replay ledger's rejects everything else.
+   Neither file can hold the other's rows. Tested by attempting both inserts.
+2. **Provenance.** A replay must carry `metadata["replay"]` naming the session
+   and the reconstruction moment, and `assert_replay` requires the declared
+   `reconstructed_at` to equal the record's own `generated_at`. A row cannot
+   describe itself as a late reconstruction while dating itself to the session.
+3. **The gate.** `promotion.evidence_for` drops replay rows *before* computing
+   anything and reports `n_excluded_replays`, so a caller who assembled a mixed
+   frame learns rather than silently receiving a number computed over both.
+4. **The counters.** `research_view.n_independent_cutoffs` excludes them, so a
+   missed week can never be recovered into resolution.
+
+**No look-ahead.** A replay's engine is fed history truncated to the session,
+enforced twice: by construction in the fetcher, and by
+`fingerprint_frame(cutoff_at=...)`, which raises if one bar past the cutoff
+survives. AB-1 basis probes are captured as for any other record.
+
+**One ordering bug found and fixed during implementation.** Startup freezes the
+current session *before* replaying missed ones, which advances every symbol's
+newest prospective cutoff to today — so a reference point read afterwards reports
+that nothing was missed, and a fortnight of gaps yields no replays while looking
+like success. `snapshot_cutoffs` is taken before collection, and a test
+demonstrates both the bug and the fix.
+
+**Nothing measured, nothing reopened.** No outcome, return or accuracy read. No
+model promoted, demoted, retired or reopened. The prospective ledger was not
+touched: 86 rows, digest
+`cabcf1bd003a73e8456a289b9797e1faca90661c03c72012c5beb23b9c3b0b0e`, unchanged.
+Independent cutoffs remain **0 of 50**, and replays cannot move that number by
+construction. V2 ABANDONED, V3 3 of 3 CLOSED, V4 slot 1 SPENT, PIT-1 CLOSED,
+Phase 6 INADMISSIBLE AS WRITTEN, RR-1 in force.
