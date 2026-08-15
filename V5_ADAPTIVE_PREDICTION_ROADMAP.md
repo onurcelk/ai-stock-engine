@@ -356,6 +356,17 @@ been exhausted; the programme had not been re-examined. A future session should
 treat "nothing left to do" as a claim about a document, and test it against code
 before believing it.
 
+**Resolved 2026-08-15 — AB-1 is settled and the precondition is discharged.** The
+owner chose **Policy A** and authorised implementation followed by activation.
+`ForecastRecord.basis_probes` (schema v1 → v2) records the freeze-time
+adjustment basis; `outcome_ledger.reconcile_basis` separates a uniform rescaling
+of the pre-action history — a split or dividend, now **scored correctly** rather
+than lost — from a non-uniform change, which still raises. The `rel_tol=1e-9`
+anchor guard is unchanged and its test unmodified. Suite 952 → 972, delta +20.
+See `reports/V5_PHASE1_SCHEMA_AMENDMENT_AB1.md`,
+`reports/V5_ADJUSTMENT_BASIS_FINDING.md` §9, and
+`reports/EXPERIMENT_REGISTRY.md` §16.
+
 **Superseded 2026-08-15, kept visible.** ACTIVE PHASE ran PHASE 9 → PHASE 7 →
 PHASE 8 across this session, on the reasoning preserved below. All three are now
 COMPLETE.

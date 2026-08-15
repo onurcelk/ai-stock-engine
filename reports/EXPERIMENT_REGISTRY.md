@@ -1177,3 +1177,45 @@ wording is unaltered and the owner is left to weigh it.
 not exist. The four candidate policies in AB-1 §6 are therefore choosable without
 any result in view — the same guarantee Phase 7's thresholds carry, and available
 exactly once.
+
+---
+
+## 16. AB-1 resolved — Policy A implemented, 2026-08-15
+
+**Not an experiment.** No hypothesis, no arm, no fit, no budget slot, no
+measurement. This records that the finding registered at §15 is now closed in
+code. Documents: `reports/V5_ADJUSTMENT_BASIS_FINDING.md` §9 and
+`reports/V5_PHASE1_SCHEMA_AMENDMENT_AB1.md`.
+
+**What changed.** `ForecastRecord.basis_probes` — the trailing eight
+`(iso_date, close)` pairs of the exact consumed frame — makes the freeze-time
+adjustment basis recoverable. `outcome_ledger.reconcile_basis` then separates a
+**uniform** rescaling of the pre-action history (a split or dividend, reconciled
+and scored correctly on the fresh basis) from a **non-uniform** change (tampering,
+still refused). Forecast schema 1 → 2, outcome schema 1 → 2. Twenty tests added,
+suite 952 → 972 passed, 69 skipped unchanged.
+
+**The guard was not weakened.** The `rel_tol=1e-9` equality check is unchanged and
+`test_realised_anchor_must_match_the_frozen_price` is unmodified and passing —
+a single-bar bump is non-uniform and still raises. `BASIS_UNIFORMITY_REL_TOL`
+is a separate constant governing a path that did not previously exist.
+
+**Backward compatible.** v1 records load and keep their original identity digest:
+`identity_payload` excludes v2-only fields for them, so no already-frozen id
+moves. A v1 record meeting a corporate action still refuses, because without
+probes nothing can distinguish a rescaling from corruption — the pre-AB-1
+behaviour, retained deliberately as the fail-closed path.
+
+**One judgement call, recorded.** `BASIS_UNIFORMITY_REL_TOL = 1e-4` is a
+trade-off, not a derived constant: too tight re-opens the hole AB-1 closes, too
+loose lets a small tamper pass. Reasons in the amendment §3. Revisiting it needs
+an amendment.
+
+**Nothing measured, nothing reopened.** No outcome, return, bar or accuracy read.
+No model promoted, demoted, retired or reopened. PIT-1 stays CLOSED. V2
+ABANDONED, V3 3 of 3 CLOSED, V4 slot 1 SPENT, Phase 6 INADMISSIBLE AS WRITTEN.
+
+**Declared while the ledger was empty.** `app/forecast_ledger.sqlite3` verified
+absent throughout AB-1 and at this commit. Every threshold and policy above was
+chosen with no result in view — the guarantee §7 of the finding insisted on, and
+the reason AB-1 was ordered before activation rather than after.

@@ -15,7 +15,7 @@ import json
 import math
 import pathlib
 import sqlite3
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from types import MappingProxyType
 from typing import Any
 
@@ -25,7 +25,31 @@ import pandas as pd
 from . import forecast, indicators, strategies, ultimate
 
 
-SCHEMA_VERSION = 1
+#: Phase 1 schema, amended once.
+#:
+#: v1 → v2 (AB-1, 2026-08-15) adds `basis_probes`.  The live fetch path uses
+#: `auto_adjust=True`, so a split or dividend after a forecast is frozen
+#: back-adjusts the whole pre-action history and the anchor bar no longer
+#: reads what it read at freeze time.  The probes are what let the scorer
+#: tell a *legitimate uniform rescaling* apart from *tampering with one bar*,
+#: which is the distinction Phase 2's anchor guard alone cannot make.  See
+#: `reports/V5_ADJUSTMENT_BASIS_FINDING.md`.
+#:
+#: v1 records stay readable and keep their original identity digest: the
+#: field is excluded from `identity_payload` for them, so no frozen id moves.
+SCHEMA_VERSION = 2
+SUPPORTED_SCHEMA_VERSIONS = (1, 2)
+
+#: Fields that exist only from v2 on, and are therefore excluded from the
+#: identity digest of a v1 record.
+_V2_FIELDS = ("basis_probes",)
+
+#: How many trailing bars of the consumed frame are stored as basis probes.
+#: One would establish a ratio; several are what make *uniformity* testable,
+#: and uniformity is the whole signal.  Eight is small enough to be free and
+#: long enough that a single tampered bar cannot masquerade as a rescaling.
+BASIS_PROBE_COUNT = 8
+
 DEFAULT_PATH = pathlib.Path(__file__).resolve().parents[1] / "forecast_ledger.sqlite3"
 PRODUCTION_INCUMBENT = "PRODUCTION_INCUMBENT"
 CHALLENGER = "CHALLENGER"
@@ -159,6 +183,36 @@ def fingerprint_frame(
     return "sha256:" + _digest({"columns": columns, "rows": rows})
 
 
+def basis_probes(
+    frame: pd.DataFrame, *, count: int = BASIS_PROBE_COUNT,
+) -> list[list[Any]]:
+    """Trailing `(iso_date, close)` pairs on the frame's own adjustment basis.
+
+    These exist to answer one question later: when the anchor bar no longer
+    reads what it read at freeze time, was the *whole* pre-action history
+    rescaled by one constant — a split or dividend — or did a single bar move,
+    which is corruption?  A back-adjustment is uniform by construction, so
+    uniformity across several bars is the signature, and a single ratio could
+    never distinguish the two.
+
+    Read from the same frame that `fingerprint_frame` hashes, so they describe
+    exactly the data the forecast consumed.
+    """
+    if frame.empty:
+        raise ForecastIntegrityError("cannot take basis probes from an empty frame")
+    if "date" not in frame or "close" not in frame:
+        raise ForecastIntegrityError("input frame must contain date and close")
+    tail = frame.iloc[-max(1, int(count)):]
+    dates = pd.to_datetime(tail["date"], errors="raise", utc=True)
+    probes: list[list[Any]] = []
+    for stamp, close in zip(dates, tail["close"]):
+        value = float(close)
+        if not math.isfinite(value) or value <= 0:
+            raise ForecastIntegrityError("input frame has an unusable close")
+        probes.append([_utc_iso(stamp), value])
+    return probes
+
+
 @dataclasses.dataclass(frozen=True)
 class ForecastRecord:
     forecast_id: str
@@ -185,17 +239,34 @@ class ForecastRecord:
     source_path: str
     production_or_challenger: str
     metadata: Mapping[str, Any] = dataclasses.field(default_factory=dict)
+    #: Trailing `(iso_date, close)` pairs from the exact consumed frame, on the
+    #: adjustment basis prevailing at freeze time.  Absent on v1 records, and
+    #: absent means the scorer cannot reconcile a corporate action and must
+    #: refuse — which is the pre-AB-1 behaviour, kept as the fail-closed path.
+    basis_probes: Sequence[Sequence[Any]] | None = None
 
     def __post_init__(self) -> None:
         for field_name in (
             "model_predictions", "model_weights", "model_versions",
             "feature_data_version", "regime_state", "baseline_prediction", "metadata",
+            "basis_probes",
         ):
             value = getattr(self, field_name)
             if value is not None:
                 object.__setattr__(self, field_name, _freeze_json(_normalise_json(value)))
-        if self.forecast_schema_version != SCHEMA_VERSION:
+        if self.forecast_schema_version not in SUPPORTED_SCHEMA_VERSIONS:
             raise ValueError(f"unsupported forecast schema {self.forecast_schema_version}")
+        if self.forecast_schema_version < 2 and self.basis_probes is not None:
+            raise ValueError("basis_probes did not exist before schema v2")
+        if self.basis_probes is not None:
+            if not self.basis_probes:
+                raise ValueError("basis_probes must be absent or non-empty")
+            for probe in self.basis_probes:
+                if len(probe) != 2:
+                    raise ValueError("each basis probe must be (iso_date, close)")
+                close = float(probe[1])
+                if not math.isfinite(close) or close <= 0:
+                    raise ValueError("basis probe close must be finite and positive")
         if self.predicted_direction not in {"bullish", "neutral", "bearish"}:
             raise ValueError("predicted_direction must be bullish, neutral, or bearish")
         if not self.symbol or not self.horizon or self.input_row_count < 1:
@@ -230,9 +301,19 @@ class ForecastRecord:
         }
 
     def identity_payload(self) -> dict[str, Any]:
+        """The payload the `forecast_id` digests.
+
+        Fields introduced after a record's own schema version are excluded, so
+        amending the schema never moves the identity of an already-frozen
+        record.  A v1 record reloaded today digests exactly what it digested
+        when it was written.
+        """
+        excluded = {"forecast_id"}
+        if self.forecast_schema_version < 2:
+            excluded.update(_V2_FIELDS)
         return {
             key: value for key, value in self.payload().items()
-            if key != "forecast_id"
+            if key not in excluded
         }
 
     @classmethod
@@ -263,6 +344,7 @@ def _record(
     source_path: str,
     production_or_challenger: str,
     metadata: Mapping[str, Any],
+    basis_probes: Sequence[Sequence[Any]] | None = None,
 ) -> ForecastRecord:
     if predicted_return > 0:
         direction = "bullish"
@@ -296,6 +378,8 @@ def _record(
         source_path=source_path,
         production_or_challenger=production_or_challenger,
         metadata=dict(metadata),
+        basis_probes=(None if basis_probes is None
+                      else [[str(date), float(close)] for date, close in basis_probes]),
     )
     identity = {
         key: _normalise_json(value)
@@ -422,6 +506,7 @@ def _incumbent_records(
             input_fingerprint=fingerprint,
             source_path="app.core.ultimate.evaluate",
             production_or_challenger=PRODUCTION_INCUMBENT,
+            basis_probes=basis_probes(frame),
             metadata={
                 "aggregate_action": verdict.action,
                 "aggregate_score": verdict.score,
@@ -514,6 +599,7 @@ def challenger_record(
         input_fingerprint=fingerprint,
         source_path="app.core.forecast.project",
         production_or_challenger=CHALLENGER,
+        basis_probes=basis_probes(input_frame),
         metadata={"interval": interval, "training": dict(training_metadata)},
     )
 
@@ -617,6 +703,27 @@ class ForecastLedger:
             ids = [row["forecast_id"] for row in connection.execute(query, parameters)]
         return [self.load(forecast_id) for forecast_id in ids]
 
+    def has_frozen_input(
+        self, *, symbol: str, horizon: str, input_fingerprint: str,
+    ) -> bool:
+        """Has this exact input already produced a forecast at this horizon?
+
+        The idempotency key for live freezing.  `forecast_id` cannot serve:
+        it digests `generated_at`, so re-running the engine on unchanged bars
+        would mint a new identity every time and fill the ledger with rows
+        that carry no new information and no new date.  The input fingerprint
+        is the honest unit — one frozen forecast per symbol, horizon, and
+        distinct set of consumed bars.
+        """
+        with self._connect() as connection:
+            row = connection.execute(
+                """SELECT 1 FROM forecasts
+                   WHERE symbol = ? AND horizon = ? AND input_fingerprint = ?
+                   LIMIT 1""",
+                (symbol.upper(), horizon, input_fingerprint),
+            ).fetchone()
+        return row is not None
+
 
 def generate_and_freeze_incumbent(
     ledger: ForecastLedger,
@@ -656,3 +763,71 @@ def generate_and_freeze_incumbent(
     )
     ledger.insert_many(records)
     return verdict, records
+
+
+@dataclasses.dataclass(frozen=True)
+class FreezeOutcome:
+    """What one live freeze attempt did, in terms a caller can display."""
+
+    symbol: str
+    frozen: tuple[ForecastRecord, ...]
+    skipped: tuple[str, ...]
+
+    @property
+    def wrote_anything(self) -> bool:
+        return bool(self.frozen)
+
+
+def freeze_incumbent_if_new(
+    ledger: ForecastLedger,
+    symbol: str,
+    **kwargs: Any,
+) -> tuple[Any, FreezeOutcome]:
+    """Freeze the incumbent forecast for any horizon whose bars are new.
+
+    Idempotent by input fingerprint, which is what makes it safe to call on
+    every live render: a horizon whose bars have not moved since it was last
+    frozen is skipped, not re-frozen under a fresh `generated_at`.
+
+    Nothing here is backfilled.  The engine is run *now*, against bars that
+    end now, and the record is written before any outcome for it can exist —
+    which is the entire reason a prospective ledger is worth more than a
+    retrospective one.
+    """
+    from . import live
+
+    source_fetcher = kwargs.pop("fetcher", None) or live.fetch
+    cutoff_at = kwargs.get("cutoff_at")
+    captured: dict[tuple[str, str], pd.DataFrame] = {}
+
+    def capture(name: str, *, period: str, interval: str, force: bool = False):
+        frame, entry = source_fetcher(name, period=period, interval=interval, force=force)
+        fingerprint_frame(frame, cutoff_at=cutoff_at)
+        captured[(interval, period)] = frame.copy(deep=True)
+        return frame, entry
+
+    verdict = ultimate.evaluate(
+        symbol,
+        include_agents=kwargs.pop("include_agents", True),
+        model=kwargs.pop("model", None),
+        horizons=kwargs.pop("horizons", None),
+        force=kwargs.pop("force", False),
+        fetcher=capture,
+    )
+    records = _incumbent_records(verdict, captured, **kwargs)
+
+    fresh, skipped = [], []
+    for record in records:
+        if ledger.has_frozen_input(
+            symbol=record.symbol, horizon=record.horizon,
+            input_fingerprint=record.input_fingerprint,
+        ):
+            skipped.append(record.horizon)
+        else:
+            fresh.append(record)
+    # One transaction: either every new horizon lands or none does, so a
+    # crash mid-write cannot leave a symbol half-frozen at one timestamp.
+    ledger.insert_many(fresh)
+    return verdict, FreezeOutcome(
+        symbol=verdict.symbol, frozen=tuple(fresh), skipped=tuple(skipped),
+    )

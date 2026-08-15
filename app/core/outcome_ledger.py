@@ -45,7 +45,22 @@ from .forecast_ledger import (
 )
 
 
-OUTCOME_SCHEMA_VERSION = 1
+#: v1 → v2 (AB-1, 2026-08-15) records the adjustment basis a return was
+#: computed on.  See `reports/V5_ADJUSTMENT_BASIS_FINDING.md`.
+OUTCOME_SCHEMA_VERSION = 2
+
+#: How far the per-probe rescaling ratios may spread and still count as one
+#: uniform back-adjustment.
+#:
+#: A genuine corporate action rescales every pre-action bar by an identical
+#: constant, so in exact arithmetic the spread is zero; what is left is the
+#: provider's float rounding.  The value is a deliberate middle: tight enough
+#: that the tampering this guard exists to catch (whole percentage points)
+#: cannot pass, loose enough that rounding noise does not re-open the very
+#: hole AB-1 was written to close.  **If live data ever refuses here, this
+#: constant is the one place to revisit — and doing so needs an amendment,
+#: because loosening it trades tamper sensitivity for coverage.**
+BASIS_UNIFORMITY_REL_TOL = 1e-4
 
 #: Declared before any measurement.  Breakdowns thinner than this are not
 #: reported as results — they are suppressed with their sample count visible.
@@ -169,6 +184,15 @@ class OutcomeRecord:
     bars_ahead: int
     price_at_cutoff: float
     price_at_maturity: float
+    #: The anchor the return was actually divided by, on the same adjustment
+    #: basis as `price_at_maturity`.  Equal to `price_at_cutoff` unless a
+    #: corporate action intervened.  Stored so the arithmetic is auditable
+    #: from the record alone, without re-deriving the factor.
+    scoring_anchor_price: float
+    basis_factor: float
+    corporate_action: bool
+    basis_probe_count: int
+    basis_max_deviation: float
     predicted_return: float
     predicted_direction: str
     realised_return: float
@@ -254,6 +278,95 @@ def _locate(frame: pd.DataFrame, anchor_at: str) -> int:
             f"realised frame does not contain exactly one bar at {anchor_at}"
         )
     return int(matches[0])
+
+
+@dataclasses.dataclass(frozen=True)
+class BasisReconciliation:
+    """The result of asking why a frozen anchor no longer matches the feed.
+
+    `factor` is the constant every pre-action bar was multiplied by.  It is
+    1.0 exactly when nothing happened, which is the overwhelmingly common
+    case and costs one comparison.
+    """
+
+    factor: float
+    corporate_action: bool
+    probe_count: int
+    max_deviation: float
+    scoring_anchor: float
+
+
+def reconcile_basis(
+    record: ForecastRecord, frame: pd.DataFrame, anchor_close: float,
+) -> BasisReconciliation:
+    """Decide whether a changed anchor is a rescaling or a corruption.
+
+    The live feed is fetched with `auto_adjust=True`, so a split or dividend
+    after a forecast was frozen back-adjusts the *entire* pre-action history
+    by one constant.  A tampered or substituted bar does not: it moves alone.
+    That difference is the whole test, and it is why Phase 1 stores several
+    probes rather than one price.
+
+    Raises rather than returning a fallback.  A mismatch this cannot explain
+    is exactly the corruption Phase 2's guard was written to stop, and it
+    must never be downgraded to a skipped row.
+    """
+    frozen = float(record.price_at_cutoff)
+    if math.isclose(anchor_close, frozen, rel_tol=1e-9, abs_tol=1e-9):
+        return BasisReconciliation(
+            factor=1.0, corporate_action=False, probe_count=0,
+            max_deviation=0.0, scoring_anchor=frozen,
+        )
+
+    probes = record.basis_probes
+    if not probes:
+        # Pre-AB-1 records carry no probes, so nothing can distinguish a
+        # rescaling from corruption.  Refusing is the honest answer and it is
+        # the behaviour that existed before AB-1.
+        raise OutcomeIntegrityError(
+            f"realised anchor price {anchor_close} does not match the frozen "
+            f"{frozen} for {record.forecast_id}, and the record carries no "
+            f"basis probes to reconcile it"
+        )
+
+    dates = pd.to_datetime(frame["date"], errors="raise", utc=True).to_numpy()
+    ratios: list[float] = []
+    for probe_date, probe_close in probes:
+        matches = np.flatnonzero(dates == _utc(str(probe_date)))
+        if matches.size != 1:
+            raise OutcomeIntegrityError(
+                f"realised frame does not contain exactly one bar at "
+                f"{probe_date} to reconcile {record.forecast_id}"
+            )
+        observed = float(frame["close"].iloc[int(matches[0])])
+        stored = float(probe_close)
+        if not math.isfinite(observed) or observed <= 0 or stored <= 0:
+            raise OutcomeIntegrityError(
+                f"unusable probe close reconciling {record.forecast_id}"
+            )
+        ratios.append(observed / stored)
+
+    factor = float(np.median(ratios))
+    if not math.isfinite(factor) or factor <= 0:
+        raise OutcomeIntegrityError(
+            f"implied adjustment factor is unusable for {record.forecast_id}"
+        )
+    max_deviation = max(abs(ratio / factor - 1.0) for ratio in ratios)
+    anchor_deviation = abs((anchor_close / frozen) / factor - 1.0)
+    max_deviation = max(max_deviation, anchor_deviation)
+    if max_deviation > BASIS_UNIFORMITY_REL_TOL:
+        # Not a uniform rescaling.  Some bars moved and others did not, which
+        # no corporate action can produce.
+        raise OutcomeIntegrityError(
+            f"realised anchor price {anchor_close} does not match the frozen "
+            f"{frozen} for {record.forecast_id}, and the change is not a "
+            f"uniform rescaling (deviation {max_deviation:.3e} across "
+            f"{len(ratios)} probes)"
+        )
+    return BasisReconciliation(
+        factor=factor, corporate_action=True, probe_count=len(ratios),
+        max_deviation=max_deviation, scoring_anchor=anchor_close,
+    )
 
 
 def _window_return(
@@ -351,11 +464,10 @@ def resolve_outcome(
     anchor = _locate(frame, anchor_at)
 
     anchor_close = float(frame["close"].iloc[anchor])
-    if not math.isclose(anchor_close, record.price_at_cutoff, rel_tol=1e-9, abs_tol=1e-9):
-        raise OutcomeIntegrityError(
-            f"realised anchor price {anchor_close} does not match the frozen "
-            f"{record.price_at_cutoff} for {record.forecast_id}"
-        )
+    # The guard is unchanged in strength: an anchor that moved for any reason
+    # this cannot explain as a uniform rescaling still raises.  What AB-1 adds
+    # is the ability to explain one specific, legitimate reason.
+    basis = reconcile_basis(record, frame, anchor_close)
 
     target = anchor + spec.bars_ahead
     if target >= len(frame):
@@ -373,7 +485,11 @@ def resolve_outcome(
             f"realised maturity price is unusable for {record.forecast_id}"
         )
 
-    realised_return = (price_at_maturity / record.price_at_cutoff - 1.0) * 100.0
+    # Both prices on one basis.  Without a corporate action `scoring_anchor`
+    # *is* the frozen price and this is bit-for-bit the pre-AB-1 arithmetic;
+    # with one, using the frozen price here would book a 2-for-1 split as a
+    # −50% return on a flat position.
+    realised_return = (price_at_maturity / basis.scoring_anchor - 1.0) * 100.0
     realised_direction = _direction(realised_return)
     error = record.predicted_return - realised_return
 
@@ -401,6 +517,12 @@ def resolve_outcome(
         )
 
     notes = {
+        # Countable by design: AB-1's whole complaint about the pre-existing
+        # behaviour was that dropped observations left no trace to count.
+        "basis_status": (
+            "CORPORATE_ACTION_RECONCILED" if basis.corporate_action
+            else "UNCHANGED_BASIS"
+        ),
         "baseline_source": baseline_source,
         "sector_status": (
             "CALLER_SUPPLIED_PROXY" if sector_frame is not None
@@ -422,6 +544,11 @@ def resolve_outcome(
         bars_ahead=spec.bars_ahead,
         price_at_cutoff=float(record.price_at_cutoff),
         price_at_maturity=price_at_maturity,
+        scoring_anchor_price=float(basis.scoring_anchor),
+        basis_factor=float(basis.factor),
+        corporate_action=bool(basis.corporate_action),
+        basis_probe_count=int(basis.probe_count),
+        basis_max_deviation=float(basis.max_deviation),
         predicted_return=float(record.predicted_return),
         predicted_direction=record.predicted_direction,
         realised_return=realised_return,

@@ -265,3 +265,48 @@ initial scope.
   `validation/pit.py`, `reports/V5_PHASE7_RETRAINING_POLICY.md`.
   `reports/EXPERIMENT_REGISTRY.md` appended as §15 under its own rule.
 - **Declared while the ledger was empty**, which is why it is worth writing now.
+
+---
+
+## 9. Resolved 2026-08-15 — Policy A adopted and implemented
+
+Appended, not edited: §1–§8 above stand as written, including the verdict line
+that said the ledger must not be switched on yet. **That condition is now met.**
+
+The owner selected **Policy A** — freeze the raw basis information alongside the
+anchor — and authorised implementation followed by live activation.
+
+**What was built.** `ForecastRecord.basis_probes` (schema v1 → v2): the trailing
+eight `(iso_date, close)` pairs of the exact consumed frame. At maturity,
+`outcome_ledger.reconcile_basis` compares each probe against the freshly fetched
+frame; a **uniform** rescaling across all probes is a corporate action and the
+return is computed on the fresh basis, while a **non-uniform** change is
+corruption and still raises. Full mechanism and constraint-by-constraint check:
+`reports/V5_PHASE1_SCHEMA_AMENDMENT_AB1.md`.
+
+**On §6's ranking.** Policy A was implemented as described, with one refinement
+that emerged from the code rather than the prose. §6(a) proposed storing the
+*unadjusted* anchor and its adjustment factor. Obtaining a genuinely unadjusted
+close requires a second fetch at `auto_adjust=False`, and — more importantly — a
+raw price alone still cannot distinguish a rescaling from tampering, because a
+tampered frame could be internally consistent. **Probes deliver what §6(a)
+actually asked for** ("the adjustment information required to place the anchor
+and maturity price on the same economic basis") and additionally make the
+distinction *testable* rather than assumed. No extra network call, and the
+information comes from the frame already being fingerprinted.
+
+**On §3.2's claim that the refusal is a bias.** Now moot for v2 records: a
+corporate action produces a correct total return rather than a missing row. It
+remains exactly true for any v1 record, which is why the no-probes path still
+refuses instead of guessing.
+
+**What §4's adversarial section got right.** The fourth counter-argument — *"the
+guard is doing its job; failing closed is correct"* — anticipated the shape of
+the fix, and the implementation follows it: the guard was not weakened, its
+tolerance was not widened, and its test was not removed. What changed is that
+one specific legitimate cause now has a designed path.
+
+**Verification.** Suite 952 → **972 passed**, 69 skipped, delta **+20**, nothing
+relaxed. Leak detector explicitly **1 passed**. `app/forecast_ledger.sqlite3`
+verified absent for the whole of AB-1 and at its commit — every policy here was
+chosen with no result in view, which was the point of §7's insistence on order.
