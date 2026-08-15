@@ -156,7 +156,14 @@ Do not treat this summary as a substitute for repository evidence when exact val
       empty**, which is a guarantee available exactly once. One task is
       **NOT DONE** and recorded as such: versioned fitted artefacts.
       See `reports/V5_PHASE7_RETRAINING_POLICY.md`
-- [ ] **PHASE 8 — Research & Learning UI**
+- [x] **PHASE 8 — Research & Learning UI** — **COMPLETE** (2026-08-15). A Pro
+      **Research** tab renders all six required sections from stored evidence.
+      Its normal case is the empty one, and it distinguishes **three** empty
+      states rather than collapsing them. Key finding: `ForecastLedger.__init__`
+      *creates* its file, so a naive load path would manufacture the artefact
+      whose absence Phases 7 and 9 rest on — `research_view.load` checks first
+      and a UI test asserts the ledger still does not exist after a full render.
+      See `reports/V5_PHASE8_UI.md`
 - [x] **PHASE 9 — Data Gap Analysis** — **COMPLETE** (2026-08-15).
       `NO NEW DATASET AUTHORISED. THE GAP IS DATES, NOT DATA`. All eight
       candidate families already carry a disposition in two frozen surveys, and
@@ -169,16 +176,31 @@ Do not treat this summary as a substitute for repository evidence when exact val
 - [ ] **PHASE 10 — V5 Integrated Validation**
 - [ ] **PHASE 11 — Production Decision**
 
-**ACTIVE PHASE:** **PHASE 8 — Research & Learning UI.** Read
-`reports/V5_PHASE7_RETRAINING_POLICY.md` §3 and §5 first — the promotion policy
-is the main thing Phase 8 has to render, and `promotion.policy()` already
-returns it as data so the UI need not parse a docstring. Phase 8's empty-state
-handling is not an edge case here but the **normal** case: the ledger is empty,
-every gate BLOCKs, and the honest screen says so.
+**ACTIVE PHASE:** **none — the programme is blocked on one owner decision.**
 
-**Superseded 2026-08-15, kept visible.** The ACTIVE PHASE was PHASE 7 —
-Retraining & Promotion Policy, set after Phase 9 on the reasoning below. Phase 7
-is now COMPLETE.
+Phases 0–3 and 6–9 are all now closed. What remains is Phase 10 (V5 Integrated
+Validation) and Phase 11 (Production Decision), and **neither can be entered**:
+both need a record of frozen forecasts to validate and decide on, and Phase 9
+established that no such record exists and no dataset can supply one. The
+programme is not stuck for want of work — it is waiting on a decision only the
+owner can make.
+
+**The one decision.** Phase 9 §6 identified switching the forecast ledger on —
+freezing live forecasts as they are made — as the only free, PIT-by-construction,
+compounding source of the independent dates the programme lacks. Phase 7 wrote
+the policy that must govern it, and Phase 8 built the surface that will display
+it. Nothing is left to build. Deliberately **not** done: Phase 8 did not add a
+freeze button, because starting the record is a one-way act that permanently
+ends the guarantee that Phase 7's thresholds were set on an empty ledger, and
+making that choice as a side effect of a UI phase would be wrong.
+
+**Free and unblocked meanwhile:** the §2.5 versus Phase-6-gate contradiction
+recorded at the Phase 6 STOP/GO gate. It needs no data, no resolution and no
+accumulation, and it blocks every future Phase 6 on every record.
+
+**Superseded 2026-08-15, kept visible.** ACTIVE PHASE ran PHASE 9 → PHASE 7 →
+PHASE 8 across this session, on the reasoning preserved below. All three are now
+COMPLETE.
 
 **Superseded, kept visible.** Until 2026-08-15 the ACTIVE PHASE was PHASE 9 —
 Data Gap Analysis, taken **out of order** and ahead of Phases 6, 7 and 8, on the
@@ -1094,11 +1116,86 @@ The user should be able to understand whether the system is improving without re
 
 ## Completion Record
 
-- Status: PENDING
-- Result:
-- Commit:
-- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
-- Notes:
+- Status: **COMPLETE** (2026-08-15). All four tasks done, all six required
+  sections built.
+- Result: `PHASE 8 COMPLETE. THE RESEARCH RECORD IS VISIBLE IN THE APP`.
+  Deliverables: a Pro-only **Research** tab in `app/streamlit_app.py`, the
+  read-only evidence layer `app/core/research_view.py` (new), the report
+  `reports/V5_PHASE8_UI.md`, and 19 new tests.
+  **The constraint that shaped it:** *"build UI from stored evidence, not
+  recomputed hindsight"* means almost every panel is **empty, and the empty
+  state is the correct state** — nothing has ever been frozen, so nothing has
+  matured, so nothing has been scored. The tab shows what exists, says why the
+  rest is missing, and declines the obvious temptation to fill the screen by
+  recomputing performance over cached history. It distinguishes **three** empty
+  states — no ledger / ledger but no forecasts / forecasts but none matured —
+  because collapsing them would misreport progress: a programme waiting on 40
+  forecasts to mature is nowhere near one that has frozen none.
+  **The finding: rendering must not create the record.**
+  `ForecastLedger.__init__` runs `CREATE TABLE IF NOT EXISTS`, so merely
+  constructing a ledger to see whether it holds anything **creates its file** —
+  manufacturing the artefact whose absence Phase 7 §6 and Phase 9 §6 both rest
+  on. It would corrupt no data but would silently spend a guarantee.
+  `research_view.load` checks for the file before constructing anything; a unit
+  test asserts a `tmp_path` is still absent afterwards and a UI test boots the
+  whole app and asserts `forecast_ledger.DEFAULT_PATH` still does not exist.
+  **Six sections**, production and research kept visually distinct (🟢 / 🔬):
+  Production (14 components, always populated — needs no ledger), Forecast
+  quality (empty), Leaderboard (45 rows, all `n = 0`), Forecast history (empty,
+  columns intact), Prediction explanation (the one live panel, labelled live),
+  Research pipeline (45 components: 14 Live, 3 Under evaluation, 19
+  Experimental, 6 Rejected, 3 Retired).
+  **Four defended choices:** unscored models stay on the leaderboard, because
+  hiding them would answer "who is winning" when the answer is "nothing has
+  run"; only components with a `record_key` are listed, since nothing else can
+  reach a frozen forecast; rejected and retired models stay visible, because a
+  rejection that disappears from the app is one nobody learns from; and weights
+  are shown **only** from frozen records, never from today's re-derivation.
+  **Sample-size warnings share one constant with the gate** —
+  `research_view.MIN_CUTOFFS is promotion.MIN_INDEPENDENT_CUTOFFS`, asserted by
+  a test — and count **independent cutoffs, not rows**.
+  Phase 6's result is carried to the point of use: the explanation panel states
+  *"Regime conditioning: not validated, and not applied"* rather than omitting
+  the row the roadmap asks for.
+- Commit: hash recorded in the follow-up commit, per the convention used at
+  `2105d4f`, `41a0273`, `23aaed8`, `73903c0`.
+- Examined:
+  1. Baseline suite: **927 passed, 65 skipped — green**, run before any edit on
+     a clean tree immediately after the Phase 7 commits.
+  2. Final suite: **942 passed, 69 skipped. Delta +15 fast, +4 slow.** The 15
+     are `app/tests/test_research_view.py`; the 4 are Research-tab tests in
+     `app/tests/test_ui.py`, which is `@slow`-marked in full, hence the skip
+     delta. Full UI suite re-run with `--runslow`: **47 passed**. No existing
+     test was modified, weakened or skipped.
+  3. Leak detector: this phase touched **no prediction path** — the Research tab
+     reads frozen records and reuses the verdict the signal tab had already
+     computed; it calls no model and regenerates no forecast. Run anyway —
+     `app/tests/test_validation.py::test_future_cannot_change_the_verdict`
+     **1 passed**.
+  4. Methodology surfaces: **none touched.** No targets, features, model params,
+     examset, ladder or `validation/pit.py`. `alpha/` was not modified at all.
+  5. Frozen records: **read** — none modified, none appended to. The tab renders
+     `model_registry` fields and Phase 6's verdict; both were quoted, not
+     restated.
+  6. Closed programmes: **none reopened.** The pipeline surface *displays* six
+     REJECTED and three RETIRED components — displaying a closed result is the
+     opposite of reopening it, and no rejected component acquires a route to
+     production by appearing on a screen.
+  7. Measurement: **nothing measured.** No outcome, no return, no bar, no
+     accuracy — there are none to read. Every figure rendered today is a count
+     of an empty set or a registry field. Test frames are synthetic.
+  8. Sealed exam accessed: **no.**
+- Notes for whoever takes this next: Phase 8 deliberately **did not add a freeze
+  button**. Rendering the record and starting it are different acts, and
+  switching the ledger on permanently ends the guarantee that Phase 7's
+  thresholds were set on an empty ledger — making that choice as a side effect
+  of a UI phase would have been wrong. It is now the single decision the
+  programme is waiting on, and nothing else remains to build before it: Phase 7
+  wrote the governing policy, Phase 8 built the surface that will display the
+  result. Phases 10 and 11 both need a record that does not yet exist, so
+  neither can be entered until the answer to that decision is yes and time has
+  passed. The free, unblocked item remains the §2.5 contradiction at the Phase 6
+  gate.
 
 ---
 

@@ -543,6 +543,45 @@ def test_the_portfolio_list_carries_the_ultimate_signal(mode):
     assert "Daily P&L" in labels, "Daily P&L metric missing from portfolio overview"
 
 
+def test_the_research_tab_renders_on_an_empty_record(bundled_app):
+    """Phase 8's normal case is the empty one, and it must not raise."""
+    assert_clean(bundled_app, "Pro research tab")
+
+    labels = [m.label for m in bundled_app.metric]
+    assert "Forecasts frozen" in labels
+    assert "Independent cutoffs" in labels
+    assert "Promotion floor" in labels
+
+
+def test_the_research_tab_says_why_it_is_empty(bundled_app):
+    """An empty panel must not read as a measured null."""
+    warnings = " ".join(str(getattr(w, "value", "")) for w in bundled_app.warning)
+
+    assert "ever been frozen" in warnings, (
+        f"no empty-state explanation among: {warnings[:400]}")
+
+
+def test_opening_the_research_tab_does_not_start_a_record(bundled_app):
+    """Rendering must not create `forecast_ledger.sqlite3`.
+
+    The absence of that file is what Phase 7 §6 and Phase 9 §6 rest on. A UI
+    that created it on first render would quietly spend a guarantee.
+    """
+    from core import forecast_ledger
+
+    assert_clean(bundled_app, "Pro research tab")
+    assert not pathlib.Path(forecast_ledger.DEFAULT_PATH).exists()
+
+
+def test_lite_cannot_reach_the_research_tab():
+    """Lite answers what to do; the research record is Pro's business."""
+    app = fresh_app(mode="Lite")
+    assert_clean(app, "Lite load")
+
+    labels = [m.label for m in app.metric]
+    assert "Independent cutoffs" not in labels
+
+
 @pytest.mark.parametrize("mode", ["Lite", "Pro"])
 def test_the_bar_pnl_is_named_after_the_bar_it_measures(mode):
     """On weekly bars the prior close is a week back, so it is not "Daily".

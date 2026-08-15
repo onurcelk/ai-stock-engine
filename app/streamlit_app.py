@@ -21,7 +21,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 from core import (  # noqa: E402
     agents, backtest, charts, data, forecast, holdings, live, montecarlo,
-    portfolio, quotes, runs, strategies, theme, ultimate,
+    portfolio, promotion, quotes, research_view, runs, strategies, theme,
+    ultimate,
 )
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -503,15 +504,16 @@ if len(frame) < 40:
 # measurement behind it.
 if pro:
     (signal_tab, overview_tab, agent_tab, forecast_tab, portfolio_tab,
-     carlo_tab, history_tab) = st.tabs(
+     carlo_tab, history_tab, research_tab) = st.tabs(
         ["Ultimate signal", "Overview", "Trading agents", "Forecast",
-         "Portfolio", "Monte Carlo", "History"]
+         "Portfolio", "Monte Carlo", "History", "Research"]
     )
 else:
     signal_tab, overview_tab, portfolio_tab = st.tabs(
         ["Signal", "Chart", "Portfolio"]
     )
     agent_tab = forecast_tab = carlo_tab = history_tab = None
+    research_tab = None
 
 
 with signal_tab:
@@ -2132,3 +2134,217 @@ if pro:
                     removed = runs.clear()
                     st.success(f"Deleted {removed} run(s).")
                     st.rerun()
+
+
+if pro:
+    with research_tab:
+        # ------------------------------------------------- Phase 8 research UI
+        #
+        # One rule shapes this whole tab: show stored evidence, not recomputed
+        # hindsight. Everything below reads frozen records. The single
+        # exception is the explanation panel, which reads the *live* verdict
+        # already computed for the signal tab — and says so in the panel,
+        # because a live reading that is never frozen leaves no record at all.
+        #
+        # `research_view.load` deliberately does not construct a ledger when
+        # the file is absent: constructing one creates it, and opening a tab
+        # must not start a research record.
+        state = research_view.load()
+
+        st.subheader("Research & learning")
+        st.caption(
+            "What the system has actually shown, read back from frozen "
+            "records. Nothing on this tab is recomputed from today's data — "
+            "if a number is not here, it is because it was never measured."
+        )
+
+        warning = research_view.sample_size_warning(state)
+        if warning:
+            st.warning(warning, icon="⚠️")
+
+        overview = st.columns(4)
+        overview[0].metric("Forecasts frozen", f"{len(state.forecasts):,}")
+        overview[1].metric("Outcomes scored", f"{len(state.outcomes):,}")
+        overview[2].metric(
+            "Independent cutoffs", f"{state.n_independent_cutoffs:,}",
+            help="Draws, not rows. Symbols read on the same day are one draw, "
+                 "and forecasts whose windows overlap are collapsed before "
+                 "counting.")
+        overview[3].metric(
+            "Promotion floor", f"{research_view.MIN_CUTOFFS:,}",
+            help="Independent cutoffs a challenger needs before the Phase 7 "
+                 "gate will look at its skill at all.")
+
+        st.divider()
+
+        # -------------------------------------------------------- production
+        st.markdown("### 🟢 Production — what is live right now")
+        st.caption(
+            "Declared identity and source version for every component with "
+            "production status. `Frozen forecasts` counts what each has "
+            "actually put on the record, which is the only thing that can "
+            "ever be scored."
+        )
+        st.dataframe(research_view.production_panel(state),
+                     use_container_width=True, hide_index=True)
+
+        weights = research_view.active_weights(state)
+        if weights.empty:
+            st.info(
+                "No constituent weights to show. The live engine re-derives "
+                "its weights at every evaluation and remembers none of them, "
+                "so the only weights that can honestly be displayed are the "
+                "ones a frozen forecast carries — and nothing is frozen yet.",
+                icon="ℹ️")
+        else:
+            st.markdown("**Weights as frozen on the most recent record**")
+            st.dataframe(weights, use_container_width=True, hide_index=True)
+
+        st.divider()
+
+        # -------------------------------------------------- forecast quality
+        st.markdown("### 🔬 Research — forecast quality")
+        st.caption(
+            "Directional accuracy, error against the baseline each forecast "
+            "declared, and the sample behind both. Every row carries `n`; a "
+            "row whose `sufficient` flag is false is shown rather than hidden "
+            "because a thin cell is evidence about coverage."
+        )
+        quality_frame = research_view.quality(state)
+        if quality_frame.empty:
+            st.info(
+                "Nothing has matured and been scored, so there is no accuracy "
+                "to report. This is an empty record, not a poor one.",
+                icon="ℹ️")
+        else:
+            st.dataframe(quality_frame, use_container_width=True,
+                         hide_index=True)
+            calibration_frame = research_view.calibration(state)
+            if not calibration_frame.empty:
+                st.markdown("**Probability calibration**")
+                st.dataframe(calibration_frame, use_container_width=True,
+                             hide_index=True)
+            rolling_frame = research_view.rolling(state)
+            if not rolling_frame.empty:
+                st.markdown("**Rolling performance**")
+                st.dataframe(rolling_frame, use_container_width=True,
+                             hide_index=True)
+
+        st.divider()
+
+        # ------------------------------------------------------- leaderboard
+        st.markdown("### 🔬 Research — model leaderboard")
+        st.caption(
+            "Every component that can reach a frozen forecast, whether or not "
+            "it has one. Models with no scored forecast stay on the board "
+            "with n = 0: hiding them would answer who is winning, when the "
+            "true answer is that nothing has run."
+        )
+        st.dataframe(research_view.leaderboard(state),
+                     use_container_width=True, hide_index=True,
+                     height=min(420, 60 + 35 * 10))
+
+        st.divider()
+
+        # --------------------------------------------------- forecast history
+        st.markdown("### 🔬 Research — forecast history")
+        history_frame = research_view.history(state)
+        if history_frame.empty:
+            st.info("No matured prediction to list yet.", icon="ℹ️")
+        else:
+            st.caption(f"{len(history_frame):,} matured prediction(s), "
+                       "newest first.")
+            st.dataframe(
+                theme.signed(history_frame,
+                             ("Predicted", "Realised", "Error")),
+                use_container_width=True, hide_index=True,
+                height=min(520, 60 + 35 * len(history_frame)))
+
+        st.divider()
+
+        # --------------------------------------------- prediction explanation
+        st.markdown("### 🟢 Production — what today's call is made of")
+        live_verdict = globals().get("verdict")
+        if live_verdict is None or not live_verdict.available:
+            st.info("No live reading on this symbol to explain.", icon="ℹ️")
+        else:
+            st.caption(
+                "This is the **live** reading from the Ultimate signal tab, "
+                "not a frozen record — it is here because it is the thing a "
+                "frozen record would capture. Unless it is frozen it leaves "
+                "no trace, and nothing on the research surfaces above can "
+                "ever include it."
+            )
+            horizon_labels = {h.horizon.label: h for h in live_verdict.available}
+            chosen_label = st.selectbox("Horizon", list(horizon_labels),
+                                        key="research_horizon")
+            chosen = horizon_labels[chosen_label]
+
+            explain = st.columns(4)
+            explain[0].metric("Final score", f"{chosen.score:+.1f}")
+            explain[1].metric("Confidence", f"{chosen.confidence:.0f}")
+            explain[2].metric(
+                "Disagreement", f"{(1 - chosen.agreement) * 100:.0f}%",
+                help="Share of live weight sitting against the call. High "
+                     "disagreement is not the same as low confidence.")
+            explain[3].metric(
+                "Baseline", "no move",
+                help="The forecast's declared baseline is a zero-return "
+                     "reading. Every skill number on this tab is measured "
+                     "against what a forecast declared, never against a "
+                     "baseline chosen afterwards.")
+
+            constituents = pd.DataFrame([{
+                "Source": reading.name,
+                "Family": reading.family,
+                "Score": reading.score,
+                "Weight": reading.weight,
+                "Samples": reading.skill.samples,
+                "Edge (pts)": reading.skill.edge,
+                "Why zero": reading.skill.note or "—",
+            } for reading in chosen.readings])
+            st.dataframe(
+                theme.signed(constituents, ("Score", "Edge (pts)")),
+                use_container_width=True, hide_index=True,
+                height=min(460, 60 + 35 * len(constituents)))
+            st.caption(
+                "**Regime conditioning: not validated, and not applied.** "
+                "Phase 6 was audited and returned INADMISSIBLE AS WRITTEN — "
+                "no regime effect has been validated on any record this "
+                "engine owns, so no weight here is conditioned on one. "
+                "`Samples` is the reliability column: a source with few "
+                "firings has a weight built on little."
+            )
+
+        st.divider()
+
+        # --------------------------------------------------- research pipeline
+        st.markdown("### 🔬 Research — pipeline and promotion")
+        st.caption(
+            "Every component the programme has ruled on, including the ones "
+            "it rejected. A rejection that disappears from the app is a "
+            "rejection nobody learns from."
+        )
+        pipeline_frame = research_view.pipeline()
+        counts = pipeline_frame["Outcome"].value_counts()
+        pipeline_columns = st.columns(len(counts))
+        for index, (name, count) in enumerate(counts.items()):
+            pipeline_columns[index].metric(name, f"{count}")
+        st.dataframe(pipeline_frame, use_container_width=True, hide_index=True,
+                     height=min(420, 60 + 35 * 10))
+
+        st.markdown("**What each challenger still has to do**")
+        requirements = research_view.promotion_requirements(state)
+        if requirements.empty:
+            st.info("No challenger is registered.", icon="ℹ️")
+        else:
+            blocked = sorted(set(
+                requirements.loc[requirements["Decision"] == promotion.BLOCK,
+                                 "Model"]))
+            st.caption(
+                f"{len(blocked)} challenger(s) blocked. The gate is not a "
+                "formality: it refuses by default and an absent record fails "
+                "it rather than abstaining."
+            )
+            st.dataframe(requirements, use_container_width=True,
+                         hide_index=True, height=min(460, 60 + 35 * 10))
