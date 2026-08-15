@@ -553,6 +553,8 @@ a phase record: this spends no phase and no budget slot.
 - **What changed.** No `.py` file. New `reports/V5_ADJUSTMENT_BASIS_FINDING.md`;
   `reports/EXPERIMENT_REGISTRY.md` appended as §15; this roadmap — a dated
   correction to §3's "nothing left" claim, §3.3 items 7–9, and this record.
+- **Commits.** `a0d2842` (finding, registry §15, roadmap), plus the hash-record
+  commit that follows it. Tree clean at both.
 - **Suite.** Baseline **952 passed, 69 skipped — green**, on a clean tree before
   any edit, matching §3.2 exactly. Final **952 / 69, delta 0** — no code changed.
   Leak detector: no prediction path touched.
