@@ -1136,3 +1136,44 @@ CLOSED, V4 slot 1 SPENT, PIT-1 CLOSED, Phase 6 INADMISSIBLE AS WRITTEN.
 **Declared while the ledger was empty.** `app/forecast_ledger.sqlite3` still does
 not exist. As with the Phase 7 thresholds, a rule written now cannot have been
 chosen to admit a result.
+
+---
+
+## 15. AB-1 — adjustment-basis drift, a prospective-only scoring hazard, 2026-08-15
+
+**Not an experiment.** No hypothesis, no arm, no fit, no budget slot, no
+measurement. This registers a **finding about a path that has never been run**.
+Full document: `reports/V5_ADJUSTMENT_BASIS_FINDING.md`.
+
+**What it says.** The live fetch path uses `auto_adjust=True`
+(`app/core/live.py:236`), which back-adjusts the whole history whenever a split
+or dividend occurs. Under prospective operation the anchor bar therefore carries
+a different adjustment basis at maturity than it did at freeze. The Phase 2
+anchor guard (`app/core/outcome_ledger.py:353-358`, `rel_tol=1e-9`) catches this
+and refuses to score — correctly, since the return line at `:376` mixes a fresh
+numerator with a frozen denominator and would otherwise book a −50% move on a
+2-for-1 split. But the refusal falls on a **non-random subset**: dividend payers,
+and longer horizons. Nothing counts or reports the omission.
+
+**Why it was never seen.** The guard is tested as *tamper detection*
+(`app/tests/test_outcome_ledger.py:192`, a 5% bump). A legitimate re-adjustment
+producing the same mismatch cannot occur retrospectively, because a
+downloaded-once cache presents one basis to every read. The scenario is created
+by prospection, and prospection has never been switched on.
+
+**Nothing measured, nothing reopened.** No outcome, return, bar or accuracy was
+read. No code changed. No model promoted, demoted, retired or reopened. PIT-1
+stays CLOSED and its §4 disclosures stay true of it — AB-1 concerns a
+prospective path PIT-1 never ran, and is **not** a correction to
+`validation/REPORT.md` under CLAUDE.md §1.1.
+
+**One disagreement with a frozen note, stated not smuggled.** Phase 5's
+carry-forward holds that a repaired harness is a precondition for any prospective
+study. AB-1 §2 argues the opposite for the three disclosed look-aheads: all three
+are artefacts of retrospection and dissolve when the cutoff is now. The frozen
+wording is unaltered and the owner is left to weigh it.
+
+**Declared while the ledger was empty.** `app/forecast_ledger.sqlite3` still does
+not exist. The four candidate policies in AB-1 §6 are therefore choosable without
+any result in view — the same guarantee Phase 7's thresholds carry, and available
+exactly once.

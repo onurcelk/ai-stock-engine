@@ -329,6 +329,33 @@ forecast ledger was not switched on.** See `reports/V5_RR1_STRUCTURAL_GATE.md`
 and `reports/EXPERIMENT_REGISTRY.md` §14. **There is now genuinely nothing left
 that does not require the one decision** — research and engineering alike.
 
+**Corrected 2026-08-15 — the sentence above is false, and the wording stands
+unaltered as the record of what was believed.** A session that arrived, correctly
+found no phase available, and put the decision to the owner was asked for a
+recommendation. Building the argument for one surfaced a claim absent from the
+frozen record — that going prospective *repairs* PIT-1's three residual
+look-aheads rather than requiring them repaired first — and testing that claim
+against the code rather than the prose found **an item that needs no data, no
+ledger and no accumulation, and that is a precondition of the one decision rather
+than a consequence of it.** Registered as **AB-1**; see
+`reports/V5_ADJUSTMENT_BASIS_FINDING.md` and `reports/EXPERIMENT_REGISTRY.md` §15.
+
+In one line: the live path fetches back-adjusted bars, so under **prospective**
+operation a split or dividend inside a forecast window changes the anchor bar's
+basis between freeze and maturity. Phase 2's anchor guard catches it and refuses
+to score — correctly — but the refusal lands on dividend payers and on longer
+horizons, which is a **non-random hole nobody counts**. It was never seen because
+it cannot occur retrospectively: a downloaded-once cache shows every read one
+basis. **The recommendation is not changed, only ordered — settle AB-1, then
+switch the ledger on.** AB-1 §6 sets out four policies; all must be committed
+while the ledger is empty, for the reason Phase 7's thresholds were.
+
+The general lesson is worth more than the item: *"nothing left"* was true of the
+**roadmap's own list**, and was read as true of the **programme**. The list had
+been exhausted; the programme had not been re-examined. A future session should
+treat "nothing left to do" as a claim about a document, and test it against code
+before believing it.
+
 **Superseded 2026-08-15, kept visible.** ACTIVE PHASE ran PHASE 9 → PHASE 7 →
 PHASE 8 across this session, on the reasoning preserved below. All three are now
 COMPLETE.
@@ -481,12 +508,86 @@ the blocks are not effort problems.
    Read-only work — auditing a report, answering a question about the record,
    re-running the suite — is always available and always safe.
 
+**Amended 2026-08-15 — one item is now open, and it is a precondition.** Item 6
+still stands, but a session arriving today is no longer choosing between "ask"
+and "nothing". **AB-1 is open and needs no data**: the owner must choose among the
+four corporate-action policies in `reports/V5_ADJUSTMENT_BASIS_FINDING.md` §6.
+
+7. **Do not switch the ledger on before AB-1 is settled**, even if the owner
+   authorises the ledger — say that AB-1 comes first and why. Records frozen
+   before the policy exists accumulate a factor-correlated hole, and the policy
+   would then be chosen with results in view.
+8. **Do not "fix" AB-1 by relaxing the anchor guard** at
+   `app/core/outcome_ledger.py:353-358`, and do not touch
+   `test_realised_anchor_must_match_the_frozen_price`. The guard is the only
+   thing preventing a 2-for-1 split from booking a −50% return on a flat
+   position. The fix gives legitimate drift a *designed path*; it never widens
+   `rel_tol`.
+9. **Do not write a batch scorer with a bare `except OutcomeLedgerError:
+   continue`.** That is the specific line that converts AB-1's loud refusal into
+   a silent hole. No batch caller exists yet, which is why the defect is still
+   cheap.
+
 **The five files that hold the whole state**, if more than this roadmap is
 needed: `reports/V5_PHASE9_DATA_GAP_ANALYSIS.md` (why no dataset helps),
 `reports/V5_PHASE7_RETRAINING_POLICY.md` (the promotion policy),
 `reports/V5_REGIME_RULE_RESOLUTION.md` (RR-1, the regime rule),
 `reports/V5_RR1_STRUCTURAL_GATE.md` (RR-1 in code), and
 `reports/EXPERIMENT_REGISTRY.md` (every arm ever run, append-only).
+**Sixth, added 2026-08-15:** `reports/V5_ADJUSTMENT_BASIS_FINDING.md` (AB-1, why
+the ledger must not be switched on yet).
+
+## 3.4 Session record — 2026-08-15 (AB-1)
+
+Written so the next context needs this file and nothing else. A session log, not
+a phase record: this spends no phase and no budget slot.
+
+- **What ran.** The session was asked to "execute the next phase", found none
+  available, and put the ledger decision to the owner per §3.3.6. The owner asked
+  for a **recommendation** rather than choosing, then said no other AI is working
+  in this project and to proceed on judgement. **The ledger question was not
+  answered and remains open.** What was declined: the offered independent
+  (Gemini) review of the load-bearing claim — so §4 of the AB-1 report contains a
+  self-adversarial review instead, and a future session may still want a genuine
+  second opinion on it.
+- **What changed.** No `.py` file. New `reports/V5_ADJUSTMENT_BASIS_FINDING.md`;
+  `reports/EXPERIMENT_REGISTRY.md` appended as §15; this roadmap — a dated
+  correction to §3's "nothing left" claim, §3.3 items 7–9, and this record.
+- **Suite.** Baseline **952 passed, 69 skipped — green**, on a clean tree before
+  any edit, matching §3.2 exactly. Final **952 / 69, delta 0** — no code changed.
+  Leak detector: no prediction path touched.
+- **Ledger.** `app/forecast_ledger.sqlite3` **still does not exist.** Verified
+  before and after. Every guarantee resting on its absence is intact — and AB-1
+  §6 was written under that guarantee, which is the point of writing it now.
+- **Nothing measured.** No outcome, return, bar or accuracy. No model promoted,
+  demoted, retired or reopened. No budget slot spent. PIT-1 stays CLOSED.
+- **What was deliberately not done.** **AB-1 was not implemented.** All four §6
+  policies change a research-integrity surface — (a) needs a Phase 1 schema
+  amendment — and §3.3's precedent from the RR-1 structural gate is that such
+  work needs owner sign-off, not a resume prompt. Writing the finding is the
+  deliverable; choosing the policy is the owner's.
+- **Judgement calls.** Two, both flagged in the report rather than smuggled.
+  **First**, "do what you need" was read as authorising *analysis*, not as
+  authorising the ledger — the owner has now been offered it three times
+  (§3.1, §3.2, here) and never said yes, so a vague grant of latitude is not the
+  third answer. **Second**, AB-1 §2 **disagrees with a frozen Phase 5
+  carry-forward note** ("a repaired harness is the precondition for any future
+  prospective study"). The frozen wording is unaltered; the disagreement is
+  argued in the open and left for the owner. It is **not** a §1.1 correction to
+  `validation/REPORT.md` and must not be appended there as one.
+- **Traps.** (1) `auto_adjust=True` at `app/core/live.py:236` means a bar's close
+  is **not a fixed quantity** — it is a function of every corporate action up to
+  download time. Nearly every intuition about "the frozen price" is wrong under
+  prospection. (2) The anchor guard's test is framed as *tamper* detection, so
+  reading the test suite will not reveal the corporate-action case. (3) The
+  return line at `app/core/outcome_ledger.py:376` mixes a fresh numerator with a
+  frozen denominator; it is safe **only** because the guard runs first. Anyone
+  loosening the guard must fix that line in the same change.
+- **State on exit.** ACTIVE PHASE **none**. Phase 6 still INADMISSIBLE AS
+  WRITTEN; Phases 10 and 11 still ⛔ ENTRY BLOCKED. The programme now waits on
+  **two** owner decisions, in this order: **AB-1's policy** (§6 of its report,
+  needs no data), then **the ledger**. §3's "nothing left" claim is corrected
+  above rather than edited.
 
 ---
 
