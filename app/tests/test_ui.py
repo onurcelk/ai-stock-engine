@@ -553,24 +553,62 @@ def test_the_research_tab_renders_on_an_empty_record(bundled_app):
     assert "Promotion floor" in labels
 
 
-def test_the_research_tab_says_why_it_is_empty(bundled_app):
-    """An empty panel must not read as a measured null."""
-    warnings = " ".join(str(getattr(w, "value", "")) for w in bundled_app.warning)
+def test_the_research_tab_says_why_it_is_thin(bundled_app):
+    """A thin panel must not read as a measured null.
 
-    assert "ever been frozen" in warnings, (
-        f"no empty-state explanation among: {warnings[:400]}")
-
-
-def test_opening_the_research_tab_does_not_start_a_record(bundled_app):
-    """Rendering must not create `forecast_ledger.sqlite3`.
-
-    The absence of that file is what Phase 7 §6 and Phase 9 §6 rest on. A UI
-    that created it on first render would quietly spend a guarantee.
+    Renamed from `..._says_why_it_is_empty` on 2026-08-15, when the owner
+    authorised switching the ledger on. The assertion used to look for the
+    first of Phase 8's three empty states ("no forecast has ever been
+    frozen"), which was correct while the ledger did not exist and is simply
+    false now that it does. The invariant being tested never changed: the tab
+    must state, in words, why its numbers cannot carry a decision. So the test
+    now asks `research_view` which of its states applies and requires *that*
+    sentence — which keeps working as the record accumulates.
     """
-    from core import forecast_ledger
+    from core import research_view
 
+    expected = research_view.sample_size_warning(research_view.load())
+    assert expected is not None, (
+        "the record is no longer thin — this test has outlived its premise "
+        "and the promotion gate, not a warning banner, is now the guard")
+
+    warnings = " ".join(str(getattr(w, "value", "")) for w in bundled_app.warning)
+    assert expected[:40] in warnings, (
+        f"no state explanation among: {warnings[:400]}")
+
+
+def test_opening_the_research_tab_does_not_write_to_the_record(bundled_app):
+    """Rendering reads frozen evidence and must never add to it.
+
+    Was `..._does_not_start_a_record`, asserting the ledger file did not
+    exist. That was the right guard while its absence was load-bearing for
+    Phase 7 §6 and Phase 9 §6; the owner spent that guarantee deliberately on
+    2026-08-15. The surviving invariant is stronger and outlasts activation:
+    **opening a tab must not change the record.** A UI that appended on render
+    would manufacture rows nobody forecast.
+    """
+    import sqlite3
+
+    from core import forecast_ledger, research_view
+
+    ledger_path = pathlib.Path(forecast_ledger.DEFAULT_PATH)
+
+    def count() -> int:
+        if not ledger_path.exists():
+            return 0
+        with sqlite3.connect(ledger_path) as connection:
+            return connection.execute("SELECT COUNT(*) FROM forecasts").fetchone()[0]
+
+    before = count()
     assert_clean(bundled_app, "Pro research tab")
-    assert not pathlib.Path(forecast_ledger.DEFAULT_PATH).exists()
+    assert count() == before
+
+    # And the no-manufacture property itself, which activation did not repeal:
+    # reading a ledger that is not there must not bring one into existence.
+    missing = ledger_path.parent / "definitely_not_a_ledger.sqlite3"
+    assert not missing.exists()
+    assert research_view.load(missing).exists is False
+    assert not missing.exists()
 
 
 def test_lite_cannot_reach_the_research_tab():

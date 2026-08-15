@@ -264,6 +264,16 @@ decision, not a task.
 - [ ] **PHASE 10 — V5 Integrated Validation**
 - [ ] **PHASE 11 — Production Decision**
 
+**ACTIVE PHASE (from 2026-08-15):** **none — the programme is accumulating.**
+The one decision below was taken. The forecast ledger is **ON** and holds 86
+genuine prospective forecasts across 30 symbols at **1 independent cutoff**
+against the Phase 7 floor of 20. Nothing further can be *decided* until the
+record has resolution, and no amount of work substitutes for elapsed time. The
+correct posture is to let it fill: see §3.6. Everything below this line records
+the state before that decision and is kept visible.
+
+**Superseded, kept visible — the wording below was true until 2026-08-15.**
+
 **ACTIVE PHASE:** **none — the programme is blocked on one owner decision.**
 
 Phases 0–3 and 6–9 are all now closed. What remains is Phase 10 (V5 Integrated
@@ -547,6 +557,101 @@ needed: `reports/V5_PHASE9_DATA_GAP_ANALYSIS.md` (why no dataset helps),
 `reports/EXPERIMENT_REGISTRY.md` (every arm ever run, append-only).
 **Sixth, added 2026-08-15:** `reports/V5_ADJUSTMENT_BASIS_FINDING.md` (AB-1, why
 the ledger must not be switched on yet).
+**Seventh and eighth, added later the same day:**
+`reports/V5_PHASE1_SCHEMA_AMENDMENT_AB1.md` (AB-1 in code) and
+`reports/V5_LEDGER_ACTIVATION.md` (the ledger is on — read this first now).
+
+**§3.3 is superseded from 2026-08-15 and kept visible.** Items 1, 2, 4 and 5
+still hold. **Items 3 and 6 do not**: the ledger decision was taken, and the
+ledger exists. `app/forecast_ledger.sqlite3` is now real evidence — do not
+delete it, do not add synthetic rows to it, and do not regenerate it. The
+current standing instructions are §3.6.
+
+## 3.6 What a session arriving now should do
+
+Replaces §3.3, which was written for a programme waiting on a decision. That
+decision is taken. The failure mode has changed shape: a fresh context now finds
+a **live ledger** and may mistake accumulation for idleness.
+
+1. **The programme is waiting on elapsed time, not on work.** 1 independent
+   cutoff, floor 20. No experiment, dataset, feature family or model change
+   shortens that. Phase 9 settled it: dates are the only lever.
+2. **Do not enter Phase 10 or 11.** They need resolution. One date is not
+   resolution. Re-read §3 before arguing otherwise.
+3. **Never delete, regenerate, prune or hand-edit
+   `app/forecast_ledger.sqlite3`.** It is gitignored, so there is **no backup
+   and no version history** — see `reports/V5_LEDGER_ACTIVATION.md` §6. It is
+   the most fragile asset in the programme and the only one that cannot be
+   regenerated at any price.
+4. **Never add a row that was not generated live.** `assert_prospective` and
+   `MAX_CUTOFF_LAG` refuse a stale cutoff structurally. Do not route around
+   them, and do not "seed" the ledger to make a panel look populated. The
+   suite created six backfilled rows once already; that is what the guard is
+   for.
+5. **Do not switch challenger freezing on** until Phase 7 §9's versioned fitted
+   artefacts exist. That is the next real engineering item, and it is the only
+   one. It needs owner sign-off.
+6. **Do not enter Phase 6, and do not weaken `G0`/`D0`.** Unchanged from §3.3
+   items 1, 4 and 5.
+7. **What to do instead.** Read-only work is always safe: audit a report,
+   answer a question about the record, re-run the suite. If the owner wants
+   activity, the two useful items are **backing up the ledger** (not a research
+   decision) and **deciding whether accumulation should depend on someone
+   opening the app** — see `reports/V5_LEDGER_ACTIVATION.md` §6.
+
+## 3.5 Session record — 2026-08-15 (AB-1 implemented, ledger switched on)
+
+Written so the next context needs this file and nothing else. Two items in one
+session, on explicit owner authorisation covering the whole sequence.
+
+- **What ran.** The owner authorised, in order: implement AB-1 Policy A → test →
+  commit → switch the ledger on → incumbent-only prospective freezing → stop
+  before Phases 10/11. All of it was carried out. Nothing was declined; the one
+  thing deliberately **not** offered was a Gemini review, because the owner had
+  already said no other AI is working in this project.
+- **What changed.** `app/core/forecast_ledger.py` (schema v2, `basis_probes`,
+  `generate_incumbent_records`, `assert_prospective`, `MAX_CUTOFF_LAG`,
+  `has_frozen_input`, `freeze_incumbent_if_new`), `app/core/outcome_ledger.py`
+  (schema v2, `reconcile_basis`, five new outcome fields, `basis_status`), new
+  `app/core/ledger_activation.py`, `app/streamlit_app.py` (`read_ultimate` now
+  returns verdict + `FreezeReport`; failures shown in red). New tests
+  `test_ab1_adjustment_basis.py` (20) and `test_ledger_activation.py` (18).
+  Two `test_ui.py` tests re-aimed.
+- **Commits.** `d0f9da7` (AB-1, ledger verified absent at that commit), then the
+  activation commit and its hash record. Tree clean.
+- **Suite.** Baseline **952 / 69 green**. Final **990 / 69, delta +38**. Slow
+  suite 1059 passed pre-activation; `test_ui.py` 47 passed post-activation. Leak
+  detector run explicitly after activation: **1 passed.**
+- **Ledger.** `app/forecast_ledger.sqlite3` **now exists**: 86 records, 30
+  symbols, 4h/1d/1w, all `PRODUCTION_INCUMBENT`, all schema v2, max cutoff lag
+  1.56 days, **0 outcomes**, **1 independent cutoff**. Verified 86 before and
+  after a full suite run — tests do not write to it.
+- **Nothing measured.** No outcome, return, accuracy or interval. No model
+  promoted, demoted, retired or reopened; `promotion.PROMOTED` still `{}`. No
+  budget slot spent. No frozen record modified; registry appended as §16 and §17.
+- **What was deliberately not done.** No backfill from `app/cache/`, bundled
+  CSVs or PIT-1. No challenger, RL or model-assisted freezing. No outcome
+  scoring run (nothing has matured). Phases 10 and 11 not entered.
+- **Judgement calls.** Three, all argued in the reports. **(1)** AB-1 §6(a)
+  proposed storing the *unadjusted* anchor; probes were implemented instead
+  because a raw price still cannot distinguish a rescaling from tampering and
+  probes make the distinction testable — `V5_ADJUSTMENT_BASIS_FINDING.md` §9.
+  **(2)** `MAX_CUTOFF_LAG` and `assert_prospective` were **not in the brief**;
+  they were added because activation demonstrated the contamination they
+  prevent. **(3)** Two `test_ui.py` tests asserted the ledger's *absence* and
+  were re-aimed at their surviving invariants rather than deleted —
+  `V5_LEDGER_ACTIVATION.md` §7.
+- **Traps.** (1) `pytest --runslow` created the production ledger with six
+  **backfilled** rows — 2023 cutoffs under a 2026 clock — because UI fixtures
+  feed bundled bars through a patched live fetch. Deleted before it was ever
+  committed; now refused structurally. (2) `ForecastLedger.__init__` creates its
+  file, so anything that opens a ledger *before* deciding whether to write
+  manufactures it. (3) `forecast_id` digests `generated_at` and therefore cannot
+  be an idempotency key — `input_fingerprint` is. (4) The ledger is
+  **gitignored**: no backup, no history.
+- **State on exit.** ACTIVE PHASE **none — accumulating**. Phase 6 still
+  INADMISSIBLE AS WRITTEN. Phases 10 and 11 still entry-blocked, now for want of
+  resolution rather than for want of a record. Standing instructions are §3.6.
 
 ## 3.4 Session record — 2026-08-15 (AB-1)
 

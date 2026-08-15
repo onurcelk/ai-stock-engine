@@ -50,6 +50,13 @@ _V2_FIELDS = ("basis_probes",)
 #: long enough that a single tampered bar cannot masquerade as a rescaling.
 BASIS_PROBE_COUNT = 8
 
+#: How far a record's last observed bar may trail the moment it was generated
+#: before it stops being a *live* forecast.  A real feed's last bar is hours
+#: to a long weekend old; a backfill from stale or bundled data is months to
+#: years.  Seven days sits in the empty space between, so the guard costs no
+#: honest freeze and catches the whole class.  See `assert_prospective`.
+MAX_CUTOFF_LAG = pd.Timedelta(days=7)
+
 DEFAULT_PATH = pathlib.Path(__file__).resolve().parents[1] / "forecast_ledger.sqlite3"
 PRODUCTION_INCUMBENT = "PRODUCTION_INCUMBENT"
 CHALLENGER = "CHALLENGER"
@@ -778,6 +785,67 @@ class FreezeOutcome:
         return bool(self.frozen)
 
 
+def generate_incumbent_records(
+    symbol: str,
+    *,
+    include_agents: bool = True,
+    model: Any = None,
+    horizons: list[Any] | None = None,
+    force: bool = False,
+    fetcher: Callable[..., tuple[pd.DataFrame, Any]] | None = None,
+    **record_kwargs: Any,
+) -> tuple[Any, list[ForecastRecord]]:
+    """Run the engine and build records **without touching any ledger**.
+
+    Separated from writing so a caller can inspect what it is about to freeze
+    and decline.  `ForecastLedger.__init__` creates its file, so constructing
+    one in order to discover there is nothing to write would manufacture the
+    very artefact whose absence several guarantees rest on.
+    """
+    from . import live
+
+    source_fetcher = fetcher or live.fetch
+    cutoff_at = record_kwargs.get("cutoff_at")
+    captured: dict[tuple[str, str], pd.DataFrame] = {}
+
+    def capture(name: str, *, period: str, interval: str, force: bool = False):
+        frame, entry = source_fetcher(name, period=period, interval=interval, force=force)
+        fingerprint_frame(frame, cutoff_at=cutoff_at)
+        captured[(interval, period)] = frame.copy(deep=True)
+        return frame, entry
+
+    verdict = ultimate.evaluate(
+        symbol, include_agents=include_agents, model=model,
+        horizons=horizons, force=force, fetcher=capture,
+    )
+    return verdict, _incumbent_records(verdict, captured, **record_kwargs)
+
+
+def assert_prospective(records: Iterable[ForecastRecord]) -> None:
+    """Refuse to freeze a forecast whose outcome could already be known.
+
+    A prospective ledger is worth more than a retrospective one for exactly
+    one reason: nobody chose the cutoff after seeing what happened next.  A
+    record generated long after its own last bar breaks that, and it breaks
+    it *silently* — the row looks identical to an honest one, and every
+    statistic built on it is contaminated.
+
+    The realistic way this happens is not fraud but plumbing: a fixture, a
+    stale cache, or a bundled CSV reaching a code path meant for live bars.
+    That is precisely how it was found — a UI test froze 2023 bars under a
+    2026 clock.  `MAX_CUTOFF_LAG` is deliberately coarse, because the gap
+    between a long weekend and a backfill is three orders of magnitude.
+    """
+    for record in records:
+        lag = pd.Timestamp(record.generated_at) - pd.Timestamp(record.cutoff_at)
+        if lag > MAX_CUTOFF_LAG:
+            raise ForecastIntegrityError(
+                f"refusing to freeze {record.symbol} {record.horizon}: its last "
+                f"bar is {lag.days} days older than the moment of generation, so "
+                f"this is not a live forecast and its outcome may already exist"
+            )
+
+
 def freeze_incumbent_if_new(
     ledger: ForecastLedger,
     symbol: str,
@@ -788,34 +856,8 @@ def freeze_incumbent_if_new(
     Idempotent by input fingerprint, which is what makes it safe to call on
     every live render: a horizon whose bars have not moved since it was last
     frozen is skipped, not re-frozen under a fresh `generated_at`.
-
-    Nothing here is backfilled.  The engine is run *now*, against bars that
-    end now, and the record is written before any outcome for it can exist —
-    which is the entire reason a prospective ledger is worth more than a
-    retrospective one.
     """
-    from . import live
-
-    source_fetcher = kwargs.pop("fetcher", None) or live.fetch
-    cutoff_at = kwargs.get("cutoff_at")
-    captured: dict[tuple[str, str], pd.DataFrame] = {}
-
-    def capture(name: str, *, period: str, interval: str, force: bool = False):
-        frame, entry = source_fetcher(name, period=period, interval=interval, force=force)
-        fingerprint_frame(frame, cutoff_at=cutoff_at)
-        captured[(interval, period)] = frame.copy(deep=True)
-        return frame, entry
-
-    verdict = ultimate.evaluate(
-        symbol,
-        include_agents=kwargs.pop("include_agents", True),
-        model=kwargs.pop("model", None),
-        horizons=kwargs.pop("horizons", None),
-        force=kwargs.pop("force", False),
-        fetcher=capture,
-    )
-    records = _incumbent_records(verdict, captured, **kwargs)
-
+    verdict, records = generate_incumbent_records(symbol, **kwargs)
     fresh, skipped = [], []
     for record in records:
         if ledger.has_frozen_input(

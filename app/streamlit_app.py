@@ -20,9 +20,9 @@ import streamlit as st
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 from core import (  # noqa: E402
-    agents, backtest, charts, data, forecast, holdings, live, montecarlo,
-    portfolio, promotion, quotes, research_view, runs, strategies, theme,
-    ultimate,
+    agents, backtest, charts, data, forecast, holdings, ledger_activation,
+    live, montecarlo, portfolio, promotion, quotes, research_view, runs,
+    strategies, theme, ultimate,
 )
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -114,10 +114,21 @@ def local_path(path: pathlib.Path) -> str:
 
 @st.cache_data(ttl=600, show_spinner=False)
 def read_ultimate(symbol: str, include_agents: bool,
-                  model: tuple | None) -> ultimate.UltimateVerdict:
+                  model: tuple | None):
+    """The live reading, and — since 2026-08-15 — a frozen copy of it.
+
+    Freezing rides on the cache miss rather than sitting beside it, so the
+    engine runs once and the record is of the verdict the user was actually
+    shown. Re-renders within the TTL neither re-fetch nor re-freeze, and a
+    render after the TTL on unchanged bars is skipped by input fingerprint,
+    so the ledger gains a row when the *bars* move, not when the page does.
+
+    Returns the verdict and a `FreezeReport`; the caller displays the report.
+    """
     evidence = ultimate.ModelEvidence(*model) if model else None
-    return ultimate.evaluate(symbol, include_agents=include_agents,
-                             model=evidence)
+    return ledger_activation.evaluate_and_freeze(
+        symbol, include_agents=include_agents, model=evidence,
+    )
 
 
 # The forecast needs both halves and will not invent either: a projection past
@@ -605,9 +616,11 @@ with signal_tab:
     else:
         include_agents, model_tuple = True, None
 
+    freeze_report = None
     with st.spinner(f"Measuring {ticker or label} across three horizons…"):
         if source == "Live ticker":
-            verdict = read_ultimate(ticker or symbol, include_agents, model_tuple)
+            verdict, freeze_report = read_ultimate(
+                ticker or symbol, include_agents, model_tuple)
         else:
             # A bundled CSV or an upload cannot be re-fetched at another
             # resolution, so it answers whichever horizons its own bars can
@@ -622,6 +635,15 @@ with signal_tab:
         subtitle=("4 hours · 1 day · 1 week" if source == "Live ticker"
                   else f"from the loaded {verdict.by_key('1d').interval} bars"),
     )
+
+    # A ledger write that failed is the one thing here a user must not miss:
+    # a silently missing forecast is a hole in the record that nothing later
+    # can reconstruct. Successes stay quiet in a caption.
+    if freeze_report is not None:
+        if freeze_report.failed:
+            st.error(f"⚠️ {freeze_report.summary()}")
+        elif freeze_report.wrote_anything:
+            st.caption(f"🔒 {freeze_report.summary()}")
 
     trained = st.session_state.get("ultimate_model") if pro else None
     if model_tuple is not None and trained is not None:

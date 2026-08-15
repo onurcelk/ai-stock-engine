@@ -1219,3 +1219,45 @@ ABANDONED, V3 3 of 3 CLOSED, V4 slot 1 SPENT, Phase 6 INADMISSIBLE AS WRITTEN.
 absent throughout AB-1 and at this commit. Every threshold and policy above was
 chosen with no result in view — the guarantee §7 of the finding insisted on, and
 the reason AB-1 was ordered before activation rather than after.
+
+---
+
+## 17. The forecast ledger is switched on, 2026-08-15
+
+**Not an experiment, and not a result.** No hypothesis, no arm, no fit, no budget
+slot, no measurement. This registers the moment the programme stopped being able
+to say its record is empty. Full document: `reports/V5_LEDGER_ACTIVATION.md`.
+
+**What happened.** On the owner's explicit authorisation, and only after AB-1 was
+implemented, tested and committed, `app/forecast_ledger.sqlite3` was created by
+genuine live forecasts. **86 records, 30 symbols, horizons 4h/1d/1w, all
+`PRODUCTION_INCUMBENT`, all schema v2 with basis probes, maximum cutoff lag 1.56
+days. Zero outcomes.**
+
+**One independent date.** The Phase 7 gate's floor is 20 and it BLOCKs every
+model today, correctly. Nothing was promoted, demoted, retired or reopened, and
+`promotion.PROMOTED` is still empty.
+
+**Scope: incumbent only.** Challenger freezing stays off while Phase 7 §9's
+versioned fitted artefacts remain NOT DONE. A model-assisted verdict is
+therefore not frozen either, and the UI says so rather than silently omitting it.
+
+**Two contamination routes were found and closed before any evidence
+accumulated.** The full test suite created the production ledger with six
+records carrying 2023 cutoffs under a 2026 clock — backfilled forecasts whose
+outcomes were already observable, and indistinguishable from honest rows once
+written. The file was deleted before it was ever committed.
+`forecast_ledger.assert_prospective` and `MAX_CUTOFF_LAG = 7 days` now refuse
+that class structurally, and `generate_incumbent_records` separates running the
+engine from opening a ledger so a refusal cannot leave the artefact behind.
+Phase 8's no-manufacture test is what caught it.
+
+**The guarantees deliberately spent.** Phase 7 §6, Phase 9 §6 and Phase 8's
+no-manufacture premise all rested on this file's absence. That absence is now
+gone, by decision rather than by accident, and every threshold and policy those
+sections declared was committed while it still held. That ordering is visible in
+the git history and is the whole reason AB-1 was required to come first.
+
+**What remains true.** V2 ABANDONED, V3 3 of 3 CLOSED, V4 slot 1 SPENT, PIT-1
+CLOSED, Phase 6 INADMISSIBLE AS WRITTEN, RR-1 in force. Phases 10 and 11 remain
+unentered: they need resolution, and one date is not resolution.
