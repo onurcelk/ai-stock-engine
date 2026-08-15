@@ -29,6 +29,7 @@ At the beginning of a fresh Claude Code context:
    - record result,
    - record commit hash,
    - **record the Examined block (see below)**,
+   - **write the Session Notes (see below)**,
    - set the next active phase,
    - commit the roadmap update together with the phase result when appropriate.
 
@@ -61,6 +62,57 @@ Two rules about the block itself:
 - **It is never edited to match a later belief.** If a later phase finds an
   Examined entry was wrong, append a dated correction under §6's rule and cite
   the correcting commit. The original wording stays visible.
+
+### Per-Phase Session Notes — standing rule
+
+**Every phase, and every item substantial enough to earn a commit, ends by
+writing its notes into this file before the session closes.** Added 2026-08-15
+after §3.2 and §3.3 were written retroactively at the owner's request rather
+than as a matter of course.
+
+The Examined block and the Session Notes are different instruments and neither
+replaces the other. **Examined is evidence** — it proves the work damaged
+nothing, and it answers to the protocol. **Notes are transfer** — they carry
+what the next context would otherwise have to rediscover, and they answer to the
+next reader. A phase with a perfect Examined block and no notes has protected
+the record and lost the knowledge.
+
+**Where they go.** A numbered `## 3.x Session record — <date> (<subject>)`
+section in §3, taking the next free number. The highest number is always the
+latest; §0's step 0 sends a cold start there first. Never renumber an existing
+one, and never rewrite one — a later session that disagrees appends its own.
+
+**What every note block contains.** Terse is correct; this is a capsule, not a
+narrative.
+
+| # | Item | What is recorded |
+|---|---|---|
+| 1 | **What ran** | The item, and — if the owner chose it from options — what the options were and which was chosen. Record what was **declined**, because a decision not taken stays open and the next session must not assume it was settled. |
+| 2 | **What changed** | Files and symbols, not prose. Enough to find it without a diff. |
+| 3 | **Commits** | Hashes, and whether the tree was clean. |
+| 4 | **Suite** | Baseline and final counts, the delta, and the leak-detector result. Duplicated from Examined on purpose — a cold start reads §3 and may never reach the phase's own record. |
+| 5 | **Ledger** | Whether `app/forecast_ledger.sqlite3` exists, verified rather than assumed. This is the programme's single most load-bearing fact. |
+| 6 | **What was deliberately not done** | The strongest item on this list. An omission that is invisible gets "fixed" by the next session as a bug. If it was scoped out, blocked, or judged out of bounds, say so and say why. |
+| 7 | **Judgement calls and their reasons** | Anywhere the work exceeded, narrowed, or interpreted its brief. Flag it, don't smuggle it, and name the section that argues it. |
+| 8 | **Traps** | The non-obvious thing that would have cost the next session an hour, or damaged something. `ForecastLedger.__init__` creating its own file is the type case. |
+| 9 | **State on exit** | ACTIVE PHASE, which phases are entry-blocked, and what the programme is waiting on. State it even when nothing moved — *especially* then. |
+
+**What is not a note.** A restatement of what the phase's report already says, a
+summary of work the git log shows, or anything a reader could derive from the
+code. If it is derivable, leave it out; §0's Token Discipline still binds.
+
+**Keep §3.3 current.** The "do not do this" list is written against the state of
+the programme, and a stale prohibition is worse than none. When a phase changes
+what a fresh context should avoid, amend §3.3 in the same commit.
+
+**This rule is forward-looking, and Phases 0–9 are not to be backfilled.** They
+closed before it existed and have only their Completion Records; §3.1 and §3.2
+are the sole session records, written for RR-1 and the RR-1 structural gate.
+Reconstructing notes for a phase nobody took notes on would mean inferring from
+git history what a session was thinking — which is precisely what §0 forbids for
+Examined items, and the reason `not recorded` is a permitted answer there. The
+absence of notes for Phases 0–9 is a fact about this programme, not a gap to
+close.
 
 ### Token Discipline
 
