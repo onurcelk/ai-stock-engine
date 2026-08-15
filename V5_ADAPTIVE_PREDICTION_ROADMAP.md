@@ -956,8 +956,12 @@ No automatic production promotion without explicit evidence gate.
   stated reasons**, and a test forbids them collapsing into one blanket excuse.
   **Every threshold was declared while the ledger was empty** — a guarantee
   available exactly once, which the first written outcome ends permanently.
-- Commit: hash recorded in the follow-up commit, per the convention used at
-  `2105d4f`, `41a0273`, `23aaed8`.
+- Commit: `e1d2947` — policy, gate, tests and this roadmap update together.
+  Unlike Phases 6 and 9 this phase ships code, and the ordering that matters
+  here is a different one: the gate and its thresholds were committed **before
+  any forecast exists to judge**, which is what §6 of the report rests on
+  (CLAUDE.md §5.2). Hash recorded in the follow-up commit, per the convention
+  used at `2105d4f`, `41a0273`, `23aaed8`.
 - Examined:
   1. Baseline suite: **904 passed, 65 skipped — green**, run before any edit on
      a clean tree immediately after the Phase 9 commits.
