@@ -776,9 +776,14 @@ Only validated regime effects may influence ensemble weights or model selection.
   asked for "no regime collapse, and ≥ 50 independent cutoffs". **No regime MDE
   is asserted** — under CLAUDE.md §7.3 that number may only come from a gate
   committed before it is run.
-- Commit: `reports/V5_PHASE6_REGIME_EVAL.md` and this roadmap update — hash
-  recorded in the follow-up commit, per the convention used at `2105d4f`,
-  `62b5f2b`, `0c5000e`.
+- Commit: `a992942` — `reports/V5_PHASE6_REGIME_EVAL.md` and this roadmap
+  update, committed together and **before** any regime construction code
+  exists, so the audit cannot have been written around a number (CLAUDE.md
+  §5.2). There is no earlier hash in this phase's chain because there was no
+  measurement to gate: unlike Phase 5(a)'s `f53aa96` → `660ce25` → `ade0305`,
+  Phase 6 produced no preregistration and no gate code, which is itself the
+  finding. Hash recorded in the follow-up commit, per the convention used at
+  `2105d4f`, `62b5f2b`, `0c5000e`.
 - Examined:
   1. Baseline suite: **904 passed, 65 skipped — green** (`pytest`, before this
      phase). Re-measured at the start of this phase rather than inherited,
@@ -822,11 +827,13 @@ Only validated regime effects may influence ensemble weights or model selection.
   Recommendation: **(b) with (c) as a free prerequisite.** If Phase 9 proceeds,
   its gate should carry an explicit **independent-draw count** requirement
   anchored on `ROADMAP.md`'s ≥ 50 cutoffs, not merely a hypothesis and a role.
-  `app/streamlit_app.py` and `app/tests/test_ui.py` carry uncommitted UI work
-  that **was** modified earlier in this session, in a separate non-research task
-  (a bar-interval P&L metric on the portfolio tab); it touches no research path
-  and its tests pass. Earlier phases recorded these files as untouched; that
-  wording described their state at the time and is not amended here.
+  `app/streamlit_app.py` and `app/tests/test_ui.py` were modified earlier in
+  this session in a separate non-research task (a bar-interval P&L metric on the
+  portfolio tab); they touch no research path and their tests pass. That work is
+  committed separately at `a50a189`, deliberately **not** folded into this
+  phase's commit, so the research record carries no code change. Earlier phases
+  recorded these files as untouched; that wording described their state at the
+  time and is not amended here.
 
 ---
 
