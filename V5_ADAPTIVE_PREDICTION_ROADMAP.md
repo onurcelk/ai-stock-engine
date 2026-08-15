@@ -138,7 +138,14 @@ Do not treat this summary as a substitute for repository evidence when exact val
       BLOCKED, premise contradicted by the record. As reformulation (a)
       weight-to-abstain: ran as ABS-1 and returned
       **NOT ANSWERABLE IN THIS HARNESS** on the power gate
-- [ ] **PHASE 6 — Regime-Aware Evaluation**
+- [ ] **PHASE 6 — Regime-Aware Evaluation** — **INADMISSIBLE AS WRITTEN, not
+      entered** (2026-08-14). Audited on request and blocked at entry on three
+      independent grounds: the only record that could answer it is PIT-1, which
+      is CLOSED and already reports a regime null; regime conditioning is both a
+      rejected family (`V2-E`) and a §2.5 disqualifier, contradicting this
+      phase's own STOP/GO gate; and a regime split partitions 12 cutoffs that are
+      not 12 independent draws. Nothing measured. The question stays **open** on
+      a record that could resolve it. See `reports/V5_PHASE6_REGIME_EVAL.md`
 - [ ] **PHASE 7 — Retraining & Promotion Policy**
 - [ ] **PHASE 8 — Research & Learning UI**
 - [ ] **PHASE 9 — Data Gap Analysis**
@@ -152,6 +159,17 @@ remaining one: Phase 5 is closed in both forms, and the binding constraint on
 this programme is resolution, not model choice. Phases 6, 7 and 8 are not
 skipped — they are deferred behind the question of whether any dataset exists
 that this instrument could resolve.
+
+**Reaffirmed 2026-08-14 after a Phase 6 admissibility audit.** The programme
+owner asked to start Phase 6 out of this order. Phase 6 was audited rather than
+entered and returned `INADMISSIBLE AS WRITTEN` — see
+`reports/V5_PHASE6_REGIME_EVAL.md`. The audit strengthens the case for the
+existing ordering rather than competing with it: regime conditioning asks the
+same 12 draws to support two or three accuracy estimates instead of one, so it
+*multiplies* the resolution requirement. ACTIVE PHASE is therefore unchanged at
+**Phase 9**. One item is now available to be settled independently and for free,
+with no data touched: the §2.5 versus Phase-6-gate contradiction recorded at the
+Phase 6 STOP/GO gate below, which blocks every future Phase 6 on every record.
 
 ---
 
@@ -717,13 +735,98 @@ Only where PIT-safe and available:
 
 Only validated regime effects may influence ensemble weights or model selection.
 
+> **Contradiction, recorded 2026-08-14, unresolved.** This gate treats a
+> validated regime effect as grounds to condition ensemble weights. Roadmap
+> §2.5, as applied four times in `reports/EXPERIMENT_REGISTRY.md` (§347, §429,
+> §643, §827), treats a regime-concentrated effect as a **disqualifier** that
+> "may not be restricted to in order to survive". The same finding licenses
+> action under one rule and forbids it under the other. Resolving this is a
+> programme-owner decision and it is a precondition for entering Phase 6 on any
+> record. See `reports/V5_PHASE6_REGIME_EVAL.md` §3.2.
+
 ## Completion Record
 
-- Status: PENDING
-- Result:
-- Commit:
-- Examined: (mandatory — fill the eight items from §0 before declaring COMPLETE)
-- Notes:
+- Status: **INADMISSIBLE AS WRITTEN — not entered.** Not COMPLETE and not
+  CLOSED: the question is well-posed and remains open on a record that could
+  resolve it. Nothing was measured, so nothing was concluded about regimes.
+- Result: `PHASE 6 VERDICT: INADMISSIBLE AS WRITTEN`. Deliverable
+  `reports/V5_PHASE6_REGIME_EVAL.md` is an **admissibility audit**, committed
+  before any regime construction code existed. Three independent grounds, each
+  sufficient alone:
+  **(1) The question was already asked on the only record that can answer it.**
+  `app/forecast_ledger.sqlite3` does not exist — no live forecast has ever been
+  frozen — so the frozen PIT-1 record is Phase 6's sole dataset, and
+  `validation/REPORT.md` already reports regime-split accuracy on it under
+  *"Checked, no effect found"*: 60-day volatility tercile 54.5 / 53.3 / 52.3,
+  and SPY-direction 50.0 (n = 26) / 65.7 (n = 35) / 49.3 (n = 73). PIT-1 is
+  CLOSED. Re-splitting a closed null on a fresh regime variable is "one more
+  carrier", foreclosed by `ROADMAP.md`'s standing exclusions.
+  **(2) Regime conditioning is both a rejected family and a disqualifier.**
+  `V2-E` (+ regime/VIX/breadth) is REJECT in the registry, and §2.5 makes regime
+  concentration disqualifying — which contradicts this phase's own STOP/GO gate.
+  See the note above.
+  **(3) Power: a regime split partitions cutoffs, not rows.** The contrast is
+  between-cluster, so effective n is the cutoff count. ABS-1's best-case contrast
+  on this record — 12 dates each side — measured MDE **29.15 pp** against a
+  7.5 pp anchor; a regime split gives each arm a fraction of that. Worse, the 12
+  dates are not 12 independent regime draws: six of eleven adjacent gaps are
+  ≤ 90 days and two are ≤ 23 days (2024-08-13/2024-09-05 at 23 d;
+  2026-07-07/2026-07-24 at 17 d), so a 60-day trailing regime window reads
+  overlapping data at those spacings. `ROADMAP.md`'s own preregistered criterion
+  asked for "no regime collapse, and ≥ 50 independent cutoffs". **No regime MDE
+  is asserted** — under CLAUDE.md §7.3 that number may only come from a gate
+  committed before it is run.
+- Commit: `reports/V5_PHASE6_REGIME_EVAL.md` and this roadmap update — hash
+  recorded in the follow-up commit, per the convention used at `2105d4f`,
+  `62b5f2b`, `0c5000e`.
+- Examined:
+  1. Baseline suite: **904 passed, 65 skipped — green** (`pytest`, before this
+     phase). Re-measured at the start of this phase rather than inherited,
+     because the working tree carried uncommitted UI edits from earlier in the
+     same session.
+  2. Final suite: **904 passed, 65 skipped. Delta 0.** This phase edited no
+     code. The only files it wrote are `reports/V5_PHASE6_REGIME_EVAL.md` (new)
+     and this roadmap entry.
+  3. Leak detector: this phase touched **no prediction path**. Run anyway —
+     `app/tests/test_validation.py::test_future_cannot_change_the_verdict`
+     **1 passed**.
+  4. Methodology surfaces: **none touched.** No targets, features, model params,
+     examset, ladder or `validation/pit.py`. No amendment required or made.
+  5. Frozen records: **read** — `validation/REPORT.md`,
+     `reports/EXPERIMENT_REGISTRY.md` (§2, §347, §429, §643, §827),
+     `alpha/V5_ABSTENTION_PREREGISTRATION.md`, `reports/V5_PHASE5A_ABSTENTION.md`,
+     `ROADMAP.md`. **None was modified, and none was appended to.** Every number
+     quoted into the Phase 6 report was copied from them, never recomputed.
+  6. Closed programmes: **this phase exists because of two.** Phase 6 as written
+     would have re-split PIT-1 (CLOSED) on a new regime variable after its null,
+     and its subject overlaps `V2-E` (REJECT, V2 ABANDONED). Both are named in
+     the report and **neither was reopened** — no accuracy was recomputed, no arm
+     resurrected, no threshold moved.
+  7. Measurement: **none on any outcome.** One prediction-side computation ran:
+     the calendar spacing of the 12 cutoff dates, read from
+     `validation/out/predictions.json`, which contains no realised return and no
+     bar after any cutoff. `validation/out/calls.csv` was **not opened**. No
+     regime was constructed, no performance split, no accuracy computed.
+  8. Sealed exam accessed: **no.**
+- Notes for whoever takes this next: the three grounds are separable — repairing
+  one leaves the other two standing, and **(2) is free to resolve and blocks
+  every future Phase 6 on every record**, so it is worth settling regardless of
+  what happens to the programme. Report §6 sets out three admissible options:
+  **(a)** Phase 6 reduced to a frozen regime construction plus a power gate,
+  stopping before any outcome — this yields the frozen regime artifact Phase 7
+  and Phase 10 need anyway, but §4.1 indicates what it will find; **(b)** defer
+  to Phase 9, the standing recommendation, now reinforced because regime
+  conditioning *multiplies* the resolution requirement rather than reducing it —
+  if 12 cutoffs cannot resolve a 7.5 pp main effect they cannot resolve an
+  interaction; **(c)** resolve the §2.5 contradiction as a documentation act.
+  Recommendation: **(b) with (c) as a free prerequisite.** If Phase 9 proceeds,
+  its gate should carry an explicit **independent-draw count** requirement
+  anchored on `ROADMAP.md`'s ≥ 50 cutoffs, not merely a hypothesis and a role.
+  `app/streamlit_app.py` and `app/tests/test_ui.py` carry uncommitted UI work
+  that **was** modified earlier in this session, in a separate non-research task
+  (a bar-interval P&L metric on the portfolio tab); it touches no research path
+  and its tests pass. Earlier phases recorded these files as untouched; that
+  wording described their state at the time and is not amended here.
 
 ---
 
