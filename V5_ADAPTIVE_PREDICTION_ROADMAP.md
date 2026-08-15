@@ -617,8 +617,10 @@ session, on explicit owner authorisation covering the whole sequence.
   returns verdict + `FreezeReport`; failures shown in red). New tests
   `test_ab1_adjustment_basis.py` (20) and `test_ledger_activation.py` (18).
   Two `test_ui.py` tests re-aimed.
-- **Commits.** `d0f9da7` (AB-1, ledger verified absent at that commit), then the
-  activation commit and its hash record. Tree clean.
+- **Commits.** `d0f9da7` (AB-1, ledger verified **absent** at that commit) then
+  `3c492b2` (activation), plus the hash-record commit that follows. The order of
+  those two hashes is the verifiable form of "AB-1 was decided on an empty
+  ledger" (CLAUDE.md §5.2). Tree clean at each.
 - **Suite.** Baseline **952 / 69 green**. Final **990 / 69, delta +38**. Slow
   suite 1059 passed pre-activation; `test_ui.py` 47 passed post-activation. Leak
   detector run explicitly after activation: **1 passed.**
