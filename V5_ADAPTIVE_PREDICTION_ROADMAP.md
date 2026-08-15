@@ -256,6 +256,22 @@ the omission is visible rather than lost. The one thing that *is* time-ordered
 about it: it should be built **before** the domain becomes non-empty, not after,
 for the same reason Phase 7's thresholds were set on an empty ledger.
 
+**Done 2026-08-15 — the latent engineering item above is now spent.** The wording
+stands unaltered; this records what happened to it. The owner was asked directly,
+was offered this item, the forecast ledger, both, or a hold, and **authorised this
+item alone**. `app/core/promotion.py` now carries `UNCONDITIONAL` plus gates `G0`
+(promotion) and `D0` (demotion), which refuse any status change decided on
+regime-restricted evidence — and refuse it *before the evidence is read*, so the
+gate cannot publish the regime-conditional number it declined to act on.
+`POLICY_VERSION` 1 → 2. Ten tests added, suite 942 → 952 passed, 69 skipped
+unchanged, leak detector 1 passed. `D0` extends RR-1 §8 beyond its
+literal wording, deliberately and on the record, because a rule binding promotion
+alone would still let a regime-restricted subset demote a rival. Nothing
+measured, nothing promoted or demoted, the gate's domain still empty, and **the
+forecast ledger was not switched on.** See `reports/V5_RR1_STRUCTURAL_GATE.md`
+and `reports/EXPERIMENT_REGISTRY.md` §14. **There is now genuinely nothing left
+that does not require the one decision** — research and engineering alike.
+
 **Superseded 2026-08-15, kept visible.** ACTIVE PHASE ran PHASE 9 → PHASE 7 →
 PHASE 8 across this session, on the reasoning preserved below. All three are now
 COMPLETE.
@@ -324,6 +340,46 @@ log, not a phase record: RR-1 is a rule clarification and spends no phase.
   only, and Grounds 1 and 3 stand. Phases 10 and 11 are still ⛔ ENTRY BLOCKED.
   The programme is still waiting on the ONE DECISION in §3, and RR-1 did not move
   it in either direction.
+
+## 3.2 Session record — 2026-08-15 (RR-1 made structural)
+
+Written so the next context needs this file and nothing else. A session log, not
+a phase record: this spends no phase and no budget slot.
+
+- **What ran.** One item only: the latent engineering item named in §3's
+  "Precision on 'no free item left'". The owner was asked before any edit, was
+  offered four options — build this gate, switch the forecast ledger on, both, or
+  hold — and **authorised this gate alone**. The ledger question was **not**
+  answered and **remains open**.
+- **What changed.** `app/core/promotion.py` and `app/tests/test_promotion.py`
+  only. `UNCONDITIONAL`, gate `G0` in `evaluate_promotion`, gate `D0` in
+  `evaluate_degradation`, `POLICY_VERSION` 1 → 2, and the scope exposed in
+  `policy()`. The refusal happens **before** `evidence_for` is called, so a
+  regime-scoped verdict carries `evidence is None` and no statistic exists to be
+  quoted. See `reports/V5_RR1_STRUCTURAL_GATE.md`.
+- **Suite.** Baseline **942 passed, 69 skipped — green**, taken before any edit on
+  a clean tree and matching the Phase 8 and RR-1 records exactly. Final
+  **952 / 69, delta +10 passed** — seven new test functions, one parametrised four
+  ways. Leak detector run explicitly: **1 passed**. No prediction path touched.
+- **Ledger.** `app/forecast_ledger.sqlite3` **still does not exist.** Verified
+  before and after. Every guarantee resting on its absence is intact.
+- **Nothing measured.** No outcome, return, bar or accuracy. No model promoted,
+  demoted, retired or reopened. `promotion.PROMOTED` is still `{}` and the new
+  gate's domain is still empty. No frozen record modified; the registry was
+  appended to as §14 under its own rule.
+- **One deliberate extension, flagged not smuggled.** RR-1 §8 named promotion
+  only. `D0` binds demotion too, because a rule binding promotion alone would let
+  a regime-restricted subset demote a rival — the same post-hoc rescue facing the
+  other way. Reasons in `reports/V5_RR1_STRUCTURAL_GATE.md` §2.2. **If a future
+  session thinks D0 was out of scope, read that section before removing it.**
+- **What the gate does not do.** It cannot detect a caller that filters the frame
+  and then declares `UNCONDITIONAL`; no column in
+  `outcome_ledger.performance_frame` records a row's regime. §3 of the report
+  states this. **G0 is not a leak detector** and must not be described as one.
+- **State on exit: unchanged where it matters.** ACTIVE PHASE is still **none**.
+  Phase 6 is still INADMISSIBLE AS WRITTEN, not entered — Grounds 1 and 3 stand.
+  Phases 10 and 11 are still ⛔ ENTRY BLOCKED. The programme is still waiting on
+  the ONE DECISION in §3, and this item did not move it in either direction.
 
 **The three-line version for a cold start.** The V5 programme is complete through
 Phase 9 except Phase 6, which is blocked on admissibility rather than effort.

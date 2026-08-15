@@ -31,6 +31,13 @@ Four things are worth stating plainly, because the tests enforce them.
   PRODUCTION by history, and it would not pass the gate below — there is no
   evidence either way.  Phase 7 does not demote it; that is a production
   decision and belongs to Phase 11.  `GRANDFATHERED` records the debt.
+
+* **Regime conditioning may refine a result; it may never originate one.**
+  RR-1 (`reports/V5_REGIME_RULE_RESOLUTION.md`) settled that §2.5 takes
+  precedence over the old Phase 6 gate, and G0 below is that rule in code: a
+  status change decided on regime-restricted evidence is refused *before* the
+  evidence is read.  Added while `PROMOTED` was still empty, for the same
+  reason the thresholds were — see `UNCONDITIONAL`.
 """
 
 from __future__ import annotations
@@ -49,7 +56,12 @@ from . import model_registry, outcome_ledger
 
 #: Bumped whenever a threshold changes.  A promotion records the version it was
 #: decided under, so a later reader can tell which policy applied.
-POLICY_VERSION = 1
+#:
+#: 1 — Phase 7 as adopted.
+#: 2 — RR-1 made structural: G0/D0 refuse regime-conditional evidence.  Bumped
+#:     although no threshold moved, because a new gate is a larger policy change
+#:     than a threshold is, and `PROMOTED` was empty under both versions.
+POLICY_VERSION = 2
 
 _Z = 1.959963984540054  # two-sided 95%, the same convention as outcome_ledger
 
@@ -76,6 +88,23 @@ MIN_SYMBOLS = 5
 #: PIT-1 record failed to beat `always_bullish`, so "beats its declared
 #: baseline, resolvably" is a real bar and not a formality.
 MIN_ADVANTAGE_LOWER_BOUND = 0.0
+
+#: The only evidence scope a status change may be decided on.  RR-1.1: the
+#: unconditional bar is cleared *before* any regime split is computed, so the
+#: unconditional result is the finding and the split is a property of it.
+#:
+#: Any other value names a regime and is refused.  This is not a resolution
+#: provision that lapses once enough cutoffs accumulate — RR-1.4 is that — and
+#: it binds identically on a 12-cutoff record and a 1,200-cutoff one.  The
+#: registry records five occasions on which an unconditional result was null or
+#: negative and a regime-restricted subset was the only positive one, in every
+#: case a bear regime; five occurrences in one direction describe a property of
+#: the procedure rather than a coincidence.
+#:
+#: Declared while `PROMOTED` was empty, which is the same guarantee the
+#: thresholds above claim: a rule written now cannot have been chosen to admit a
+#: result, because there is no result to admit.
+UNCONDITIONAL = "UNCONDITIONAL"
 
 #: Two different reasons a PRODUCTION model has not passed the gate, and they
 #: are not the same kind of thing.  The first is a statement that the gate is
@@ -314,6 +343,46 @@ def evidence_for(
     )
 
 
+# ------------------------------------------------------------- RR-1 (§2.5)
+
+
+def _scope_gate(name: str, evidence_scope: object) -> Gate:
+    """G0/D0 — the evidence is unconditional, or the decision is not reached.
+
+    What this catches and what it does not, stated plainly so nobody mistakes
+    its reach.  It catches the declared case: a caller that restricts evidence
+    to a regime and says so is refused, and refused *before* any statistic is
+    computed, because under RR-1 survival is decided before the split is read.
+    It does not catch a caller that filters the frame and then declares
+    `UNCONDITIONAL` — no column in `outcome_ledger.performance_frame` records
+    the regime a row was drawn under, so nothing here could detect that.
+
+    That limit is the same one `GRANDFATHERED` lives with, and it is tolerable
+    for the same reason: it does not make the honest path checkable *and* the
+    dishonest path invisible.  It makes the dishonest path a false statement in
+    a reviewable commit, which is what this repository's other integrity
+    surfaces rely on too.
+    """
+    if not isinstance(evidence_scope, str) or not evidence_scope.strip():
+        raise PromotionError(
+            "evidence_scope must be a non-empty string naming the scope the "
+            f"evidence was drawn under — {UNCONDITIONAL!r}, or the regime it "
+            "was restricted to. Absence is not a scope: a decision whose "
+            "evidence scope is unstated cannot be checked against RR-1.")
+
+    scope = evidence_scope.strip()
+    if scope == UNCONDITIONAL:
+        return Gate(name, True,
+                    "evidence is unconditional, so RR-1.1 is satisfied and the "
+                    "remaining gates are reached")
+    return Gate(
+        name, False,
+        f"evidence is restricted to regime {scope!r}. RR-1.1: regime "
+        "conditioning may refine a result, never originate one. The "
+        "unconditional bar is not reached, so no statistic was computed and "
+        "no decision is available on this evidence.")
+
+
 # ------------------------------------------------------------------ the gates
 
 
@@ -323,20 +392,31 @@ def evaluate_promotion(
     horizon: str,
     *,
     as_of: dt.datetime | pd.Timestamp | None = None,
+    evidence_scope: str = UNCONDITIONAL,
 ) -> Verdict:
     """Whether a CHALLENGER may become PRODUCTION.  Decides; never acts.
 
     Every gate must pass.  A missing ledger is not a neutral state — it fails
     G3 and the decision is BLOCK, which is the correct behaviour for a
     repository whose ledger has never been written to.
+
+    `evidence_scope` names what `frame` was drawn under.  Anything but
+    `UNCONDITIONAL` returns BLOCK on G0 alone, with `evidence` left `None` —
+    the regime-conditional path never reaches the evidence computation, which
+    is RR-1's ordering expressed as control flow rather than as a comment.
     """
+    scope = _scope_gate("G0 unconditional evidence", evidence_scope)
+    if not scope.passed:
+        return Verdict(model_id, horizon, BLOCK, (scope,), None)
+
     try:
         spec = model_registry.get(model_id)
     except model_registry.ModelRegistryError as error:
         gate = Gate("G1 registered", False, str(error))
-        return Verdict(model_id, horizon, BLOCK, (gate,), None)
+        return Verdict(model_id, horizon, BLOCK, (scope, gate), None)
 
     gates: list[Gate] = [
+        scope,
         Gate("G1 registered", True,
              f"{spec.model_id} is registered, status {spec.production_status}"),
         Gate("G2 challenger", spec.production_status == model_registry.CHALLENGER,
@@ -382,6 +462,7 @@ def evaluate_degradation(
     horizon: str,
     *,
     as_of: dt.datetime | pd.Timestamp | None = None,
+    evidence_scope: str = UNCONDITIONAL,
 ) -> Verdict:
     """Whether a PRODUCTION model has lost the right to its status.
 
@@ -390,11 +471,23 @@ def evaluate_degradation(
     record returns INSUFFICIENT_EVIDENCE rather than DEGRADED, because "we
     cannot tell" is not a finding of harm — the same distinction Phase 6 drew
     between an admissibility block and a null result.
+
+    D0 applies RR-1 here as well, and deliberately so.  RR-1 §8 named promotion
+    only, but a rule that binds promotion and leaves demotion open is a rule
+    with a door in it: a regime-restricted subset that cannot promote a model
+    would still be able to demote its rival, which is the same post-hoc rescue
+    facing the other way.  A regime-conditional demotion returns
+    INSUFFICIENT_EVIDENCE, not DEGRADED — refusing to read the evidence is not
+    a finding of harm, on exactly the reasoning above.
     """
+    scope = _scope_gate("D0 unconditional evidence", evidence_scope)
+    if not scope.passed:
+        return Verdict(model_id, horizon, INSUFFICIENT_EVIDENCE, (scope,), None)
+
     evidence = evidence_for(frame, model_id, horizon, as_of=as_of)
 
     resolvable = evidence.n_independent_cutoffs >= MIN_INDEPENDENT_CUTOFFS
-    gates = [Gate(
+    gates = [scope, Gate(
         "D1 resolution",
         resolvable,
         f"{evidence.n_independent_cutoffs} independent cutoffs against a floor "
@@ -450,6 +543,7 @@ def policy() -> dict[str, Any]:
     """The active policy as data — for the Phase 8 UI and for reports."""
     return {
         "policy_version": POLICY_VERSION,
+        "evidence_scope": UNCONDITIONAL,
         "min_independent_cutoffs": MIN_INDEPENDENT_CUTOFFS,
         "min_symbols": MIN_SYMBOLS,
         "min_advantage_lower_bound": MIN_ADVANTAGE_LOWER_BOUND,

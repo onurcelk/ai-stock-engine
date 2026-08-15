@@ -203,6 +203,106 @@ def test_a_forecast_that_has_not_matured_contributes_nothing():
     assert evidence.n_independent_cutoffs == 0
 
 
+# -------------------------------------------------- RR-1, regime conditioning
+
+
+def test_regime_conditional_evidence_cannot_promote():
+    """The record's five bear-regime rescues, refused structurally.
+
+    This is the exact frame that promotes in
+    `test_a_resolvable_record_with_real_skill_promotes`.  The only thing that
+    changes is what it was drawn under, and that alone must be decisive —
+    otherwise the rule is advice.
+    """
+    frame = rows(cutoffs=60, symbols=8, advantage=0.01, spread=0.0005)
+    verdict = promotion.evaluate_promotion(
+        "neural.lstm", frame, "5x1d", evidence_scope="BEAR_TREND")
+
+    assert verdict.decision == promotion.BLOCK, verdict.explain()
+    assert {gate.name for gate in verdict.failed_gates} == {
+        "G0 unconditional evidence"}
+    assert "RR-1.1" in verdict.gates[0].detail
+
+
+def test_the_regime_gate_is_reached_before_any_statistic_is_computed():
+    """RR-1: survival is decided before the split is read.
+
+    A BLOCK that still reported an advantage would be publishing the
+    regime-conditional number it just refused to act on, and a reader would
+    quote it.  `evidence is None` is the point, not an omission.
+    """
+    frame = rows(cutoffs=60, symbols=8, advantage=5.0, spread=1e-9)
+    verdict = promotion.evaluate_promotion(
+        "neural.lstm", frame, "5x1d", evidence_scope="BEAR")
+
+    assert verdict.evidence is None
+    assert len(verdict.gates) == 1, (
+        "no gate after G0 may be evaluated on regime-restricted evidence")
+
+
+def test_regime_conditional_evidence_cannot_demote_either():
+    """A rule that binds promotion but not demotion has a door in it."""
+    frame = rows(model_id=model_registry.ULTIMATE_ENSEMBLE,
+                 cutoffs=60, advantage=-0.01, spread=0.0005)
+
+    unconditional = promotion.evaluate_degradation(
+        model_registry.ULTIMATE_ENSEMBLE, frame, "5x1d")
+    conditional = promotion.evaluate_degradation(
+        model_registry.ULTIMATE_ENSEMBLE, frame, "5x1d",
+        evidence_scope="BEAR_TREND")
+
+    assert unconditional.decision == promotion.DEGRADED
+    assert conditional.decision == promotion.INSUFFICIENT_EVIDENCE, (
+        "refusing to read the evidence is not a finding of harm")
+    assert conditional.evidence is None
+
+
+def test_the_regime_gate_can_pass_or_it_guarantees_nothing():
+    """The invariant must be capable of both verdicts on the same frame."""
+    frame = rows(cutoffs=60, symbols=8, advantage=0.01, spread=0.0005)
+
+    passed = promotion.evaluate_promotion(
+        "neural.lstm", frame, "5x1d",
+        evidence_scope=promotion.UNCONDITIONAL)
+
+    assert passed.decision == promotion.PROMOTE, passed.explain()
+    assert passed.gates[0].name == "G0 unconditional evidence"
+    assert passed.gates[0].passed
+
+
+def test_the_default_scope_is_unconditional():
+    """The honest call is the short one; declaring a regime is the extra act."""
+    frame = rows(cutoffs=60, symbols=8, advantage=0.01, spread=0.0005)
+
+    assert promotion.evaluate_promotion("neural.lstm", frame, "5x1d") == (
+        promotion.evaluate_promotion(
+            "neural.lstm", frame, "5x1d",
+            evidence_scope=promotion.UNCONDITIONAL))
+
+
+@pytest.mark.parametrize("scope", [None, "", "   ", 3])
+def test_an_unstated_scope_is_refused_rather_than_assumed(scope):
+    """Absence is not a scope. Defaulting it to unconditional would be a bet."""
+    frame = rows(cutoffs=60)
+
+    with pytest.raises(promotion.PromotionError, match="evidence_scope"):
+        promotion.evaluate_promotion(
+            "neural.lstm", frame, "5x1d", evidence_scope=scope)
+    with pytest.raises(promotion.PromotionError, match="evidence_scope"):
+        promotion.evaluate_degradation(
+            model_registry.ULTIMATE_ENSEMBLE, frame, "5x1d",
+            evidence_scope=scope)
+
+
+def test_an_unregistered_model_still_reports_the_scope_gate():
+    """Every promotion verdict carries G0, including the early returns."""
+    verdict = promotion.evaluate_promotion(
+        "neural.nonexistent", pd.DataFrame(), "5x1d")
+
+    assert verdict.gates[0].name == "G0 unconditional evidence"
+    assert verdict.decision == promotion.BLOCK
+
+
 # ------------------------------------------------------------- degradation
 
 
@@ -294,6 +394,8 @@ def test_the_policy_is_reportable_as_data():
     assert policy["undeclared"] == ()
     assert policy["promoted"] == {}
     assert model_registry.ULTIMATE_ENSEMBLE in policy["grandfathered"]
+    assert policy["evidence_scope"] == promotion.UNCONDITIONAL
+    assert policy["policy_version"] == promotion.POLICY_VERSION
 
 
 def test_the_verdict_explains_itself_line_by_line():

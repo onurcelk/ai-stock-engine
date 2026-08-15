@@ -1104,3 +1104,35 @@ stays REJECT, V2 stays ABANDONED, V3 stays 3 of 3 CLOSED, V4 slot 1 stays SPENT,
 PIT-1 stays CLOSED. Phase 6 keeps its status — INADMISSIBLE AS WRITTEN, not
 entered — because this resolves only Ground 2 of its three; Grounds 1 and 3 are
 untouched, and the replacement gate's domain is **empty** on today's registry.
+
+---
+
+## 14. RR-1 made structural, 2026-08-15
+
+**Not an experiment.** No hypothesis, no arm, no fit, no budget slot, no
+measurement. This records that the rule registered at §13 above now exists in
+code as well as in prose. Full document: `reports/V5_RR1_STRUCTURAL_GATE.md`.
+
+**What changed.** `app/core/promotion.py` gained `UNCONDITIONAL` and two gates —
+`G0` in `evaluate_promotion` and `D0` in `evaluate_degradation` — that refuse any
+status change decided on regime-restricted evidence. The refusal happens **before
+the evidence is read**: a regime-scoped call returns with `evidence is None` and
+no statistic computed, so the gate cannot publish the regime-conditional number it
+declined to act on. `POLICY_VERSION` 1 → 2. Ten tests added, suite 942 → 952
+passed with 69 skipped unchanged.
+
+**Scope note.** RR-1 §8 named promotion only; `D0` extends the rule to demotion,
+deliberately and recorded as an extension, because a rule binding promotion alone
+would still let a regime-restricted subset demote a rival — the same post-hoc
+rescue facing the other way.
+
+**Retroactivity: none, and none needed.** §13 already re-derived all five
+applications of §2.5 under RR-1 and found five unchanged decisions. `G0` is
+strictly no weaker than the rule it enforces, so no row above changes. Nothing
+promoted, demoted, retired or reopened; `promotion.PROMOTED` is still empty and
+the gate's domain is still empty. V2-E stays REJECT, V2 ABANDONED, V3 3 of 3
+CLOSED, V4 slot 1 SPENT, PIT-1 CLOSED, Phase 6 INADMISSIBLE AS WRITTEN.
+
+**Declared while the ledger was empty.** `app/forecast_ledger.sqlite3` still does
+not exist. As with the Phase 7 thresholds, a rule written now cannot have been
+chosen to admit a result.
