@@ -1261,3 +1261,63 @@ the git history and is the whole reason AB-1 was required to come first.
 **What remains true.** V2 ABANDONED, V3 3 of 3 CLOSED, V4 slot 1 SPENT, PIT-1
 CLOSED, Phase 6 INADMISSIBLE AS WRITTEN, RR-1 in force. Phases 10 and 11 remain
 unentered: they need resolution, and one date is not resolution.
+
+---
+
+## 18. Accumulation infrastructure, and a correction to §17, 2026-08-15
+
+**Not an experiment.** No hypothesis, no arm, no fit, no budget slot, no
+measurement, and no change to any prediction path. Full document:
+`reports/V5_LEDGER_PROTECTION.md`.
+
+**Correction to §17 above, whose wording stands unedited.** §17 records
+activation as leaving the programme at *"1 independent cutoff against the Phase 7
+floor of 20"*. **Both figures are wrong.** The floor is
+`promotion.MIN_INDEPENDENT_CUTOFFS = 50`. The available count is **0**, not 1,
+because `evidence_for` builds its windows from **matured** rows: a forecast with
+no outcome contributes nothing to independence, so 86 frozen forecasts across 2
+calendar dates yield zero. The error overstated the programme's position, which
+is the direction that matters. No record changed; only the description of it was
+wrong.
+
+**What the frozen policy actually requires**, computed by running
+`promotion.independent_cutoffs` over simulated cadences rather than by hand, and
+reading no outcome value: at one collection per trading day, `4h` and `1d` each
+reach 50 independent cutoffs in **50 trading days (~10 weeks)**, and `1w` — whose
+window is 5 daily bars — needs **246 trading days, about 49 calendar weeks**.
+The binding horizon is `1w` at roughly a year. Collecting more often does not
+shorten it, because overlapping windows are collapsed before counting.
+
+**What was built.** `app/core/ledger_backup.py` — local, usage-driven backup to
+the separate physical drive `D:\prediction market backup`, via
+`sqlite3.Connection.backup()` from a read-only connection, verified by
+`PRAGMA integrity_check` and a re-fingerprint before an atomic `os.replace` onto
+its final name; retention keeps the latest 90 and structurally cannot remove the
+newest or only valid copy; restore is manual only and refuses to discard newer
+forecasts. `app/core/ledger_lifecycle.py` and `run_app.py` attach it to the real
+process lifecycle — startup recovery for a run that crashed before its shutdown
+backup, then `atexit`/`SIGINT`/`SIGTERM` on the way out. Change is decided on an
+immutable content fingerprint, never on mtime.
+`app/core/collector.py` provides headless collection calling the *same*
+`ledger_activation.evaluate_and_freeze` the app calls — not a second forecasting
+path, asserted structurally. Universe declared in
+`app/collection_universe.txt`. Cadence declared: once per trading day,
+post-close.
+
+**There is no cloud service, scheduled task, timer, daemon or background sync.**
+An earlier draft of this work recommended a Windows Scheduled Task for
+collection; the owner directed otherwise and that recommendation is withdrawn.
+The consequence is recorded rather than buried: accumulation depends on the app
+being opened or the collector being run by hand, so the cadence is a target kept
+by habit rather than a guarantee enforced by the machine.
+
+**Declared while the ledger holds 0 outcomes.** The cadence was chosen on
+methodological grounds — settled bars, no discretion in sampling time, and the
+observation that a finer cadence cannot add independent cutoffs at `1d` or `1w`
+— and could not have been chosen to flatter a result, because there is no result.
+
+**Nothing measured, nothing reopened.** The production ledger was not modified:
+content digest `cabcf1bd003a73e8456a289b9797e1faca90661c03c72012c5beb23b9c3b0b0e`
+before and after, 86 forecasts, 30 symbols. No model promoted, demoted, retired
+or reopened. V2 ABANDONED, V3 3 of 3 CLOSED, V4 slot 1 SPENT, PIT-1 CLOSED,
+Phase 6 INADMISSIBLE AS WRITTEN, RR-1 in force.

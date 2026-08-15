@@ -42,6 +42,27 @@ def pytest_collection_modifyitems(config, items):
 # -------------------------------------------------------------------- fixtures
 
 
+@pytest.fixture(autouse=True, scope="session")
+def never_touch_the_backup_drive():
+    """No automated run may write to `D:\\prediction market backup`, ever.
+
+    The backup drive holds copies of prospective forecasts that cannot be
+    regenerated. Tests that want backup behaviour pass their own `tmp_path`
+    root explicitly; this stops anything that forgets — a default argument, a
+    launcher imported by accident — from reaching the real drive.
+
+    Belt and braces: `run_app.py` is the only thing that installs the lifecycle
+    hooks, and no test imports it.
+    """
+    import os
+
+    from core import ledger_backup
+
+    os.environ[ledger_backup.DISABLE_ENV] = "1"
+    yield
+    os.environ.pop(ledger_backup.DISABLE_ENV, None)
+
+
 @pytest.fixture(scope="session")
 def repo_root() -> pathlib.Path:
     return REPO

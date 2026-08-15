@@ -1,0 +1,41 @@
+# V5 prospective collection universe
+#
+# Declared on 2026-08-15 from the 30 symbols that the ledger was switched on
+# with. Read by core.collector; one symbol per line, # comments ignored.
+#
+# This file exists so the universe cannot drift silently with whatever happens
+# to sit in app/cache/. A symbol entering or leaving the record is a change
+# someone made, visible in git, rather than a side effect of browsing.
+#
+# EURUSD_X was in the cache and is deliberately absent: Yahoo reports it
+# delisted and it yielded no admissible horizon at activation.
+AAOI
+AAPL
+AMD
+AMZN
+AVAV
+BTC-USD
+CBRS
+EOSE
+ETH-USD
+EVC
+GOOGL
+HIMX
+INTC
+META
+MSFT
+NBIS
+NVDA
+ORCL
+PL
+PLTR
+QQQ
+RKLB
+SLV
+SNDK
+SPCX
+SPY
+T
+TSLA
+UAMY
+VOO

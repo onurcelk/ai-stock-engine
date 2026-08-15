@@ -178,3 +178,26 @@ intended. If it ever fires on live data, the data is the problem.
 - **Methodology surfaces (CLAUDE.md §1.2):** none touched.
 - **Sealed exam:** not accessed.
 - **Nothing measured.** No outcome, return, accuracy or promotion.
+
+---
+
+## 8. Correction appended 2026-08-15 — the cutoff figures in §4 and §5
+
+The wording above stands unedited under CLAUDE.md §1.1. Two numbers in it are
+wrong, both in the direction of flattering the programme's position.
+
+**§4 and §5 say "1 independent cutoff" and "a floor of 20".** The floor is
+`promotion.MIN_INDEPENDENT_CUTOFFS = 50` (promotion.py:77). The available count
+is **0**: `promotion.evidence_for` builds its windows from **matured** rows, so a
+forecast whose horizon has not elapsed contributes nothing to independence. 86
+frozen forecasts across 2 calendar dates are 0 independent cutoffs, and will
+stay 0 until the first outcomes mature.
+
+"1 independent cutoff" conflated *one calendar date of forecasts* with the
+gate's own measure. They are different quantities and only the second one
+counts. See `reports/V5_LEDGER_PROTECTION.md` §1–§2 for the corrected figures
+and for what the frozen policy requires per horizon — notably `1w`, which needs
+about a year of daily collection.
+
+Nothing in the record changed. The ledger held 86 forecasts across 30 symbols
+then and holds exactly those now.

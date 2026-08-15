@@ -264,6 +264,24 @@ decision, not a task.
 - [ ] **PHASE 10 — V5 Integrated Validation**
 - [ ] **PHASE 11 — Production Decision**
 
+**PROGRAMME STATE (from 2026-08-15): ACCUMULATION.** Not a phase, and no phase
+is active. The forecast ledger is **ON**, protected, and holds 86 genuine
+prospective forecasts across 30 symbols. Nothing further can be *decided* until
+the record has resolution, and no amount of work substitutes for elapsed time.
+The correct posture is to let it fill: see §3.6. **Do not manufacture a research
+phase because no experiment is available.**
+
+**Corrected 2026-08-15 — the cutoff figures in the paragraph below are wrong.**
+The wording stands unaltered. `promotion.MIN_INDEPENDENT_CUTOFFS` is **50**, not
+20, and the count currently available is **0**, not 1: the gate builds its
+windows from **matured** rows, so a forecast whose horizon has not elapsed
+contributes nothing. At one collection per trading day the frozen policy needs
+**50 trading days (~10 weeks)** for `4h` and `1d`, and **246 trading days (~49
+weeks)** for `1w`, which is the binding horizon. See
+`reports/V5_LEDGER_PROTECTION.md` §1–§2 and `reports/EXPERIMENT_REGISTRY.md` §18.
+
+**Superseded, kept visible:**
+
 **ACTIVE PHASE (from 2026-08-15):** **none — the programme is accumulating.**
 The one decision below was taken. The forecast ledger is **ON** and holds 86
 genuine prospective forecasts across 30 symbols at **1 independent cutoff**
@@ -567,6 +585,54 @@ ledger exists. `app/forecast_ledger.sqlite3` is now real evidence — do not
 delete it, do not add synthetic rows to it, and do not regenerate it. The
 current standing instructions are §3.6.
 
+## 3.7 Session record — 2026-08-15 (protection and accumulation infrastructure)
+
+Infrastructure only. No phase spent, no budget slot, no prediction path touched.
+
+- **What ran.** Two owner instructions in sequence. First: protect the ledger
+  and remove dependence on UI usage. Second, mid-work: **replace the backup
+  design** with a local, usage-driven one on `D:\prediction market backup` —
+  explicitly **no cloud, no rclone, no Google Drive, no Windows Scheduled Task,
+  no timers, no background sync.** The second superseded the first's backup
+  design and its scheduled-task recommendation; both are recorded as withdrawn
+  rather than deleted.
+- **What changed.** New `app/core/ledger_backup.py` (rewritten to the second
+  spec), `app/core/ledger_lifecycle.py`, `app/core/collector.py`, `run_app.py`,
+  `app/collection_universe.txt`. `.gitignore`, `app/tests/conftest.py`
+  (session-wide backup disable). New tests `test_ledger_backup.py` (33) and
+  `test_collector.py` (16). Reports `V5_LEDGER_PROTECTION.md`, registry §18.
+- **Suite.** Baseline **990 / 69 green**. Final **1039 / 69, delta +49**; slow
+  suite **1108 passed**. Leak detector run explicitly: **1 passed**.
+- **Ledger.** Untouched, and proved so rather than asserted: content digest
+  `cabcf1bd…3b0b0e` over every stored payload and payload hash, plus the same 86
+  forecast ids, 30 symbols and 4 cutoff stamps, **before and after**. Zero rows
+  altered or deleted.
+- **Backups.** One real verified backup exists:
+  `D:\prediction market backup\forecast_ledger_2026-08-15_15-05-33.sqlite3`,
+  `integrity_check = ok`, SHA-256 `cbeaaea0…88fd16`. A repeat call correctly
+  returned `UNCHANGED`. **`D:` stayed empty through the entire test run** — the
+  session fixture is a hard stop, and tests opt in per-test against `tmp_path`.
+- **A correction, in the direction that matters.** The activation report and
+  registry §17 said "1 independent cutoff against a floor of 20". Both wrong:
+  the floor is **50** and the count is **0**. Corrections appended, originals
+  unedited.
+- **What was deliberately not done.** No auto-collection from `run_app.py` —
+  it would change *when forecasts are generated*, out of scope for backup
+  infrastructure. No automatic restore anywhere; recovery is manual and a test
+  asserts no lifecycle path calls it. No off-machine copy — `D:` covers a disk
+  failure on `C:`, not a lost machine.
+- **Traps.** (1) `conftest.never_touch_the_backup_drive` disables backups for
+  the whole session; a new backup test that does not take the `enabled` fixture
+  will silently assert nothing. (2) `run_app.py` is now the supported entry
+  point — `streamlit run app/streamlit_app.py` still works but takes **no**
+  backups. (3) `ForecastLedger._connect` never closes its connections, so
+  Windows holds a file lock; tests that unlink a ledger need `gc.collect()`
+  first. (4) The superseded `app/ledger_backups/` copy was verified
+  byte-identical to the new `D:` backup before being removed.
+- **State on exit.** **ACCUMULATION.** No active phase. Phase 6 still
+  INADMISSIBLE AS WRITTEN; Phases 10 and 11 still entry-blocked for want of
+  resolution. 0 of 50 independent cutoffs. Standing instructions are §3.6.
+
 ## 3.6 What a session arriving now should do
 
 Replaces §3.3, which was written for a programme waiting on a decision. That
@@ -594,10 +660,25 @@ a **live ledger** and may mistake accumulation for idleness.
 6. **Do not enter Phase 6, and do not weaken `G0`/`D0`.** Unchanged from §3.3
    items 1, 4 and 5.
 7. **What to do instead.** Read-only work is always safe: audit a report,
-   answer a question about the record, re-run the suite. If the owner wants
-   activity, the two useful items are **backing up the ledger** (not a research
-   decision) and **deciding whether accumulation should depend on someone
-   opening the app** — see `reports/V5_LEDGER_ACTIVATION.md` §6.
+   answer a question about the record, re-run the suite.
+
+**Amended 2026-08-15 — items 3 and 7 have moved on.** The ledger is now backed
+up to `D:\prediction market backup` on every session that changes it, with
+startup recovery for a crashed run (`reports/V5_LEDGER_PROTECTION.md`). Two
+things follow for a session arriving now:
+
+8. **Run the app with `python run_app.py`**, not `streamlit run`. Only the
+   launcher installs the backup lifecycle. Never add a scheduled task, timer,
+   daemon or cloud sync — the owner has ruled all of them out.
+9. **Accumulation is by habit, not by machine.** A trading day on which nobody
+   opens the app or runs `python -m core.collector` yields no cutoff, and that
+   gap is permanent. If this proves hard to keep, the named candidate is
+   auto-collection from `run_app.py`, which was deliberately not built because
+   it changes when forecasts are generated.
+10. **The remaining exposure is off-machine.** `D:` survives a `C:` disk
+    failure, not a lost or destroyed machine. Copying
+    `D:\prediction market backup` somewhere else occasionally is the whole fix
+    and needs no preregistration.
 
 ## 3.5 Session record — 2026-08-15 (AB-1 implemented, ledger switched on)
 

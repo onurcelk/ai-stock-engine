@@ -11,6 +11,16 @@ app/forecast_ledger.sqlite3
 app/forecast_ledger.sqlite3-wal
 app/forecast_ledger.sqlite3-shm
 app/forecast_ledger.sqlite3-journal
+# Copies of the ledger are the same evidence, so the same rule: never a
+# git-tracked binary. Backups live on a separate physical drive
+# (D:\prediction market backup), outside the repository entirely — see
+# reports/V5_LEDGER_PROTECTION.md.
+app/forecast_ledger.sqlite3.superseded_*
+# What this machine believes it has already backed up. Local state, not
+# evidence: deleting it costs one redundant backup, nothing more.
+app/ledger_backup_state.json
+# One JSON file per headless collection run.
+app/collection_logs/
 .pytest_cache/
 
 # .streamlit/config.toml IS committed — it carries the app's theme.
