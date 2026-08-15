@@ -1056,3 +1056,51 @@ remains visible in that report; this note records that the unanimity argument is
 weaker than stated. It does not rescue any candidate — no candidate's own interval
 approaches zero from above, and the PIT-1 verdict rests on those intervals rather
 than on the unanimity argument.
+
+---
+
+## 13. RR-1 — resolution of the §2.5 / Phase-6-gate contradiction, 2026-08-15
+
+**Not an experiment.** No hypothesis, no arm, no fit, no budget slot. This is a
+**rule clarification**, registered here because §2.5 is applied five times above
+and a future reader of those rows needs to know the rule was settled and how.
+Full document: `reports/V5_REGIME_RULE_RESOLUTION.md`.
+
+**The conflict.** Roadmap §2.5 — substance: criterion 6 of `alpha/PREREGISTRATION.md`
+§8, *"no regime collapse"* — treats a regime-concentrated result as a
+**disqualifier**. The V5 Phase 6 STOP/GO gate treats a validated regime effect as
+grounds to **condition ensemble weights**. The same evidence licensed action
+under one rule and forbade it under the other.
+
+**Verdict: `§2.5 TAKES PRECEDENCE. THE PHASE 6 GATE AS WRITTEN IS VOID.`**
+§2.5 is a gate on a single model's eligibility, evaluated first and
+unconditionally. What survives of the Phase 6 gate governs allocation **among
+models that have already passed it**. The operative rule:
+
+> **Regime conditioning may refine a result. It may never originate one.**
+
+Five conditions, all required, cited as RR-1.1 … RR-1.5: unconditional bar first;
+positive in every declared regime; construction frozen before any outcome is
+read; power declared **per arm** because a regime split partitions cutoffs rather
+than rows; multiplicity across a regime count declared in advance.
+
+**Retroactivity: none. Checked case by case, not asserted.** Each of the five
+applications of §2.5 in this registry was re-derived under RR-1:
+
+| Where | Decision | Under RR-1 |
+|---|---|---|
+| §171 (V2.1 arms) | REJECT on power | Unchanged — rejected on half-widths ~0.034 vs effects ~0.013, independent of the regime finding |
+| §347 (V3 template row) | template, not a decision | Unchanged — RR-1.2 is the same requirement |
+| §429 (V3-1, SUE 5D) | REJECT, all four criteria failed | Unchanged — unconditional +0.00090 CI [−0.00140, +0.00317] spans zero, fails RR-1.1, the split is never reached |
+| §643 (V4-1, SUE 20D) | REJECT, all four failed | Unchanged — unconditional −0.00106 CI [−0.00610, +0.00464], fails RR-1.1 |
+| §827 (S4 regime bucket) | no promotion | Unchanged — the bucket exists only inside the restriction |
+
+**Five applications, five unchanged decisions.** RR-1 is strictly no weaker than
+the rule it clarifies: each model now fails *earlier* in the sequence, never
+later. No wording above is altered, no row rewritten, no §2 index entry changed.
+
+**No slot spent, nothing promoted, nothing demoted, nothing measured.** V2-E
+stays REJECT, V2 stays ABANDONED, V3 stays 3 of 3 CLOSED, V4 slot 1 stays SPENT,
+PIT-1 stays CLOSED. Phase 6 keeps its status — INADMISSIBLE AS WRITTEN, not
+entered — because this resolves only Ground 2 of its three; Grounds 1 and 3 are
+untouched, and the replacement gate's domain is **empty** on today's registry.

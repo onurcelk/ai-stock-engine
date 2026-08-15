@@ -171,7 +171,12 @@ decision, not a task.
       rejected family (`V2-E`) and a §2.5 disqualifier, contradicting this
       phase's own STOP/GO gate; and a regime split partitions 12 cutoffs that are
       not 12 independent draws. Nothing measured. The question stays **open** on
-      a record that could resolve it. See `reports/V5_PHASE6_REGIME_EVAL.md`
+      a record that could resolve it. See `reports/V5_PHASE6_REGIME_EVAL.md`.
+      **Ground 2 resolved 2026-08-15 as RR-1** — §2.5 takes precedence, this
+      phase's gate as written is **void** and replaced, and regime conditioning
+      may never originate a result. Status unchanged: Grounds 1 and 3 stand and
+      the replacement gate's domain is empty. See
+      `reports/V5_REGIME_RULE_RESOLUTION.md`
 - [x] **PHASE 7 — Retraining & Promotion Policy** — **POLICY ADOPTED, nothing
       promoted or demoted** (2026-08-15). All nine required items defined, and
       `app/core/promotion.py` makes the gate structural: every PRODUCTION model
@@ -223,6 +228,16 @@ making that choice as a side effect of a UI phase would be wrong.
 **Free and unblocked meanwhile:** the §2.5 versus Phase-6-gate contradiction
 recorded at the Phase 6 STOP/GO gate. It needs no data, no resolution and no
 accumulation, and it blocks every future Phase 6 on every record.
+
+**Done 2026-08-15 — the wording above stands and is now spent.** The owner
+directed it and it was settled as **RR-1**:
+`§2.5 TAKES PRECEDENCE. THE PHASE 6 GATE AS WRITTEN IS VOID.` See
+`reports/V5_REGIME_RULE_RESOLUTION.md`, `reports/EXPERIMENT_REGISTRY.md` §13, and
+the replacement gate at the Phase 6 STOP/GO section. Nothing was measured, no
+model moved, and all five frozen applications of §2.5 were re-derived and
+**unchanged**. **There is now no free item left.** Every remaining action in this
+programme is downstream of the one decision above, and the roadmap has nothing
+further to offer a session that arrives without it.
 
 **Superseded 2026-08-15, kept visible.** ACTIVE PHASE ran PHASE 9 → PHASE 7 →
 PHASE 8 across this session, on the reasoning preserved below. All three are now
@@ -838,6 +853,35 @@ Only validated regime effects may influence ensemble weights or model selection.
 > resolution and no accumulation: settling it costs one documentation act and
 > unblocks Phase 6 on every future record, including the one Phase 9 recommends
 > building. Left open here rather than decided, for the same reason as before.
+>
+> **RESOLVED 2026-08-15 as RR-1. The two notes above stand unaltered; this
+> records the decision they were waiting for.** The programme owner directed
+> option (c) of `reports/V5_PHASE6_REGIME_EVAL.md` §6. See
+> `reports/V5_REGIME_RULE_RESOLUTION.md` and `reports/EXPERIMENT_REGISTRY.md` §13.
+>
+> **Verdict: `§2.5 TAKES PRECEDENCE. THE GATE AS WRITTEN IS VOID.`** §2.5 is a
+> gate on a single model's eligibility, evaluated first and unconditionally; what
+> survives of this gate governs allocation **among models that have already
+> passed it**. The operative rule is *"regime conditioning may refine a result,
+> it may never originate one"*, and it makes §827's *"may not be restricted to in
+> order to survive"* unreachable rather than merely forbidden — survival is
+> decided before the split is read.
+>
+> **The gate above is struck as a licence and replaced by:**
+>
+> > **Phase 6 STOP/GO (RR-1).** Regime conditioning may influence ensemble
+> > weights only for models that have already cleared their unconditional bar
+> > (RR-1.1) and are positive in every declared regime (RR-1.2), on a frozen
+> > construction (RR-1.3), with per-arm power declared in advance (RR-1.4) and
+> > multiplicity accounted for (RR-1.5). A regime-conditional effect may never be
+> > a primary finding.
+>
+> **Phase 6's status is unchanged** — INADMISSIBLE AS WRITTEN, not entered. This
+> resolves Ground 2 only; Grounds 1 and 3 stand, and the replacement gate's
+> domain is **empty** today because no registry model clears RR-1.1. Five
+> applications of §2.5 in the frozen record were re-derived under RR-1 and **all
+> five decisions are unchanged** — RR-1 is strictly no weaker than the rule it
+> clarifies.
 
 ## Completion Record
 
@@ -1516,6 +1560,16 @@ waiting on (see the ONE DECISION note in §3), confirm the working tree and suit
 are clean, and hand back. The only work available without that decision is the
 free item named in §3 — the §2.5 versus Phase-6-gate contradiction — and it is a
 documentation act requiring no data.
+
+**Amendment, 2026-08-15 — that free item is now spent, and the wording above
+stands.** The §2.5 contradiction was settled as **RR-1**
+(`reports/V5_REGIME_RULE_RESOLUTION.md`). **No free item remains.** A session
+resuming after this date and finding `ACTIVE PHASE: none` should stop and report
+without looking for something to do: the honest answer is that the programme is
+waiting on the ONE DECISION in §3 and nothing else is available. Manufacturing
+work to fill the gap — a diagnostic, a probe, "just to see" — is the failure this
+roadmap exists to prevent, and it is more tempting now that the last legitimate
+free item is gone.
 
 Entering a blocked phase because a checklist said "first unchecked" would be
 this roadmap's own version of the error it exists to prevent: doing the next
