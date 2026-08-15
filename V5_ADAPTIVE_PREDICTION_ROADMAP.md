@@ -1089,8 +1089,12 @@ Any new dataset must have a precise hypothesis and measurable expected role.
   immune to every veto above, and the only asset that compounds. It is also slow:
   at V5's k=30, **~29 dates → 100 bp, ~115 → 50 bp, ~189 → 39 bp** (≈ 0.6 / 2.2 /
   3.6 years at weekly spacing). No expenditure shortens that.
-- Commit: hash recorded in the follow-up commit, per the convention used at
-  `2105d4f`, `41a0273`, `62b5f2b`.
+- Commit: `a5039b4` — `reports/V5_PHASE9_DATA_GAP_ANALYSIS.md` and this roadmap
+  update, committed together. Like Phase 6 this phase's chain carries a single
+  hash, and for the same reason: it gates no study and computes no MDE, so there
+  is no measurement for an earlier commit to precede (CLAUDE.md §5.2). Hash
+  recorded in the follow-up commit, per the convention used at `2105d4f`,
+  `41a0273`, `62b5f2b`.
 - Examined:
   1. Baseline suite: **904 passed, 65 skipped — green**, run before any edit and
      on a clean tree immediately after the Phase 6 commits.
