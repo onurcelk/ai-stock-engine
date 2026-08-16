@@ -1383,6 +1383,8 @@ Phase 6 INADMISSIBLE AS WRITTEN, RR-1 in force.
 
 ## 20. HR-1 — historical point-in-time replay, and HR-1.1, 2026-08-16
 
+**Commit:** `a8aca87`
+
 **Not an experiment in the budgeted sense.** No preregistered arm, no budget
 slot, no hypothesis test against a declared gate. This registers an
 **instrument** and the first measurement it produced. Nothing was promoted,

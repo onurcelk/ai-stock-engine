@@ -3,6 +3,7 @@
 **Date:** 2026-08-16
 **Registered as:** HR-1 (`reports/EXPERIMENT_REGISTRY.md` §20)
 **Status:** BUILT AND RUN. **12,873 Ultimate forecasts replayed and scored.**
+**Commit:** `a8aca87`
 **Scope:** diagnostics only. **No promotion, no demotion, no production weight moved.**
 **The incumbent was not modified.** `app/core/ultimate.py` is byte-identical and
 its source hash is unchanged — see §5.

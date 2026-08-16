@@ -612,6 +612,8 @@ preregistered arm, and **the incumbent engine was not modified**.
   retrospective scoring loop for Ultimate, then run it. Registered as **HR-1**
   (`reports/EXPERIMENT_REGISTRY.md` §20,
   `reports/V5_HISTORICAL_REPLAY.md`).
+- **Commits.** `a8aca87` (module, tests, gate, report, registry §20, roadmap),
+  plus the hash-record commit that follows it. Tree clean at both.
 - **What changed.** New `app/core/replay_study.py` and
   `app/tests/test_replay_study.py` (38). `app/core/outcome_ledger.py`
   (`maturity_spec` reads a replay's frozen bar mapping),
