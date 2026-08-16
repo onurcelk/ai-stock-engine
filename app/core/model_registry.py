@@ -135,6 +135,11 @@ TECHNICAL_INDICATOR = "G_TECHNICAL"
 ENSEMBLE = "H_ENSEMBLE"
 NEURAL_SEQUENCE = "I_NEURAL_SEQUENCE"
 CROSS_SECTIONAL_ML = "J_CROSS_SECTIONAL_ML"
+#: Community TradingView studies ported in `pine.py`.  A family of their own
+#: rather than `G_TECHNICAL`, and the separation is load-bearing twice over: the
+#: census test asserts `G_TECHNICAL` is *exactly* `indicators.SOURCES`, and a
+#: Pine study is chart furniture that has never been anything else.
+PINE_STUDY = "K_PINE_STUDY"
 
 #: Implementing module -> family, for the agents built from `agents.REGISTRY`.
 #: Architecture assigns the family; nothing here was chosen by performance.
@@ -383,6 +388,59 @@ def _rule_agent_specs(horizons: tuple[str, ...]) -> list[ModelSpec]:
             notes=_RULE_AGENT_NOTE,
         )
         for label, key, implementation in _RULE_AGENTS
+    ]
+
+
+def _pine_specs(horizons: tuple[str, ...]) -> list[ModelSpec]:
+    """The seven ported TradingView studies, registered so they cannot drift.
+
+    Registering them is a **lock, not a promotion**.  `EXPERIMENTAL` is the
+    status a component carries when it is runnable but disqualified from
+    production evidence, and `assert_record_admissible` refuses any record
+    naming one — so the effect of this entry is that a Pine study *cannot*
+    reach a production forecast without the refusal being explicit and visible.
+
+    They are deliberately **not** in `indicators.SOURCES`.  `ultimate.evaluate`
+    consumes that dict wholesale, so adding one would change the live
+    incumbent's evidence set while the ensemble's version — the sha256 of
+    `ultimate.py` — stayed put, and the prospective record would split across
+    two engines wearing one version string.  Promotion to weighted evidence
+    needs an owner decision and a pre-registration amendment, not an import.
+    """
+    from . import pine
+
+    return [
+        ModelSpec(
+            model_id=f"pine.{key}",
+            label=indicator.name,
+            family=PINE_STUDY,
+            implementation=f"app/core/pine.py::signals (study={key!r})",
+            target="sign of the forward return over the horizon it is scored "
+                   "at; the study's own published trading rule, read as a "
+                   "standing position",
+            horizons=horizons,
+            required_features=indicator.requires,
+            training_cutoff=_CLOSED_FORM,
+            retraining_policy=_NO_RETRAINING,
+            # Causal on the frame it is handed; historical use needs that frame
+            # truncated first, exactly as for the technical sources.
+            pit_status=PIT_CONDITIONAL,
+            production_status=EXPERIMENTAL,
+            output_kind=SIGNAL_SCORE,
+            score_class=DIRECTIONAL_ONLY,
+            version_module="app.core.pine",
+            # No `record_key`, and the registry enforces that rather than
+            # trusting it: a status outside PRODUCTION_ADMISSIBLE may not also
+            # name a ledger path. A Pine study has no route into a frozen
+            # forecast, and this is where that is made structural.
+            evidence=("app/core/pine.py",
+                      "alpha/HT1_TOURNAMENT_PREREGISTRATION.md §4.1"),
+            notes="Chart furniture, and measured as a candidate by HT-1. "
+                  "EXPERIMENTAL for standing, not for a measured result: it "
+                  "has never held production weight and this entry does not "
+                  "give it any.",
+        )
+        for key, indicator in pine.INDICATORS.items()
     ]
 
 
@@ -706,6 +764,7 @@ def _specs() -> tuple[ModelSpec, ...]:
     return (
         _ensemble_spec(horizons),
         *_technical_specs(horizons),
+        *_pine_specs(horizons),
         *_rule_agent_specs(horizons),
         *_neural_specs(forecast.MODELS),
         *_rl_specs(agents.REGISTRY),
