@@ -436,3 +436,43 @@ python -m core.tournament --report
 **Frozen 2026-08-16. No number in this document was chosen by looking at a
 forward return, and no section may be edited after the first signal is written —
 corrections are appended, dated, and leave the original wording visible.**
+
+---
+
+## Amendment 1 — 2026-08-16, before any signal was written
+
+**Nothing above is altered. This appends a parameterisation §4.5 omitted, and
+records why it is required.**
+
+**What was found.** `forecast.project` is **stochastic**. `app/core/forecast.py`
+sets no seed anywhere, and its `DropoutWrapper(output_keep_prob=0.8)` is built
+into the graph unconditionally — so dropout is active **at prediction time as
+well as during training**, not only while fitting. Two identical calls on
+identical inputs returned projected moves of **−9.08%** and **−14.25%**.
+
+**Why this blocks the protocol as written.** §3.2 requires that rewriting the
+future leave every candidate's call *identical*. Against a stochastic candidate
+that test cannot distinguish look-ahead from the model's own noise, so family N
+would enter the tournament with no point-in-time proof at all.
+
+**What is frozen, in addition to §4.5.** Both are set inside `tournament.py`.
+**`app/core/forecast.py` is not modified**, so no `neural.*` model version moves:
+
+1. **Graph seed 42**, applied at graph construction, via a wrapper contained in
+   the study module. 42 is `BaseAgent`'s own default and AMS-1's `AGENT_SEED`,
+   reused rather than chosen.
+2. **Single-threaded op scheduling** — `OMP_NUM_THREADS`,
+   `TF_NUM_INTRAOP_THREADS`, `TF_NUM_INTEROP_THREADS` all `1`. The residual
+   non-determinism after seeding is multi-threaded float accumulation order, and
+   it is not cosmetic: unpinned, a seeded pair still diverged to −10.79% against
+   +10.69%. Pinned and seeded, the 25-bar path is **bit-identical**, verified
+   before this amendment was written.
+
+The study's 12 parallel workers each need one thread regardless, so this costs
+nothing.
+
+**Recorded as a finding, not a defect fixed here.** Dropout at prediction time
+means every projection the *application* shows a user is one draw from a
+distribution it never displays, and the UI reports no interval around it. That
+is a property of a `CHALLENGER`-status component, it is outside HT-1's scope to
+change, and HT-1 must not be read as licensing a change to it.
