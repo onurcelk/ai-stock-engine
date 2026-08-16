@@ -952,6 +952,68 @@ def _predict_neural(
     return written, failures
 
 
+def stability_probe(
+    *,
+    sample: int = 60,
+    workers: int = 12,
+    frames: dict[str, pd.DataFrame] | None = None,
+) -> pd.DataFrame:
+    """Amendment 2: how often does a re-run change the call, per architecture?
+
+    Family N is only partly reproducible — GRU and Vanilla RNN return identical
+    paths, LSTM does not — and a directional accuracy is only as meaningful as
+    the stability of the directions it counts. This runs the same cells twice
+    and reports the share of calls that changed sign.
+
+    The amendment committed the study to publishing this number, so it is
+    measured rather than asserted, and it is the figure that tells a reader
+    whether `neural.lstm`'s leaderboard row can be read at all.
+    """
+    frames = frames if frames is not None else load_frames()
+    cells = admissible_cells(frames, build_grid(frames))
+    step = max(1, len(cells) // sample)
+    chosen = cells[::step][:sample]
+
+    payloads = []
+    for cell in chosen:
+        truncated = truncate(frames[cell.symbol], cell.cutoff)
+        payloads.append(
+            (cell, [float(v) for v in
+                    truncated["close"].iloc[-NEURAL_TRAIN_BARS:]]))
+
+    passes: list[dict[tuple[str, str, str], tuple[float, float]]] = []
+    for _ in range(2):
+        readings: dict[tuple[str, str, str], tuple[float, float]] = {}
+        with _fresh_pool(max(1, workers)) as pool:
+            futures = {pool.submit(_neural_task, closes): cell
+                       for cell, closes in payloads}
+            import concurrent.futures
+            for future in concurrent.futures.as_completed(futures):
+                cell = futures[future]
+                for candidate, per_horizon in future.result().items():
+                    for horizon, (call, move) in per_horizon.items():
+                        key = (candidate, cell.symbol,
+                               forecast_ledger._utc_iso(cell.cutoff) + horizon)
+                        readings[key] = (call, move)
+        passes.append(readings)
+
+    rows = []
+    for candidate in (f"neural.{_slug(n)}" for n in NEURAL_MODELS):
+        keys = [k for k in passes[0] if k[0] == candidate and k in passes[1]]
+        flips = sum(1 for k in keys if passes[0][k][0] != passes[1][k][0])
+        drift = [abs(passes[0][k][1] - passes[1][k][1]) for k in keys]
+        rows.append({
+            "Candidate": candidate,
+            "Compared": len(keys),
+            "Sign flips": flips,
+            "Flip rate": flips / len(keys) if keys else float("nan"),
+            "Mean |move| drift pp": float(np.mean(drift)) if drift else float("nan"),
+            "Max |move| drift pp": float(np.max(drift)) if drift else float("nan"),
+            "Reproducible": flips == 0 and (max(drift) if drift else 0) == 0.0,
+        })
+    return pd.DataFrame(rows)
+
+
 def _elapsed(started: dt.datetime) -> float:
     return (dt.datetime.now(dt.timezone.utc) - started).total_seconds()
 
@@ -1281,6 +1343,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--predict", action="store_true")
     parser.add_argument("--score", action="store_true")
     parser.add_argument("--report", action="store_true")
+    parser.add_argument("--stability", action="store_true",
+                        help="Amendment 2: measure the neural sign-flip rate")
     parser.add_argument("--family", default="closed_form",
                         choices=["closed_form", RL, NEURAL, REFERENCE])
     parser.add_argument("--shard", type=int, default=0)
@@ -1304,6 +1368,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if arguments.score:
         print(f"{score(path=arguments.path)} newly scored outcome(s)")
+
+    if arguments.stability:
+        with pd.option_context("display.width", 200,
+                               "display.float_format", lambda v: f"{v:.4f}"):
+            print(stability_probe(workers=arguments.workers).to_string(index=False))
 
     if arguments.report:
         store = TournamentStore(arguments.path)
