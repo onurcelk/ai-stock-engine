@@ -2284,6 +2284,76 @@ if pro:
 
         st.divider()
 
+        # ------------------------------------------ historical replay study
+        #
+        # The one surface on this tab that is allowed to be large while the
+        # prospective record is small — and the caption has to carry that,
+        # because a reader who sees hundreds of scored calls here and four
+        # frozen ones above will otherwise draw the wrong conclusion about
+        # which record the programme runs on.
+        st.markdown("### 🔬 Research — historical PIT replay")
+        study = research_view.load_study()
+        st.caption(
+            "The incumbent, re-run at historical cutoffs on price history "
+            "truncated to each cutoff, then scored against what actually "
+            "happened. This is how a model change gets evidence in an "
+            "afternoon instead of a year — and it is **not** production "
+            "evidence."
+        )
+
+        study_note = research_view.study_warning(study)
+        if study_note:
+            st.warning(study_note, icon="⚠️")
+
+        if study.has_outcomes:
+            numbers = st.columns(4)
+            numbers[0].metric("Replayed & scored", f"{study.n_scored:,}")
+            numbers[1].metric(
+                "Independent cutoffs", f"{study.n_independent_cutoffs:,}",
+                help="Counted under the same overlap rule the promotion gate "
+                     "uses. Non-overlapping by construction: the default "
+                     "stride is the horizon length.")
+            numbers[2].metric("Symbols", f"{study.n_symbols:,}")
+            numbers[3].metric(
+                "Engine versions", f"{len(study.versions):,}",
+                help="More than one means these rows span an engine change "
+                     "and must never be read as a single number.")
+
+            st.markdown("**Accuracy by engine version and horizon**")
+            st.dataframe(research_view.study_summary(study),
+                         use_container_width=True, hide_index=True)
+
+            st.markdown("**What it actually called**")
+            st.caption(
+                "HOLD carries no accuracy on purpose: it is either a neutral "
+                "score or a direction vetoed below the confidence floor, and "
+                "counting an abstention as a wrong answer would misread the "
+                "one behaviour this engine was built to have."
+            )
+            st.dataframe(research_view.study_actions(study),
+                         use_container_width=True, hide_index=True)
+
+            st.markdown("**Engine versions in this study**")
+            st.dataframe(research_view.study_versions(study),
+                         use_container_width=True, hide_index=True)
+
+            st.markdown("**Historical replay against the live record**")
+            st.dataframe(research_view.study_vs_live(study, state),
+                         use_container_width=True, hide_index=True)
+            st.caption(
+                "Two records, one engine, different standing. The replay row "
+                "buys resolution and cannot spend it; the prospective row "
+                "spends what it has and has to earn more by elapsing."
+            )
+        else:
+            st.info(
+                "Run `python -m core.replay_study` to sweep historical "
+                "cutoffs and score them. Nothing is created until you do — "
+                "opening this tab starts no record.",
+                icon="ℹ️")
+
+        st.divider()
+
         # --------------------------------------------- prediction explanation
         st.markdown("### 🟢 Production — what today's call is made of")
         live_verdict = globals().get("verdict")

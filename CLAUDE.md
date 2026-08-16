@@ -213,6 +213,9 @@ computations. Invoked via `gemini -p "..."` as defined in the global policy.
 | `alpha/*_EXPERIMENT_LOG.md` | Append-only run records | Append-only |
 | `reports/EXPERIMENT_REGISTRY.md` | Permanent index of all arms | Append-only |
 | `alpha/examset.py` | 72 frozen exam cutoffs | Never modify |
+| `app/core/ultimate.py` | The live incumbent. Its sha256 **is** its model identity, so any edit — a comment included — starts a new engine version and splits the prospective record | Never modify without an owner decision |
+| `app/forecast_ledger.sqlite3` | Live prospective forecasts. The only record that can decide a promotion | Append-only, never regenerable |
+| `app/replay_study.sqlite3` | Historical PIT replay (HR-1). Diagnostics for model development; counts zero toward any gate | Freely regenerable |
 | `alpha/models.py::MODEL_A_PARAMS` | Frozen model hyperparameters | Never modify without amendment |
 | `validation/pit.py` | Point-in-time data door | Modify only with protocol amendment |
 | `app/tests/test_validation.py` | Leak detector | Never weaken |

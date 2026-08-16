@@ -19,6 +19,17 @@ app/replay_ledger.sqlite3
 app/replay_ledger.sqlite3-wal
 app/replay_ledger.sqlite3-shm
 app/replay_ledger.sqlite3-journal
+# The historical replay study (HR-1). A third file for the same reason the
+# second exists: it holds RETROSPECTIVE_REPLAY rows under the same CHECK
+# constraint, but it answers a different question from a missed-session
+# recovery and carries its own `outcomes` table. Fully regenerable from the
+# code plus a price feed, so it is never backed up and never tracked.
+app/replay_study.sqlite3
+app/replay_study.sqlite3-wal
+app/replay_study.sqlite3-shm
+app/replay_study.sqlite3-journal
+# One JSON file per historical replay sweep.
+app/study_logs/
 # Copies of the ledger are the same evidence, so the same rule: never a
 # git-tracked binary. Backups live on a separate physical drive
 # (D:\prediction market backup), outside the repository entirely — see

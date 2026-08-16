@@ -264,6 +264,24 @@ decision, not a task.
 - [ ] **PHASE 10 — V5 Integrated Validation**
 - [ ] **PHASE 11 — Production Decision**
 
+**Amended 2026-08-16 — the paragraph below is true of production validation and
+was read as true of the whole programme.** The wording stands unaltered. The
+sentence *"no amount of work substitutes for elapsed time"* is correct about
+**deciding** — a promotion, a demotion, a production weight — and it is wrong
+about **model development**, which has always been answerable from history and
+for which the programme simply had no instrument. HR-1 built one: a historical
+point-in-time replay that swept the frozen incumbent across 200 historical
+cutoffs and produced **12,873 scored forecasts** in an afternoon. Nothing about
+the accumulation posture changes — HR-1 rows are excluded by all four RR-2 locks
+and count **zero** toward every resolution floor. The correct reading of the
+programme from today is two records with different standing:
+
+    historical PIT replay  ->  fast evidence for model development
+    prospective ledger     ->  final independent production validation
+
+The first cannot spend what it buys. See `reports/V5_HISTORICAL_REPLAY.md`,
+`reports/EXPERIMENT_REGISTRY.md` §20, and §3.9 below.
+
 **PROGRAMME STATE (from 2026-08-15): ACCUMULATION.** Not a phase, and no phase
 is active. The forecast ledger is **ON**, protected, and holds 86 genuine
 prospective forecasts across 30 symbols. Nothing further can be *decided* until
@@ -585,6 +603,71 @@ ledger exists. `app/forecast_ledger.sqlite3` is now real evidence — do not
 delete it, do not add synthetic rows to it, and do not regenerate it. The
 current standing instructions are §3.6.
 
+## 3.9 Session record — 2026-08-16 (HR-1: historical PIT replay, and HR-1.1)
+
+Instrument plus first measurement. No phase spent, no budget slot, no
+preregistered arm, and **the incumbent engine was not modified**.
+
+- **What ran.** An owner instruction to build the missing historical replay /
+  retrospective scoring loop for Ultimate, then run it. Registered as **HR-1**
+  (`reports/EXPERIMENT_REGISTRY.md` §20,
+  `reports/V5_HISTORICAL_REPLAY.md`).
+- **What changed.** New `app/core/replay_study.py` and
+  `app/tests/test_replay_study.py` (38). `app/core/outcome_ledger.py`
+  (`maturity_spec` reads a replay's frozen bar mapping),
+  `app/core/promotion.py` (`PooledVersionsError`, `versions_present`, gate
+  `V0`, `Evidence.model_version`, `POLICY_VERSION` 2 → 3),
+  `app/core/research_view.py` (`StudyState`, study panels, `study_vs_live`),
+  `app/streamlit_app.py` (Research tab section), `.gitignore`.
+- **Suite.** Baseline **1065 / 69 green**, taken before any edit on a clean tree
+  and matching the RR-2 record exactly. Final **1103 / 69, delta +38**; slow
+  suite **1171 passed**. Leak detector run explicitly: **1 passed**.
+- **Ledgers.** The prospective ledger was neither read for evidence nor written:
+  **118 rows before and after**, `outcomes` still empty, file mtime unchanged
+  from before the session. Study rows live in a **third** file,
+  `app/replay_study.sqlite3` — 12,873 forecasts and 12,873 outcomes. Independent
+  *prospective* cutoffs remain **0 of 50**. Verified after the run: the
+  promotion gate counts **0** study rows and excludes **12,873** at every
+  horizon.
+- **The result, and it is not comfortable.** Engine
+  `sha256:e629405d…6fb8f97a`, 28 symbols, 2017-11-09 → 2026-07-10:
+  `1d` 0.4797 accuracy [0.4560, 0.5035] over 200 independent cutoffs; `1w`
+  0.5006 [0.4656, 0.5357] over 200; `5w` 0.5068 [0.4413, 0.5720] over 88.
+  **The incumbent does not beat its declared baseline at any horizon**, and at
+  `1d`/`1w` the MAE interval lies entirely below zero. Abstention is intact
+  (HOLD share 0.859 / 0.889 / 0.927) and **acting is worse than abstaining** —
+  accuracy on acted calls is below the all-calls figure at every horizon.
+- **This is not a demotion and does not license a tune.** `ensemble.ultimate`
+  holds PRODUCTION under `GRANDFATHERED`; D1 needs 50 independent
+  **prospective** cutoffs and HR-1 supplies none. Fitting `MIN_T`,
+  `MIN_CONFIDENCE` or `FAMILY_CAP` to these numbers is the specific act
+  `EXPERIMENT_REGISTRY.md` §3.5 forbids.
+- **HR-1.1, a pre-existing defect found while building.**
+  `outcome_ledger.model_key` pooled two engine versions into one number,
+  silently — its own docstring had deferred the decision to a Phase 4 that never
+  made it. Since the ensemble versions itself by its source hash, one edited
+  comment starts a second engine under one identity. Gate `V0` now refuses a
+  mixed frame before any statistic exists, on promotion **and** demotion.
+- **Two calendar rules were implemented and rejected on measurement, not taste.**
+  A grid built from the deepest-history symbol picks `BTC-USD`, whose 25-bar
+  spacing is 25 *calendar* days, so equity windows overlap and the independence
+  property is lost. A grid built from the most-shared calendar picks the newest
+  listing. The majority calendar has neither failure mode. **If a future session
+  thinks this is over-engineered, re-read `reports/V5_HISTORICAL_REPLAY.md` §3.1
+  — both alternatives were tried against the real universe.**
+- **Traps.** (1) **Never add `5w` to `ultimate.HORIZONS`** — it would change the
+  engine's source hash and split the live record; the horizon is passed to
+  `evaluate(horizons=...)` for exactly this reason. (2) A study row's
+  `generated_at` is the reconstruction time, so `assert_prospective` refuses it,
+  correctly. (3) `assert_study` layers on `assert_replay`; an RR-2 recovery is
+  valid as a replay and refused as a study row, and a test proves it. (4) The
+  study ledger is fully regenerable; the prospective one is not, and that rule
+  is unchanged and absolute.
+- **State on exit.** **ACCUMULATION**, unchanged. No active phase. 0 of 50
+  independent prospective cutoffs. Phases 10 and 11 still entry-blocked; Phase 6
+  still INADMISSIBLE AS WRITTEN. Standing instructions are §3.6, plus item 12
+  added there.
+
 ## 3.8 Session record — 2026-08-15 (RR-2: missed-session replays)
 
 Infrastructure only. No phase spent, no prediction path changed.
@@ -723,6 +806,18 @@ things follow for a session arriving now:
     failure, not a lost or destroyed machine. Copying
     `D:\prediction market backup` somewhere else occasionally is the whole fix
     and needs no preregistration.
+12. **Added 2026-08-16.** A historical replay study now exists
+    (`app/core/replay_study.py`, HR-1, registry §20). It is the right tool for
+    *"does this change to the engine help?"* and it is **not** an answer to
+    *"may this hold production weight?"* — item 11 binds it exactly as it binds
+    an RR-2 recovery, and the promotion gate has been verified to count zero of
+    its 12,873 rows. Two consequences for a session arriving now. **Use it**
+    rather than waiting, for any development question. And **do not tune the
+    engine on it**: its first run says the incumbent fails to beat its declared
+    baseline at all three horizons, and fitting `MIN_T`, `MIN_CONFIDENCE` or
+    `FAMILY_CAP` to that is what `EXPERIMENT_REGISTRY.md` §3.5 forbids. Read
+    `reports/V5_HISTORICAL_REPLAY.md` §7.2 before arguing otherwise.
+
 11. **Never count a `RETROSPECTIVE_REPLAY` as evidence** (RR-2, registry §19).
     Replays live in `app/replay_ledger.sqlite3` and are diagnostics: they carry
     every retrospection artefact AB-1 §2 says a prospective row escapes, and

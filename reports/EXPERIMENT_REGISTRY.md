@@ -1378,3 +1378,98 @@ touched: 86 rows, digest
 Independent cutoffs remain **0 of 50**, and replays cannot move that number by
 construction. V2 ABANDONED, V3 3 of 3 CLOSED, V4 slot 1 SPENT, PIT-1 CLOSED,
 Phase 6 INADMISSIBLE AS WRITTEN, RR-1 in force.
+
+---
+
+## 20. HR-1 — historical point-in-time replay, and HR-1.1, 2026-08-16
+
+**Not an experiment in the budgeted sense.** No preregistered arm, no budget
+slot, no hypothesis test against a declared gate. This registers an
+**instrument** and the first measurement it produced. Nothing was promoted,
+demoted, retired or reopened, and the incumbent engine was not modified.
+
+**HR-1.** `A HISTORICAL REPLAY BUYS RESOLUTION FOR MODEL DEVELOPMENT AND CANNOT
+SPEND IT ON PRODUCTION. THE PROSPECTIVE LEDGER REMAINS THE ONLY RECORD THAT
+DECIDES.`
+
+**What was built.** `app/core/replay_study.py` sweeps the frozen incumbent across
+a grid of historical cutoffs on price history truncated to each cutoff, freezes
+each call, and scores it against realised prices through Phase 2's existing
+scorer. Storage is a third database file, `app/replay_study.sqlite3`, holding
+`RETROSPECTIVE_REPLAY` rows under the same CHECK constraint RR-2 established.
+See `reports/V5_HISTORICAL_REPLAY.md`.
+
+**Why this does not contradict Phase 9.** Phase 9 established that the binding
+constraint on *production validation* is independent dates and that no dataset
+supplies them. That finding stands unaltered and this instrument does not touch
+it: HR-1 rows are excluded by all four RR-2 locks and count zero toward every
+resolution floor. What Phase 9 never addressed is *model development*, which is
+a different question and has always been answerable from history. The programme
+simply had no instrument for it.
+
+**The independence rule is respected, not worked around.** The default stride is
+the horizon length, so consecutive windows touch without overlapping and every
+generated cutoff survives `promotion.independent_cutoffs` as a genuine draw. The
+grid is laid on the universe's **majority calendar** — dates at least half the
+symbols traded — because a grid built from the deepest-history symbol picks a
+seven-day-a-week crypto series whose 25-bar spacing is 25 *calendar* days, which
+makes consecutive equity windows overlap. Two earlier rules were implemented,
+measured against the real universe, and rejected on that evidence.
+
+**The incumbent was not modified, and this was the design constraint.** The
+five-week horizon is defined in `replay_study.py` and passed to
+`ultimate.evaluate(horizons=...)`, never added to `ultimate.HORIZONS`. Adding it
+would have changed `app/core/ultimate.py`, whose sha256 *is* the model identity
+every frozen forecast records, splitting the live record across two engine
+versions. All 12,873 study rows and the live engine carry
+`sha256:e629405d1b6b23c513853cd81336bfcd78a44d0c0e1a84b4604ac44d6fb8f97a`.
+`MIN_T`, `MIN_CONFIDENCE` and `FAMILY_CAP` are untouched, as §3.5 requires.
+
+**HR-1.1 — a pre-existing defect, found and fixed.** `outcome_ledger.model_key`
+attributes a score to the registry identity, which is stable across versions by
+design; its docstring deferred the consequence — *"Phase 4 must decide which it
+wants rather than inherit one"* — and it was never decided, so the default was
+to pool two engine versions into one number, silently. Since
+`ensemble.ultimate` versions itself by its own source hash, one edited comment
+starts a second engine under one identity. `promotion.evidence_for` now raises
+`PooledVersionsError` on a mixed frame, and gate **V0 one engine per
+measurement** refuses *before* any statistic is computed, in
+`evaluate_promotion` **and** `evaluate_degradation` — the latter for D0's
+reason, that a rule binding promotion alone leaves a door open for a mixture to
+demote a rival. `POLICY_VERSION` 2 → 3. No threshold moved, and `PROMOTED` was
+still empty, so the rule was declared before it could admit or exclude any
+result.
+
+**The first measurement.** Engine `sha256:e629405d…6fb8f97a`, 28 symbols,
+2017-11-09 → 2026-07-10, **12,873 scored forecasts**. Against the baseline each
+forecast itself declared:
+
+| Horizon | Scored | Calls | Independent cutoffs | Accuracy | 95% CI | Baseline | MAE advantage |
+|---|---|---|---|---|---|---|---|
+| `1d` | 5,512 | 1,699 | 200 | 0.4797 | [0.4560, 0.5035] | 0.5023 | −0.0108 ± 0.0062 |
+| `1w` | 5,246 | 777 | 200 | 0.5006 | [0.4656, 0.5357] | 0.5364 | −0.0206 ± 0.0132 |
+| `5w` | 2,115 | 221 | 88 | 0.5068 | [0.4413, 0.5720] | 0.5705 | −0.0477 ± 0.0499 |
+
+**Reading: THE INCUMBENT DOES NOT BEAT ITS DECLARED BASELINE AT ANY HORIZON.**
+At `1d` and `1w` the MAE interval lies entirely below zero; at `1d` the
+directional interval also lies below 50%. The abstention is intact and remains
+the engine's best feature — HOLD share 0.859 / 0.889 / 0.927, against PIT-1's
+74.3% — and acting is *worse* than abstaining, with accuracy on acted calls of
+0.4685 / 0.4870 / 0.4710, below the all-calls figure at every horizon. This is
+consistent with PIT-1, where 0 of 9 components beat always-predicting-up, and it
+is the first statement about the incumbent at resolution narrow enough to
+exclude the modest edge 12 cutoffs could not.
+
+**What this is not.** Not a demotion — `ensemble.ultimate` holds PRODUCTION under
+`GRANDFATHERED`, D1 requires 50 independent cutoffs of *prospective* evidence,
+and the study supplies none. Not a finding about the market. And **not a licence
+to tune the engine**: fitting a threshold to these numbers is the specific act
+§3.5 forbids.
+
+**Nothing measured on the protected record.** The prospective ledger was neither
+read for evidence nor written: 118 rows before and after, `outcomes` still
+empty, file untouched. Independent prospective cutoffs remain **0 of 50**, and
+HR-1 rows cannot move that number by construction — verified after the run, the
+promotion gate counts 0 rows and excludes 12,873 at every horizon. V2 ABANDONED,
+V3 3 of 3 CLOSED, V4 slot 1 SPENT, PIT-1 CLOSED, Phase 6 INADMISSIBLE AS
+WRITTEN, RR-1 and RR-2 in force.

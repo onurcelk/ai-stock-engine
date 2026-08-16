@@ -21,7 +21,13 @@ from typing import Any
 
 import pandas as pd
 
-from . import forecast_ledger, model_registry, outcome_ledger, promotion
+from . import (
+    forecast_ledger,
+    model_registry,
+    outcome_ledger,
+    promotion,
+    replay_study,
+)
 from .forecast_ledger import ForecastRecord
 from .outcome_ledger import OutcomeRecord
 
@@ -302,6 +308,132 @@ def promotion_requirements(state: ResearchState) -> pd.DataFrame:
                     "Detail": gate.detail,
                 })
     return pd.DataFrame(rows)
+
+
+# ------------------------------------------------- historical replay study
+
+
+@dataclasses.dataclass(frozen=True)
+class StudyState:
+    """The historical replay study, loaded for display and nothing else."""
+
+    path: pathlib.Path
+    exists: bool
+    performance: pd.DataFrame
+
+    @property
+    def has_outcomes(self) -> bool:
+        return not self.performance.empty
+
+    @property
+    def n_scored(self) -> int:
+        return int(len(self.performance))
+
+    @property
+    def n_independent_cutoffs(self) -> int:
+        return replay_study.independent_cutoff_count(self.performance)
+
+    @property
+    def n_symbols(self) -> int:
+        if self.performance.empty:
+            return 0
+        return int(self.performance["symbol"].nunique())
+
+    @property
+    def versions(self) -> tuple[str, ...]:
+        if self.performance.empty:
+            return ()
+        return tuple(sorted(self.performance["model_version"].dropna().unique()))
+
+
+def load_study(path: str | pathlib.Path | None = None) -> StudyState:
+    """Read the study, or return an empty state **without creating the file**.
+
+    Same discipline as `load`: `ReplayLedger.__init__` creates its database, so
+    a panel that constructed one to find out whether it held anything would
+    manufacture the artefact it was asking about.
+    """
+    target = pathlib.Path(path or replay_study.DEFAULT_STUDY_PATH)
+    if not target.exists():
+        return StudyState(path=target, exists=False, performance=pd.DataFrame())
+    return StudyState(path=target, exists=True,
+                      performance=replay_study.load_performance(target))
+
+
+def study_summary(state: StudyState) -> pd.DataFrame:
+    return replay_study.summary_table(state.performance)
+
+
+def study_actions(state: StudyState) -> pd.DataFrame:
+    return replay_study.action_table(state.performance)
+
+
+def study_versions(state: StudyState) -> pd.DataFrame:
+    return replay_study.versions_table(state.performance)
+
+
+def study_vs_live(state: StudyState, live: ResearchState) -> pd.DataFrame:
+    """The two records side by side, on the columns they genuinely share.
+
+    Deliberately a comparison of *coverage and accuracy*, never a pooled
+    number.  The study and the prospective ledger answer different questions
+    about the same engine, and the row labels say which is which so no reader
+    has to infer it from a footnote.
+    """
+    rows = []
+
+    def describe(label: str, frame: pd.DataFrame, counts_as_evidence: bool) -> None:
+        if frame is None or frame.empty:
+            rows.append({
+                "Record": label, "Scored": 0, "Independent cutoffs": 0,
+                "Symbols": 0, "Horizons": "—", "From": None, "To": None,
+                "Accuracy": float("nan"), "vs baseline (MAE)": float("nan"),
+                "Counts toward promotion": counts_as_evidence,
+            })
+            return
+        called = frame.loc[frame["directional_correct"].notna()]
+        rows.append({
+            "Record": label,
+            "Scored": int(len(frame)),
+            "Independent cutoffs": replay_study.independent_cutoff_count(frame),
+            "Symbols": int(frame["symbol"].nunique()),
+            "Horizons": ", ".join(sorted(frame["horizon"].unique())),
+            "From": pd.Timestamp(frame["cutoff_at"].min()).date(),
+            "To": pd.Timestamp(frame["cutoff_at"].max()).date(),
+            "Accuracy": (float(called["directional_correct"].mean())
+                         if len(called) else float("nan")),
+            "vs baseline (MAE)": float(
+                frame["baseline_relative_absolute_error"].mean()),
+            "Counts toward promotion": counts_as_evidence,
+        })
+
+    describe("Historical PIT replay (diagnostic)", state.performance, False)
+    describe("Live prospective ledger (evidence)", live.performance, True)
+    return pd.DataFrame(rows)
+
+
+def study_warning(state: StudyState) -> str | None:
+    """The sentence that must sit above every study number.
+
+    It is not a sample-size caveat.  A study can have a thousand rows and fifty
+    independent cutoffs and still not be promotion evidence, because what
+    disqualifies it is retrospection, not resolution — so the warning says that
+    instead of quoting `n`.
+    """
+    if not state.exists:
+        return ("No historical replay study has been run. "
+                f"`{state.path.name}` does not exist.")
+    if not state.has_outcomes:
+        return ("The study holds forecasts but none has been scored yet. Run "
+                "the scoring pass.")
+    return (
+        "These are **reconstructions**, not forecasts anyone made at the time. "
+        "They are back-adjusted for corporate actions that post-date each "
+        "cutoff, drawn from today's symbol universe, and produced by someone "
+        "who already knew what the market did — so they may inform model "
+        "development and may never support a promotion. The prospective "
+        "ledger remains the only record that can."
+    )
 
 
 def sample_size_warning(state: ResearchState) -> str | None:

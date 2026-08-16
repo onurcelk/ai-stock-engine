@@ -61,7 +61,10 @@ from . import forecast_ledger, model_registry, outcome_ledger
 #: 2 — RR-1 made structural: G0/D0 refuse regime-conditional evidence.  Bumped
 #:     although no threshold moved, because a new gate is a larger policy change
 #:     than a threshold is, and `PROMOTED` was empty under both versions.
-POLICY_VERSION = 2
+#: 3 — HR-1: V0 refuses to measure two engine versions as one.  No threshold
+#:     moved.  `PROMOTED` was still empty, so this too was declared before it
+#:     could admit or exclude any actual result.
+POLICY_VERSION = 3
 
 _Z = 1.959963984540054  # two-sided 95%, the same convention as outcome_ledger
 
@@ -169,6 +172,22 @@ class PromotionError(RuntimeError):
     """A status change was attempted outside the gate."""
 
 
+class PooledVersionsError(PromotionError):
+    """One measurement was asked to span more than one version of a model.
+
+    `outcome_ledger.model_key` attributes a score to the registry *identity*,
+    which is stable across versions by design — the docstring there says so and
+    defers the choice: *"Phase 4 must decide which it wants rather than inherit
+    one."*  It was never decided, and until HR-1 the decision defaulted to
+    pooling, silently.
+
+    Pooling is not a conservative default.  `ensemble.ultimate` versions itself
+    by the sha256 of its own source, so editing one comment mints a new engine;
+    a frame spanning two of them measures a mixture and reports it as one
+    number.  The refusal is the fix: name the version, or group by it.
+    """
+
+
 @dataclasses.dataclass(frozen=True)
 class Gate:
     """One named condition, its verdict, and the number behind it."""
@@ -202,6 +221,12 @@ class Evidence:
     #: rather than silently discarded: a caller who passed a mixed frame is
     #: entitled to learn that the number below is not over what they handed in.
     n_excluded_replays: int = 0
+    #: The single engine version every statistic above was computed on, and how
+    #: many were present before the restriction. `None` with `n_model_versions`
+    #: of 0 means there was nothing to measure. Two versions never reach here:
+    #: V0 refuses first.
+    model_version: str | None = None
+    n_model_versions: int = 0
 
     @property
     def advantage_lower_bound(self) -> float:
@@ -282,19 +307,45 @@ def _half_width(values: Sequence[float]) -> float:
     return float(_Z * array.std(ddof=1) / math.sqrt(array.size))
 
 
+def versions_present(
+    frame: pd.DataFrame, model_id: str, horizon: str,
+) -> tuple[str, ...]:
+    """Distinct engine versions a frame holds for one model at one horizon.
+
+    Cheap, and deliberately not a statistic: it reads the `model_version`
+    column and nothing else.  That is what lets `V0` refuse a mixed frame
+    *before* any number is computed, the same ordering G0 uses.
+    """
+    if frame is None or frame.empty or "model_version" not in frame.columns:
+        return ()
+    rows = frame.loc[(frame["model_key"] == model_id)
+                     & (frame["horizon"] == horizon)]
+    if "status" in rows.columns:
+        rows = rows.loc[rows["status"] != forecast_ledger.RETROSPECTIVE_REPLAY]
+    return tuple(sorted(rows["model_version"].dropna().unique().tolist()))
+
+
 def evidence_for(
     frame: pd.DataFrame,
     model_id: str,
     horizon: str,
     *,
     as_of: dt.datetime | pd.Timestamp | None = None,
+    model_version: str | None = None,
 ) -> Evidence:
-    """Cutoff-clustered evidence for one model at one horizon.
+    """Cutoff-clustered evidence for one model at one horizon **and version**.
 
     `frame` is an `outcome_ledger.performance_frame`.  When `as_of` is given the
     frame is first restricted to outcomes that had *matured* by then, because
     performance becomes knowable at maturity and not at the cutoff — using the
     cutoff would read outcomes that had not happened yet.
+
+    HR-1: a frame holding two versions of one model raises `PooledVersionsError`
+    unless `model_version` names which to measure.  `model_key` is the registry
+    identity and is stable across versions on purpose, so without this the two
+    would average into a single number describing neither.  For
+    `ensemble.ultimate` the version is the sha256 of its own source, which makes
+    the mixture cheap to create and impossible to see in the result.
     """
     empty = Evidence(
         model_id=model_id, horizon=horizon, n_rows=0, n_cutoffs=0,
@@ -337,6 +388,25 @@ def evidence_for(
     if rows.empty:
         return dataclasses.replace(empty, n_excluded_replays=n_replays)
 
+    # HR-1: one engine per measurement.  Restricting to a named version is the
+    # honest way to read a record spanning an engine change; pooling is not.
+    present = tuple(sorted(rows["model_version"].dropna().unique().tolist())
+                    ) if "model_version" in rows.columns else ()
+    if model_version is not None:
+        rows = rows.loc[rows["model_version"] == model_version]
+        if rows.empty:
+            return dataclasses.replace(
+                empty, n_excluded_replays=n_replays,
+                model_version=model_version, n_model_versions=len(present))
+    elif len(present) > 1:
+        raise PooledVersionsError(
+            f"{model_id} @ {horizon} spans {len(present)} model versions "
+            f"({', '.join(v[:19] for v in present)}). Measuring them together "
+            "would report a mixture of engines as one number. Name a version "
+            "with model_version=, or group the frame by model_version first.")
+    measured = model_version if model_version is not None else (
+        present[0] if present else None)
+
     # One window per cutoff: from the cutoff to the last maturity it produced.
     spans = rows.groupby("cutoff_at").agg(matured_at=("matured_at", "max"))
     windows = [(cutoff, spans.at[cutoff, "matured_at"]) for cutoff in spans.index]
@@ -363,6 +433,8 @@ def evidence_for(
         first_cutoff=rows["cutoff_at"].min(),
         last_cutoff=rows["cutoff_at"].max(),
         n_excluded_replays=n_replays,
+        model_version=measured,
+        n_model_versions=len(present),
         advantage=float(np.mean(advantages)) if advantages else float("nan"),
         advantage_half_width=_half_width(advantages),
         directional_accuracy=(float(np.mean(directionals)) if directionals
@@ -410,6 +482,43 @@ def _scope_gate(name: str, evidence_scope: object) -> Gate:
         "no decision is available on this evidence.")
 
 
+def _version_gate(
+    name: str, frame: pd.DataFrame, model_id: str, horizon: str,
+    model_version: str | None,
+) -> Gate:
+    """V0 — one engine per measurement, or the decision is not reached.
+
+    HR-1.  The failure this prevents is quieter than G0's and needs no bad
+    intent: `ensemble.ultimate` versions itself by the sha256 of its own
+    source, so any edit at all — a threshold, a comment — starts a second
+    version under the same registry identity.  `model_key` pools them by
+    design, so a record spanning the edit yields one accuracy describing a
+    mixture of two engines, with nothing in the output naming the problem.
+
+    Like G0 this refuses *before* the statistic exists, and for the same
+    reason: a number computed over a mixture is not made safe by a caveat
+    printed underneath it.  Unlike G0 it can be satisfied rather than only
+    obeyed — naming a version measures that version, which is what the
+    historical replay study does.
+    """
+    present = versions_present(frame, model_id, horizon)
+    if model_version is not None:
+        return Gate(name, True,
+                    f"measured on one named version ({model_version[:19]}…) "
+                    f"of the {len(present)} present")
+    if len(present) <= 1:
+        return Gate(name, True,
+                    f"{len(present)} model version(s) present, so no pooling "
+                    "is possible")
+    return Gate(
+        name, False,
+        f"{len(present)} model versions present "
+        f"({', '.join(v[:19] for v in present)}). HR-1: two versions of one "
+        "model are two engines, and measuring them as one reports a mixture. "
+        "No statistic was computed and no decision is available on this "
+        "evidence — name a version to measure it.")
+
+
 # ------------------------------------------------------------------ the gates
 
 
@@ -420,6 +529,7 @@ def evaluate_promotion(
     *,
     as_of: dt.datetime | pd.Timestamp | None = None,
     evidence_scope: str = UNCONDITIONAL,
+    model_version: str | None = None,
 ) -> Verdict:
     """Whether a CHALLENGER may become PRODUCTION.  Decides; never acts.
 
@@ -431,19 +541,28 @@ def evaluate_promotion(
     `UNCONDITIONAL` returns BLOCK on G0 alone, with `evidence` left `None` —
     the regime-conditional path never reaches the evidence computation, which
     is RR-1's ordering expressed as control flow rather than as a comment.
+
+    `model_version` names which engine version to measure.  Leaving it `None`
+    is safe: V0 blocks rather than pooling if the frame holds more than one.
     """
     scope = _scope_gate("G0 unconditional evidence", evidence_scope)
     if not scope.passed:
         return Verdict(model_id, horizon, BLOCK, (scope,), None)
 
+    engine = _version_gate("V0 one engine per measurement", frame, model_id,
+                           horizon, model_version)
+    if not engine.passed:
+        return Verdict(model_id, horizon, BLOCK, (scope, engine), None)
+
     try:
         spec = model_registry.get(model_id)
     except model_registry.ModelRegistryError as error:
         gate = Gate("G1 registered", False, str(error))
-        return Verdict(model_id, horizon, BLOCK, (scope, gate), None)
+        return Verdict(model_id, horizon, BLOCK, (scope, engine, gate), None)
 
     gates: list[Gate] = [
         scope,
+        engine,
         Gate("G1 registered", True,
              f"{spec.model_id} is registered, status {spec.production_status}"),
         Gate("G2 challenger", spec.production_status == model_registry.CHALLENGER,
@@ -455,7 +574,8 @@ def evaluate_promotion(
              "may hold production weight"),
     ]
 
-    evidence = evidence_for(frame, model_id, horizon, as_of=as_of)
+    evidence = evidence_for(frame, model_id, horizon, as_of=as_of,
+                            model_version=model_version)
     gates.append(Gate(
         "G4 evidence exists", evidence.n_rows > 0,
         f"{evidence.n_rows} scored rows"
@@ -490,6 +610,7 @@ def evaluate_degradation(
     *,
     as_of: dt.datetime | pd.Timestamp | None = None,
     evidence_scope: str = UNCONDITIONAL,
+    model_version: str | None = None,
 ) -> Verdict:
     """Whether a PRODUCTION model has lost the right to its status.
 
@@ -511,10 +632,20 @@ def evaluate_degradation(
     if not scope.passed:
         return Verdict(model_id, horizon, INSUFFICIENT_EVIDENCE, (scope,), None)
 
-    evidence = evidence_for(frame, model_id, horizon, as_of=as_of)
+    # V0 binds demotion too, for the reason D0 does: a rule that stops a
+    # mixture from promoting a model but lets one demote its rival is a rule
+    # with a door in it.
+    engine = _version_gate("V0 one engine per measurement", frame, model_id,
+                           horizon, model_version)
+    if not engine.passed:
+        return Verdict(model_id, horizon, INSUFFICIENT_EVIDENCE,
+                       (scope, engine), None)
+
+    evidence = evidence_for(frame, model_id, horizon, as_of=as_of,
+                            model_version=model_version)
 
     resolvable = evidence.n_independent_cutoffs >= MIN_INDEPENDENT_CUTOFFS
-    gates = [scope, Gate(
+    gates = [scope, engine, Gate(
         "D1 resolution",
         resolvable,
         f"{evidence.n_independent_cutoffs} independent cutoffs against a floor "
@@ -571,6 +702,7 @@ def policy() -> dict[str, Any]:
     return {
         "policy_version": POLICY_VERSION,
         "evidence_scope": UNCONDITIONAL,
+        "one_engine_per_measurement": True,
         "min_independent_cutoffs": MIN_INDEPENDENT_CUTOFFS,
         "min_symbols": MIN_SYMBOLS,
         "min_advantage_lower_bound": MIN_ADVANTAGE_LOWER_BOUND,

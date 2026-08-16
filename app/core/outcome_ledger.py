@@ -33,6 +33,7 @@ from . import model_registry
 from .forecast_ledger import (
     CHALLENGER,
     PRODUCTION_INCUMBENT,
+    RETROSPECTIVE_REPLAY,
     ForecastLedger,
     ForecastRecord,
     _canonical_json,
@@ -120,8 +121,18 @@ def maturity_spec(record: ForecastRecord) -> MaturitySpec:
     a calendar duration — `1w` is five daily bars, `4h` is four hourly bars.
     Both numbers were frozen at forecast time, so scoring reads them back
     rather than re-deriving them from a horizon label.
+
+    `RETROSPECTIVE_REPLAY` reads the same two fields as the incumbent, because
+    a replay *is* the incumbent engine run at an earlier cutoff and freezes the
+    identical bar mapping.  What a replay may not do is support a claim about
+    the future, and that is enforced where it belongs — `promotion.evidence_for`
+    drops replays before measuring, and the two ledgers' CHECK constraints keep
+    the rows in separate files.  Refusing to compute a replay's maturity would
+    not add a guarantee; it would only mean a reconstruction can never be
+    scored, which makes the diagnostic useless without making anything safer.
     """
-    if record.production_or_challenger == PRODUCTION_INCUMBENT:
+    if record.production_or_challenger in (PRODUCTION_INCUMBENT,
+                                           RETROSPECTIVE_REPLAY):
         interval = record.metadata.get("interval")
         bars_ahead = record.metadata.get("bars_used")
         if not isinstance(interval, str) or not isinstance(bars_ahead, int):
