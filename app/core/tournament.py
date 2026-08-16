@@ -1002,13 +1002,18 @@ def stability_probe(
         keys = [k for k in passes[0] if k[0] == candidate and k in passes[1]]
         flips = sum(1 for k in keys if passes[0][k][0] != passes[1][k][0])
         drift = [abs(passes[0][k][1] - passes[1][k][1]) for k in keys]
+        # Median and p90 alongside the mean because the drift is heavy-tailed:
+        # the LSTM rollout occasionally diverges outright, and a mean shaped by
+        # those cells would describe neither the typical case nor the failure.
         rows.append({
             "Candidate": candidate,
             "Compared": len(keys),
             "Sign flips": flips,
             "Flip rate": flips / len(keys) if keys else float("nan"),
-            "Mean |move| drift pp": float(np.mean(drift)) if drift else float("nan"),
-            "Max |move| drift pp": float(np.max(drift)) if drift else float("nan"),
+            "Median drift pp": float(np.median(drift)) if drift else float("nan"),
+            "p90 drift pp": float(np.quantile(drift, 0.9)) if drift else float("nan"),
+            "Mean drift pp": float(np.mean(drift)) if drift else float("nan"),
+            "Max drift pp": float(np.max(drift)) if drift else float("nan"),
             "Reproducible": flips == 0 and (max(drift) if drift else 0) == 0.0,
         })
     return pd.DataFrame(rows)

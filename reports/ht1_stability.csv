@@ -1,0 +1,4 @@
+Candidate,Compared,Sign flips,Flip rate,Median drift pp,p90 drift pp,Mean drift pp,Max drift pp,Reproducible
+neural.lstm,180,13,0.07222222222222222,0.4431510876205147,4.429389625769009,16.657076374567566,1898.7119327151677,False
+neural.gru,180,0,0.0,0.0,0.0,0.0,0.0,True
+neural.vanilla_rnn,180,0,0.0,0.0,0.0,0.0,0.0,True

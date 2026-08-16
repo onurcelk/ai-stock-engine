@@ -1475,3 +1475,101 @@ HR-1 rows cannot move that number by construction — verified after the run, th
 promotion gate counts 0 rows and excludes 12,873 at every horizon. V2 ABANDONED,
 V3 3 of 3 CLOSED, V4 slot 1 SPENT, PIT-1 CLOSED, Phase 6 INADMISSIBLE AS
 WRITTEN, RR-1 and RR-2 in force.
+
+---
+
+## 21. HT-1 — the full historical point-in-time tournament, 2026-08-17
+
+**Commits:** pre-registration `4108818`, amendments `d43f756` and `60afa2a`,
+implementation `9bee1e8`, stability probe `4595c45`. Every one of them landed
+**before** the measurement they govern.
+
+**Not an experiment in the budgeted sense, and not an instrument either.** HT-1
+spends **0 budget slots** — it opens no information family and reads only the
+free daily price history the repository already holds. It is a **census with a
+gate**: it takes HR-1's instrument and asks every price-only component in the
+repository the same question, on one grid, against one baseline, on identical
+rows.
+
+**HT-1.** `TWENTY-SEVEN GENUINELY DISTINCT COMPONENTS, ONE GRID, ONE BASELINE.
+NONE OF THEM BEATS BUYING. DISTINCTNESS WAS NOT THE MISSING INGREDIENT.`
+
+**What was measured.** 88 independent cutoffs (2017-11-09 → 2026-07-10, stride
+25 bars on the majority calendar), 1,995 admissible cells over 26 symbols, three
+horizons read from each cutoff, **172,881 scored signals**. The roster: 7 Pine
+studies ported from TradingView, the 10 sources `ultimate` aggregates, 3 rule
+agents at `agents_audit`'s frozen 252-bar windows, 4 RL agents reconstructed
+point-in-time by `ams1_signals.pit_agent_stance`, and 3 recurrent architectures
+via `forecast.project`. Two reference arms: always-BUY, and the frozen incumbent.
+
+**A single admission rule for every candidate** — a bar at the cutoff, 500
+behind, 25 ahead — set by the most demanding candidate and applied to all, so
+every comparison is exactly paired rather than approximately aligned. All 81
+candidate × horizon cells cleared the pre-registered resolution floor.
+
+| Decision | **`HT-1 VERDICT: 0 of 27 beat the baseline. 81 tests, 81 REJECT.`** |
+|---|---|
+| Best advantage anywhere | `rule.moving_average_crossover`, **+0.0139** at `1w`, interval [−0.0573, +0.0789], p = 0.693 |
+| At `1d` | **no candidate is positive at all**; the best of 27 is −0.0028 |
+| At `5w` | **18 of 27 intervals lie entirely below zero**; 0 survive Holm–Bonferroni |
+| Challenger | **NOT BUILT** — 0 survivors on SELECTION, and §8.2 requires two |
+| Redundancy | **0 near-clones of 351 pairs; 27 effective opinions of 27** |
+| Incumbent | highest raw accuracy on the board at `1d` (**0.5845**) and still below its own baseline (0.5871) |
+
+**The incumbent result is the one worth carrying forward.** It abstains on 81%
+of cells; the cells it speaks on drift up more than average (baseline 0.5871
+against 0.5113 across all cells); and on those cells it adds nothing. Its
+selection is picking favourable days rather than adding skill. At `5w` its
+interval lies entirely below zero. This reproduces HR-1 on the admitted subset
+and is not a second measurement of the engine.
+
+**Redundancy generalises AMS-1 Stage 1.** AMS-1 measured zero near-clones among
+231 agent pairs. Adding the Pine and technical families — never previously
+measured against each other — leaves that unchanged at 351 pairs. The components
+are genuinely distinct, and **distinctness bought nothing**: 27 independent
+opinions none of which beats buy-and-hold is a sharper negative than 27
+correlated ones.
+
+**What is barred as a consequence.**
+
+* **No sign flip.** The 18 negative `5w` intervals may not be inverted into a
+  contrarian arm. None survives multiplicity correction, and flipping a sign
+  after a negative result is the retrofit §3.2 exists to prevent.
+* **No re-run with a different parameterisation.** The roster, grid,
+  parameterisation and gate were frozen by the pre-registration. A candidate that
+  failed is not re-entered with more epochs, a longer window or another
+  threshold.
+* **No tuning of the incumbent against these numbers.** §3.5 forbids it for
+  `MIN_T`, `MIN_CONFIDENCE` and `FAMILY_CAP`, and HT-1 is a retrospective sample.
+* **HT-1 may not be cited against AMS-1.** AMS-1 tested agent *consensus* as a
+  calibrated meta-signal; HT-1 measured individual candidates on a different
+  instrument. Both found nothing, separately, and neither refutes the other.
+* **No promotion of the seven Pine studies.** They are registered
+  `EXPERIMENTAL` under family `K_PINE_STUDY` with **no ledger key**, which the
+  registry enforces structurally. HT-1 measured them and they did not earn one.
+
+**Nothing measured on the protected record.** The prospective ledger holds
+**118 forecasts and 0 outcomes**, unchanged and with an mtime predating the run.
+HR-1's study ledger is unchanged at 12,873. HT-1's rows live in a **fourth**
+database, `app/tournament.sqlite3`, under a CHECK admitting only `HT-1`, and are
+immutable by trigger. Independent prospective cutoffs remain **0 of 50**.
+`app/core/ultimate.py`, `app/core/forecast.py` and `app/core/indicators.py` are
+byte-identical; the engine is still
+`sha256:e629405d1b6b23c513853cd81336bfcd78a44d0c0e1a84b4604ac44d6fb8f97a`; `5w`
+is still absent from `ultimate.HORIZONS`. V2 ABANDONED, V3 3 of 3 CLOSED, V4
+slot 1 SPENT and slot 2 BARRED, PIT-1 CLOSED, AMS-1 CLOSED, RR-1/RR-2/HR-1 in
+force — all unchanged.
+
+**A defect found and recorded, not fixed.** `forecast.project` is stochastic:
+`forecast.py` sets no seed and its `DropoutWrapper` is active at prediction time
+as well as during training. GRU and Vanilla RNN can be made bit-identical;
+**LSTM cannot** — seeding, thread pinning, `clear_session`,
+`TF_DETERMINISTIC_OPS`, `PYTHONHASHSEED` and full process isolation were each
+measured and none closed it. Measured sign-flip rate on a re-run: **7.2% (13 of 180)**, and a second probe of the same size gave 17 — the instability estimate is itself unstable. Median drift 0.44 pp, maximum **1,899 pp**: the rollout can diverge outright. GRU and Vanilla RNN through the identical path are bit-identical every time. `neural.lstm` holds `CHALLENGER` status and the
+application shows users a single projected number that would move on a re-run,
+with no interval reported. Repairing it is outside HT-1's scope and HT-1 does
+not license it. See `alpha/HT1_TOURNAMENT_PREREGISTRATION.md` Amendment 2.
+
+**Report:** `reports/HT1_TOURNAMENT_RESULT.md`. Tables:
+`reports/ht1_leaderboard.csv`, `ht1_selection_leaderboard.csv`, `ht1_pairs.csv`,
+`ht1_correlation.csv`, `ht1_summary.json`.

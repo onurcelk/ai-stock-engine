@@ -1,0 +1,14 @@
+{
+  "scored_rows": 172881,
+  "cells": 1995,
+  "symbols": 26,
+  "cutoffs": 88,
+  "first_cutoff": "2017-11-09",
+  "last_cutoff": "2026-07-10",
+  "family_size_gated": 81,
+  "beats_baseline": [],
+  "near_clones": 0,
+  "effective_opinions": 27,
+  "challenger_built": false,
+  "challenger_reason": "\u00a78.2: 0 candidate(s) passed G-HT1 on SELECTION; fewer than two, so no challenger is built. That is the outcome, not a reason to weaken the rule."
+}
