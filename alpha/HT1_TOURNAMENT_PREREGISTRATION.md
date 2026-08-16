@@ -476,3 +476,74 @@ means every projection the *application* shows a user is one draw from a
 distribution it never displays, and the UI reports no interval around it. That
 is a property of a `CHALLENGER`-status component, it is outside HT-1's scope to
 change, and HT-1 must not be read as licensing a change to it.
+
+---
+
+## Amendment 2 — 2026-08-16, before any signal was written
+
+**Nothing above is altered, including Amendment 1. This corrects Amendment 1's
+claim that family N can be made bit-reproducible, and replaces the §3.2 proof
+for that family with a stronger one.**
+
+### What was measured
+
+Amendment 1 asserted that seeding plus thread pinning makes `forecast.project`
+reproducible. Extended to all three architectures that is **false**, and the
+failure is not uniform:
+
+| Architecture | Across four separate OS processes, identical input |
+|---|---|
+| **GRU** | **bit-identical**, every run |
+| **Vanilla RNN** | **bit-identical**, every run |
+| **LSTM** | **not reproducible** |
+
+Four mechanisms were tried against LSTM and are recorded so they are not tried
+again: graph seed 42 (necessary, insufficient — a seeded pair still diverged to
+−10.79% against +10.69%); single-threaded op scheduling (necessary,
+insufficient); `keras.backend.clear_session()` between graphs (narrows a
+two-value alternation, does not close it); `TF_DETERMINISTIC_OPS=1` (no effect
+here). `PYTHONHASHSEED=0` fixes LSTM across *standalone* interpreters — four
+agree bit for bit — but **not** across `multiprocessing` spawn children, which
+inherit the variable correctly (verified: child reports
+`hash_randomization = 0`) and still return three different values.
+
+Observed spread on a representative cell: projected 1-day moves of **0.5773%,
+0.5895%, 0.5775%** — the same sign, differing in the second significant figure.
+
+### Why this does not weaken the study, and what replaces §3.2 for family N
+
+**Family N's point-in-time safety never rested on determinism.** It is
+structural, and stronger for being so: `neural_calls` hands the worker process
+**a list of 500 floats and nothing else** — the trailing closes of the
+already-truncated frame. There is no frame, no date column, and no object in
+which a bar after the cutoff could travel. The future is not excluded by a
+comparison; it is *absent from the address space*.
+
+§3.2 therefore binds family N as follows:
+
+1. **Structural** (replaces the equality proof): a test asserts the payload is
+   exactly the truncated frame's last 500 closes, and that the truncated frame
+   ends at the cutoff. This is checked for every cell in the sweep by the
+   existing `fingerprint_frame(cutoff_at=...)` call, which refuses a frame
+   holding a single later bar.
+2. **Equality, where it is available**: GRU and Vanilla RNN must return
+   **identical** calls under the future-rewrite. They are deterministic, so the
+   original proof applies to them unchanged.
+3. **Bounded, where it is not**: LSTM's projected move under the rewrite must
+   stay within the noise band its own repeated runs produce. This characterises
+   the noise; it does not prove causality, and it is not claimed to.
+
+### What is reported as a consequence
+
+- The leaderboard marks `neural.lstm` **NOT REPRODUCIBLE**. Its row is one draw,
+  and any reader comparing it against a threshold is comparing against a number
+  that would move on a re-run.
+- The study **measures and reports the LSTM sign-flip rate**: a sample of cells
+  is run twice and the share whose BUY/SELL call changes is published alongside
+  the leaderboard. A directional accuracy is only as meaningful as the stability
+  of the directions it counts, and that share is what tells a reader whether
+  LSTM's row can be read at all.
+- This is a **finding about the repository**, recorded rather than fixed:
+  `neural.lstm` holds `CHALLENGER` status, the application displays its
+  projection to users as a single number, and that number is not reproducible.
+  Repairing it is outside HT-1's scope and HT-1 does not license it.
