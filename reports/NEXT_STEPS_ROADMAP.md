@@ -287,16 +287,42 @@ each against the original, retire Streamlit only once everything is ported.
       (Monte Carlo, History, Overview) come next, then Research, then the
       long-running jobs. Plan at
       `C:\Users\onurc\.claude\plans\i-want-the-proceed-jolly-book.md`.
-- [ ] **Phase 4 — The three synchronous tabs.** Monte Carlo
-      (`core.montecarlo.run`, already fast/vectorised), History (`core.runs.*`,
-      CRUD plus three per-kind payload charts), and Overview — which is not a
-      new page but the existing `/chart` extended with indicator panes. None of
-      them needs infrastructure that does not already exist, and they take the
-      desk from three pages to six. Two notes carried from the design pass:
-      Monte Carlo must downsample server-side (Streamlit draws 120 paths of a
-      matrix up to 2,000 × 252 — do not serialise the matrix), and chart-shaped
-      tabs consume `core/indicators.py` as JSON rather than `core/charts.py`,
-      which is Plotly-bound and cannot cross to React.
+- [x] **Phase 4 — The three synchronous tabs.** Built and verified. The desk
+      goes from three pages to six.
+      New `api/routers/montecarlo.py` (`GET /api/montecarlo/{symbol}`, wrapping
+      `core.montecarlo.run` on bars from `live.fetch`), `api/routers/runs.py`
+      (`GET /api/runs`, `GET /api/runs/{id}`, `DELETE /api/runs/{id}`,
+      `POST /api/runs/clear`, wrapping `core.runs.*`), `api/routers/studies.py`
+      (`GET /api/studies` and `GET /api/studies/{symbol}`, wrapping
+      `core.pine`), and `GET /api/stats/{symbol}` on the existing chart router
+      (`core.data.describe`). New pages `montecarlo/` and `history/`, plus the
+      existing `chart/` extended into the Overview with the study picker,
+      price-axis overlays and oscillator panes.
+      **Cross-checked against direct `core` calls, not by eye**: Monte Carlo at
+      seed 42 returns byte-identical figures to `montecarlo.run` (median
+      320.0682, p5 273.6463, p95 367.7874, prob_up 63.5), and Supertrend/
+      WaveTrend values match `pine.INDICATORS[...].read()` exactly to six
+      decimal places. The ORCL walk-forward run renders directionals
+      [60, 80, 40] against its stored `mean_directional` of 60.
+      Three things worth recording because they were found rather than
+      designed: the Monte Carlo response downsamples server-side as planned
+      (120 of up to 2,000 paths — the matrix is never serialised); the fan
+      chart's first y-domain covered only the 5–95 band, so individual paths
+      escaped the card; and `/montecarlo` scrolled horizontally at 390px until
+      the symbol input got `min-w-0` (a flex item defaults to `min-width:auto`
+      and refuses to shrink below its content). Every route is now checked for
+      horizontal overflow at 390px, and none scrolls.
+      **`pytest.ini` fixed in passing**: `testpaths` was `app/tests` alone, so
+      `api/tests` had never been in the default run — the fast suite could
+      report green with every endpoint broken, including through Phases 0–2.
+      Now `app/tests api/tests`, and the default run is **1317 passed, 87
+      skipped** — the same 1283 app tests as before plus the 34 API ones (7
+      from Phase 2, 27 new here). No app test changed.
+      `tsc`/`eslint` clean, `next build` green on all 6 routes, zero console
+      errors on any page.
+      Not ported from Streamlit's Overview, and deliberately noted rather than
+      quietly dropped: the return-distribution histogram and the raw-bars
+      table. Neither was in this phase's definition; both are small if wanted.
 - [ ] **Phase 5 — Research tab.** Read-only; `core.research_view.load()`'s
       many DataFrames (production panel, leaderboard, promotion requirements,
       calibration) as `GET /api/research/*` endpoints and Next.js
