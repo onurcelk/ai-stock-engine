@@ -199,12 +199,53 @@ indefinitely or get confused with research artefacts:
 
 ---
 
-## Phase D — Frontend (Obsidian design system), optional/separate track
+## Phase D — Frontend rebuild in the Obsidian design system
 
-Not part of the research programme. `design-system/shell` has the landing
-shell only (hero, nav, stat cards, feature grid). Next step is user-directed:
-pick the next page/component to extend with the locked tokens
-(`design-system/MANIFESTO.md`).
+**Superseded 2026-08-22** by an explicit account-holder decision: unify the
+Streamlit app and the Obsidian landing page into one product, rebuilding the
+app's actual functionality as Next.js pages in Obsidian's design, backed by a
+new FastAPI layer in front of the existing `app/core/*` logic (no
+reimplementation — confirmed by direct inspection that only 2 of ~28 `core`
+modules touch Streamlit at all, both presentation-only). Full plan at
+`C:\Users\onurc\.claude\plans\swirling-finding-zephyr.md`. Approach:
+strangler-fig — build alongside Streamlit, port one tab at a time, verify
+each against the original, retire Streamlit only once everything is ported.
+
+- [x] **Phase 0 — the Signal page, end to end.** Built and verified. New
+      `Stock-Prediction-Models/api/` (FastAPI: `main.py`, `routers/signal.py`,
+      `schemas.py`) exposes `GET /api/signal/{symbol}`, calling
+      `core.ledger_activation.evaluate_and_freeze` unmodified — the exact
+      function Streamlit's Signal tab calls, so the new page and the old tab
+      share one write path into the forecast ledger, never two. New
+      `design-system/shell/src/app/signal/page.tsx` (+ `signal-card.tsx`,
+      `horizon-card.tsx`, `lib/api.ts`) renders it in Obsidian's tokens/motion.
+      Verified against live Streamlit data for two symbols (AAPL: HOLD/+0/0%;
+      NVDA: SELL/-23/21%, matching the Portfolio tab's own reading exactly).
+      Zero console/page errors, `tsc --noEmit` and `eslint` clean, fast Python
+      suite unchanged at 1282 passed.
+- [ ] **Phase 1 — Chart + Portfolio (read side).** `GET /api/ohlcv/{symbol}`,
+      `GET /api/portfolio`; a candlestick chart component (bklit-ui per the
+      manifesto's grounding table) and a portfolio table.
+- [ ] **Phase 2 — Portfolio writes.** Fix `core/holdings.py::execute()`'s
+      concurrency bug first (naive read-modify-write on `holdings.json`/
+      `transactions.json`, no locking — two concurrent requests can clobber a
+      trade; add a process-wide `threading.Lock`). Then
+      `POST /api/portfolio/trade`, `POST /api/portfolio/ledger/clear`, the
+      trade form UI.
+- [ ] **Phase 3 — Research tab.** Read-only; `core.research_view.load()`'s
+      many DataFrames (production panel, leaderboard, promotion requirements,
+      calibration) as `GET /api/research/*` endpoints and Next.js
+      tables/charts. High-value given it's this session's own subject matter.
+- [ ] **Phase 4 — Forecast + Trading agents (long-running).** LSTM/RL training
+      already streams progress via callback (`on_progress`) in the existing
+      code; the API equivalent is `POST` starts a background job (FastAPI
+      `BackgroundTasks` + an in-memory status dict, no Celery/Redis needed for
+      one local user) and `GET /jobs/{id}` the frontend polls.
+- [ ] **Phase 5 — Remaining tabs.** Monte Carlo (`core.montecarlo.run`,
+      already fast/vectorized — trivially synchronous), History
+      (`core.runs.*`), Overview.
+- [ ] **Phase 6 — Cutover.** Once every tab is ported and spot-checked against
+      Streamlit, retire `streamlit_app.py` or keep it as an internal fallback.
 
 ---
 
