@@ -323,16 +323,36 @@ each against the original, retire Streamlit only once everything is ported.
       Not ported from Streamlit's Overview, and deliberately noted rather than
       quietly dropped: the return-distribution histogram and the raw-bars
       table. Neither was in this phase's definition; both are small if wanted.
-- [ ] **Phase 5 — Research tab.** Read-only; `core.research_view.load()`'s
-      many DataFrames (production panel, leaderboard, promotion requirements,
-      calibration) as `GET /api/research/*` endpoints and Next.js
-      tables/charts. High-value given it's this session's own subject matter.
-      Two behaviours are integrity features, not UI details, and must survive
-      the port: `research_view.load()` must not construct a ledger when the
-      file is absent (constructing one creates it, and opening a page must
-      never start a research record), and the empty-state captions carry
-      meaning — a thin cell is evidence about coverage and is shown, not
-      hidden, and the replay-vs-production distinction has to stay legible.
+- [x] **Phase 5 — Research tab.** Built and verified. New
+      `api/routers/research.py` serving all thirteen surfaces from **one**
+      `GET /api/research`, because the tab reads one state — thirteen panels
+      built from a single `research_view.load()`, so no two can disagree about
+      what the ledger held at the moment they were read. New
+      `research/page.tsx` and a generic `data-table.tsx` (columns travel with
+      the rows: these frames genuinely differ in shape, and a table naming its
+      own columns would silently drop whatever the record gained).
+      **Both integrity behaviours survived the port, and one is now pinned by a
+      test.** `api/tests/test_research_endpoint.py::
+      test_reading_the_page_does_not_create_a_record` points both defaults at
+      absent paths, calls the endpoint, and asserts the files are still absent
+      — the HTTP layer is exactly where a "quick count" that reached past
+      `research_view.load()` would quietly reintroduce the bug that Phase 7 §6
+      and Phase 9 §6 rest on. A second test asserts the router delegates and
+      passes no path, since a fixture path leaking into production is the other
+      way that guard dies. The empty-state captions are carried through
+      verbatim, including "an empty record, not a poor one".
+      The replay-vs-production distinction is the page's spine, and the numbers
+      show why it had to be: **the replay holds 12,873 scored rows across 336
+      independent cutoffs at 0.4879 accuracy; the live ledger holds 93 rows
+      across 2.** They sit in one labelled table — coverage and accuracy side
+      by side, never pooled — under `study_warning` verbatim.
+      One rendering defect found by looking: `study_warning` carries markdown
+      emphasis (`**reconstructions**`) that Streamlit rendered and React showed
+      as literal asterisks. Now rendered as emphasis; a check asserts no
+      literal `**` survives anywhere on the page.
+      Suite: **1324 passed, 87 skipped** (41 API tests, 7 of them new). No app
+      test changed. `tsc`/`eslint` clean, `next build` green on all 7 routes,
+      no horizontal overflow at 390px, zero console errors.
 - [ ] **Phase 6 — Forecast + Trading agents (long-running).** LSTM/RL training
       already streams progress via callback (`on_progress`) in the existing
       code; the API equivalent is `POST` starts a background job (FastAPI

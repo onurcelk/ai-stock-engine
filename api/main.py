@@ -23,7 +23,7 @@ from fastapi import FastAPI                        # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
 from .routers import (                              # noqa: E402
-    chart, montecarlo, portfolio, runs, signal, studies,
+    chart, montecarlo, portfolio, research, runs, signal, studies,
 )
 
 app = FastAPI(title="Stock Prediction Models API")
@@ -41,6 +41,7 @@ app.include_router(portfolio.router)
 app.include_router(montecarlo.router)
 app.include_router(runs.router)
 app.include_router(studies.router)
+app.include_router(research.router)
 
 
 @app.get("/api/health")
