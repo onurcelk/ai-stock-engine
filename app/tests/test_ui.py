@@ -784,3 +784,142 @@ def test_history_lists_and_deletes(bundled_app, scratch_runs):
     assert_clean(app, "after delete")
     assert len(runs.load_all()) == 2
 
+
+
+# --------------------------------------------------------- TradingView studies
+
+# The Overview picker holds indicator *keys* and renders them through a
+# format_func, so widgets are driven with keys and asserted against names.
+from core import pine  # noqa: E402
+
+
+def studies_picker(app):
+    return next(widget for widget in app.multiselect if widget.label == "Indicators")
+
+
+def test_the_studies_picker_offers_what_the_series_supports():
+    """A live ticker has OHLC, so every ported study is drawable on it."""
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    assert_clean(app, "live ticker in Pro")
+
+    assert set(studies_picker(app).options) == {
+        indicator.name for indicator in pine.INDICATORS.values()
+    }
+
+
+def test_a_close_only_series_offers_only_what_it_can_draw(bundled_app):
+    """usd-myr is a close-only FX series: six of the seven cannot be computed.
+
+    Offering a study the frame cannot support and failing at draw time is the
+    failure mode `pine.available` exists to prevent. MavilimW is the only one
+    of the seven that asks for nothing but a close.
+    """
+    select_offering(bundled_app, "usd-myr").set_value("usd-myr").run()
+    assert_clean(bundled_app, "close-only dataset")
+
+    assert set(studies_picker(bundled_app).options) == {"MavilimW"}
+
+    studies_picker(bundled_app).set_value(["mavilim"]).run()
+    assert_clean(bundled_app, "MavilimW on a close-only series")
+
+
+def test_every_study_draws_without_raising():
+    """Each one, selected on its own, through the real render path."""
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+
+    for key, indicator in pine.INDICATORS.items():
+        # Re-locate every iteration: each run rebuilds the widget tree.
+        studies_picker(app).set_value([key]).run()
+        assert_clean(app, f"study {indicator.name}")
+        assert app.get("plotly_chart"), f"{indicator.name} drew nothing"
+
+
+def test_studies_start_off_and_overlays_share_the_price_chart():
+    """Two overlays must not add two panes — they belong on the candles."""
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+
+    assert studies_picker(app).value == [], "the chart is the price until asked"
+    before = len(app.get("plotly_chart"))
+
+    studies_picker(app).set_value(["supertrend", "mavilim"]).run()
+    assert_clean(app, "two overlays")
+    assert len(app.get("plotly_chart")) == before
+
+
+def test_each_oscillator_adds_a_pane_of_its_own():
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    before = len(app.get("plotly_chart"))
+
+    studies_picker(app).set_value(["wavetrend", "squeeze"]).run()
+    assert_clean(app, "two oscillators")
+    assert len(app.get("plotly_chart")) == before + 2
+
+
+def test_studies_survive_a_range_change():
+    """The regression a label-based slice would cause.
+
+    `charts.window` reindexes its slice from zero, so selecting the view by
+    label silently returns the *first* n bars instead of the last n — drawing
+    an indicator from the wrong end of history onto the right end of the chart.
+    """
+    app = fresh_app(mode="Pro")
+    radio_offering(app, "Live ticker").set_value("Live ticker").run()
+    studies_picker(app).set_value(["supertrend"]).run()
+    assert_clean(app, "supertrend on the full range")
+
+    radio_offering(app, "All").set_value("3M").run()
+    assert_clean(app, "supertrend zoomed to three months")
+
+
+def test_the_studies_are_offered_as_agents(bundled_app):
+    """They arrived in agent/, so the agents tab is where they are looked for."""
+    picker = select_offering(bundled_app, "Turtle (channel breakout)")
+    offered = set(picker.options)
+
+    for indicator in pine.INDICATORS.values():
+        assert f"Study · {indicator.name}" in offered, f"{indicator.name} is not offered"
+
+
+def test_a_study_agent_backtests_without_training(bundled_app):
+    """No Train button: a study follows a published rule and runs immediately."""
+    select_offering(bundled_app, "Turtle (channel breakout)").set_value(
+        "Study · Supertrend").run()
+    assert_clean(bundled_app, "supertrend as an agent")
+
+    assert not train_button(bundled_app, "Study · Supertrend")
+    # The backtest metrics rendered, so the engine actually ran it.
+    assert [m for m in bundled_app.metric if m.label == "Buy & hold"]
+
+
+def test_every_study_agent_runs_through_the_backtester(bundled_app):
+    """Each in turn, on the real engine, through the real dropdown."""
+    for indicator in pine.INDICATORS.values():
+        name = f"Study · {indicator.name}"
+        select_offering(bundled_app, "Turtle (channel breakout)").set_value(name).run()
+        assert_clean(bundled_app, f"agent {name}")
+        assert [m for m in bundled_app.metric if m.label == "Buy & hold"], \
+            f"{name} produced no backtest"
+
+
+def test_a_study_agent_states_its_rule_and_its_source(bundled_app):
+    """The caption has to say what is being traded and where it came from."""
+    select_offering(bundled_app, "Turtle (channel breakout)").set_value(
+        "Study · Supertrend").run()
+
+    captions = " ".join(str(item.value) for item in bundled_app.caption)
+    assert "super trend.txt" in captions
+    assert "flips up" in captions
+
+
+def test_a_close_only_series_offers_no_ohlc_study_agents(bundled_app):
+    """The dropdown must not offer a study the series cannot compute."""
+    select_offering(bundled_app, "usd-myr").set_value("usd-myr").run()
+    assert_clean(bundled_app, "close-only series on the agents tab")
+
+    offered = set(select_offering(bundled_app, "Turtle (channel breakout)").options)
+    assert "Study · MavilimW" in offered
+    assert "Study · Supertrend" not in offered

@@ -315,6 +315,83 @@ def price_chart(
     return figure
 
 
+# Line colours for indicator panes, in the order the catalogue lists them.
+# Deliberately not the candle colours: an indicator line reading as "up" or
+# "down" would claim agreement with the price it is drawn against.
+INDICATOR_LINES = ["#f0b90b", "#9c27b0", "#00bcd4", "#e91e63"]
+
+
+def indicator_pane(
+    dates: pd.Series,
+    lines: pd.DataFrame,
+    title: str = "",
+    levels: tuple[float, ...] = (),
+    histogram: pd.Series | None = None,
+    histogram_colors: pd.Series | None = None,
+    interval_label: str = "",
+    height: int = 190,
+) -> go.Figure:
+    """A short oscillator strip, styled to sit underneath the price chart.
+
+    Oscillators have no price scale, so they cannot share the candle axis —
+    TradingView gives each one its own pane and so does this. `levels` draws the
+    fixed reference lines an oscillator is read against (WaveTrend's +/-60, a
+    zero line), which is the whole reason those readings mean anything.
+    """
+    figure = go.Figure()
+
+    if histogram is not None:
+        figure.add_trace(go.Bar(
+            x=dates, y=histogram, name=title or "Histogram",
+            marker_color=histogram_colors if histogram_colors is not None else LINE,
+            marker_line_width=0, showlegend=False,
+            hovertemplate="%{y:.2f}<extra></extra>",
+        ))
+
+    for index, column in enumerate(lines.columns):
+        figure.add_trace(go.Scatter(
+            x=dates, y=lines[column], name=column.replace("_", " "), mode="lines",
+            line=dict(color=INDICATOR_LINES[index % len(INDICATOR_LINES)], width=1.3),
+            hovertemplate="%{y:.2f}<extra></extra>",
+        ))
+
+    for level in levels:
+        # Zero is the axis; the others are thresholds and read as guides.
+        figure.add_hline(
+            y=level,
+            line=dict(color=BORDER if level else AXIS_TEXT,
+                      width=1, dash="solid" if not level else "dot"),
+        )
+
+    figure.update_layout(
+        height=height,
+        margin=dict(l=6, r=62, t=22, b=6),
+        paper_bgcolor=BACKGROUND, plot_bgcolor=BACKGROUND,
+        font=dict(color=TEXT, size=11),
+        hovermode="x unified", dragmode="pan", bargap=0.25,
+        showlegend=False,
+        hoverlabel=dict(bgcolor=PANEL, bordercolor=BORDER,
+                        font=dict(color=TEXT, size=11)),
+    )
+    if title:
+        figure.add_annotation(
+            text=f"<b>{title}</b>", xref="paper", yref="paper", x=0.004, y=1.0,
+            showarrow=False, xanchor="left", yanchor="top",
+            font=dict(size=11.5, color=AXIS_TEXT),
+        )
+
+    axis_common = dict(
+        gridcolor=GRID, zeroline=False, showspikes=True, spikemode="across",
+        spikesnap="cursor", spikedash="dot", spikecolor=CROSSHAIR, spikethickness=1,
+        linecolor=BORDER, tickfont=dict(color=AXIS_TEXT, size=10.5),
+    )
+    figure.update_xaxes(**axis_common, showgrid=True,
+                        rangebreaks=_rangebreaks(dates, interval_label))
+    figure.update_yaxes(**axis_common, side="right", showgrid=True, nticks=4,
+                        ticklabelposition="outside", ticks="")
+    return figure
+
+
 def apply_dark(figure: go.Figure) -> go.Figure:
     """Match a plain plotly figure to the price chart's palette."""
     figure.update_layout(

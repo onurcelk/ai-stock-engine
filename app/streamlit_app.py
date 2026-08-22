@@ -20,14 +20,21 @@ import streamlit as st
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 from core import (  # noqa: E402
-    agents, backtest, charts, data, forecast, holdings, ledger_activation,
-    live, montecarlo, portfolio, promotion, quotes, research_view, runs,
-    strategies, theme, ultimate,
+    agents, axis_drag, backtest, charts, data, forecast, holdings,
+    ledger_activation, live, montecarlo, pine, portfolio, promotion, quotes,
+    research_view, runs, strategies, theme, ultimate,
 )
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 RULE_BASED = ["Turtle (channel breakout)", "Moving average crossover", "Signal rolling"]
+
+# The ported TradingView studies, offered on the agents tab under their own
+# names. They are prefixed so the dropdown groups them and so the branch that
+# runs them cannot be reached by a name that merely starts with "Supertrend".
+STUDY_PREFIX = "Study · "
+STUDY_AGENTS = {f"{STUDY_PREFIX}{indicator.name}": key
+                for key, indicator in pine.INDICATORS.items()}
 
 # TradingView writes intervals as one or two characters on the toolbar and
 # spells them out nowhere. live.INTERVALS keeps the readable names for the
@@ -47,6 +54,7 @@ ACCENT = "#B084F5"
 
 st.set_page_config(page_title="Stock Prediction Models", page_icon="📈", layout="wide")
 theme.inject()
+axis_drag.enable()
 
 
 # ---------------------------------------------------------------- helpers
@@ -806,6 +814,9 @@ with overview_tab:
         # The chart is drawn after the range bar is read but rendered above it,
         # which is where TradingView puts that bar.
         chart_box = st.container()
+        # Oscillator panes belong directly under the candles, above the range
+        # bar — the picker that fills them is read further down the script.
+        panes_box = st.container()
 
         offered = charts.usable_ranges(frame)
         bar_left, bar_right = st.columns([5, 3])
@@ -825,15 +836,73 @@ with overview_tab:
         # axis, the volume pane and the last-price badge along with it.
         view = charts.window(frame, picked)
 
+        # The TradingView studies. Computed on the *whole* frame and sliced to
+        # the view afterwards, never the other way round: an indicator fitted
+        # to whatever window happens to be on screen would change its own
+        # reading every time the range buttons are touched.
+        drawable = pine.available(frame)
+        chosen_studies = st.multiselect(
+            "Indicators", list(drawable),
+            format_func=lambda key: drawable[key].name,
+            default=[], key="overview_studies", label_visibility="collapsed",
+            placeholder="Add an indicator — Supertrend, WaveTrend, Squeeze, …",
+        )
+
+        studies = {}
+        for key in chosen_studies:
+            indicator = drawable[key]
+            try:
+                computed = indicator.read(frame)
+            except (pine.MissingColumns, ValueError) as error:
+                st.caption(f"⚠️ {indicator.name}: {error}")
+                continue
+            # `charts.window` reindexes its slice from zero, so the view cannot
+            # be selected by label — it is the last len(view) bars of the frame.
+            studies[key] = computed.iloc[len(frame) - len(view):].reset_index(drop=True)
+
+        overlay_lines = [studies[key][list(drawable[key].lines)]
+                         for key in studies if drawable[key].pane == pine.OVERLAY]
+        overlays = pd.concat(overlay_lines, axis=1) if overlay_lines else None
+
         with chart_box:
             st.plotly_chart(
                 charts.price_chart(
                     view, symbol=ticker, interval_label=PILLS.get(interval, interval),
                     market=market, watermark_sub=NAME_FOR_CODE.get(interval, ""),
-                    height=560,
+                    height=560, overlays=overlays,
                 ),
                 use_container_width=True, config=charts.CONFIG,
             )
+
+        for key in [k for k in studies if drawable[k].pane == pine.OSCILLATOR]:
+            indicator = drawable[key]
+            output = studies[key]
+            # Squeeze Momentum is a histogram whose colour carries half its
+            # meaning; the other two are line studies.
+            bars = colours = None
+            if key == "squeeze":
+                bars = output["momentum"]
+                colours = np.where(
+                    bars > 0,
+                    np.where(output["rising"], charts.UP, charts.UP_FILL),
+                    np.where(~output["rising"], charts.DOWN, charts.DOWN_FILL),
+                )
+            elif key == "vix_fix":
+                bars = output["wvf"]
+                colours = np.where(output["bottom"], charts.UP, MUTED)
+
+            line_columns = [c for c in indicator.lines if c in output
+                            and not (bars is not None and c == bars.name)]
+            with panes_box:
+                st.plotly_chart(
+                    charts.indicator_pane(
+                        view["date"], output[line_columns], title=indicator.name,
+                        levels=indicator.levels, histogram=bars,
+                        histogram_colors=colours,
+                        interval_label=PILLS.get(interval, interval),
+                    ),
+                    use_container_width=True, config=charts.CONFIG,
+                )
 
         left, right = st.columns([2, 1])
         with left:
@@ -894,14 +963,21 @@ if pro:
             "The benchmark is buy & hold over the identical window."
         )
 
+        # Studies the current series cannot support are left out rather than
+        # offered and failed at run time.
+        offered_studies = [name for name, key in STUDY_AGENTS.items()
+                           if key in pine.available(frame)]
+
         columns = st.columns([2, 1.4, 1, 1])
         agent_name = columns[0].selectbox(
             "Agent",
-            RULE_BASED + list(agents.REGISTRY),
-            help=f"The first three follow a fixed rule. The remaining "
-                 f"{len(agents.REGISTRY)} learn a policy from the price history "
-                 "and need training first — they are listed cheapest-to-train "
-                 "first, and the three at the top finish in about a second.",
+            RULE_BASED + offered_studies + list(agents.REGISTRY),
+            help=f"The first three follow a fixed rule. The {len(offered_studies)} "
+                 "marked *Study* are the ported TradingView indicators, traded on "
+                 f"their own published signal. The remaining {len(agents.REGISTRY)} "
+                 "learn a policy from the price history and need training first — "
+                 "they are listed cheapest-to-train first, and the three at the "
+                 "top finish in about a second.",
         )
         sizing_label = columns[1].selectbox(
             "Position sizing", list(backtest.SIZING_MODES.values()), index=0,
@@ -1017,6 +1093,21 @@ if pro:
                 training = stored
             elif stored:
                 st.info("Settings or data changed since training — train again to refresh.")
+
+        elif agent_name in STUDY_AGENTS:
+            # Must be tested before the fall-through below, which would
+            # otherwise run every study as the signal-rolling agent.
+            study = STUDY_AGENTS[agent_name]
+            indicator = pine.INDICATORS[study]
+            st.caption(
+                f"Ported from `agent/{indicator.source}`. **The rule:** "
+                f"{pine.SIGNAL_RULES[study]} It takes no parameters here — the "
+                "study's published defaults are the whole point of trading it, "
+                "and tuning them on the series you are about to score is how a "
+                "backtest flatters itself."
+            )
+            signal = pine.signals(study, frame)
+            bands = pine.bands(study, frame)
 
         elif agent_name.startswith("Turtle"):
             columns = st.columns([1, 1, 2])
