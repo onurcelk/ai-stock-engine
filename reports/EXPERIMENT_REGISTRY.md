@@ -1712,3 +1712,38 @@ resolved:**
 Three of five original indicators measured today; all three REJECTED, none as a flat null
 across the board — `orb_1h` was the closest to a pure absence, PEAD-1 the closest to a real
 but sub-threshold and confounded effect.
+
+---
+
+## 26. VIX1 power gate, 2026-08-22 — FAIL, closed. The sixth and final indicator resolved.
+
+**Pre-registration:** `alpha/VIX1_PREREGISTRATION.md`, commissioned under
+`reports/OPTIONS1_ADMISSIBILITY.md` §1/§5's six-condition reopening of `pine.vix_fix` under
+a realised-vol-contraction (not directional) reformulation.
+
+**VIX1 GATE: ALL WINDOWS FAIL.** 5-session half-width 7.57 points, 20-session 5.45 points,
+both against a 3.0-point MDE (annualised vol percentage points) — margins of 2.5x and 1.8x
+over the hurdle. 74 independent cutoffs carried `williams_vix_fix`'s "bottom" flag (a rare
+capitulation condition, not always-on). **Unlike PEAD-1 and orb_1h, this gate failed as
+expected** — realised volatility is a substantially noisier quantity to estimate than a
+return at comparable sample sizes.
+
+**Per `VIX1_PREREGISTRATION.md` §6: CLOSED, 0 budget slots spent.** No confirmatory
+measurement was run; no point estimate for this study was ever read. Not resolvable on this
+history — not evidence that the underlying timing idea is false.
+
+**This resolves the last of the six candidates in the 2026-08-22 account-holder directive.**
+Final standing:
+
+| Candidate | Verdict |
+|---|---|
+| `vwap_reversion` | REJECTED (§22) |
+| `orb_1h` | REJECTED (§24) |
+| PEAD-1 (SUE, event-time) | REJECTED — real, sub-threshold, market-confounded (§25) |
+| VIX1 (vol-timing signal) | Gate FAILED, closed (§26) |
+| Options execution layer | Inadmissible, no free point-in-time data |
+
+Three candidates measured and rejected, one gate-failed and closed without spending a
+measurement, one structurally inadmissible under the free-data-only rule. Two closed
+programme reopenings (SUE, VIX mean reversion) both returned to closed status, on new
+evidence rather than by assumption. See `reports/VIX1_POWER_GATE.md`.

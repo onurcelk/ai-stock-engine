@@ -150,9 +150,15 @@ reopening.
 resolved: `vwap_reversion`, `orb_1h`, and PEAD-1 all REJECTED (measured); the options
 execution layer is inadmissible (no free point-in-time data, `OPTIONS1_ADMISSIBILITY.md`);
 VIX1 (the free-data vol-timing signal) remains open but was not requested to be built.
-- [ ] E.9 — If the account holder wants it: build VIX1 (§E.4's free-data-only path) —
-      needs its own power gate and confirmatory pre-registration, same discipline as
-      everything else in this phase. Not started, not yet requested.
+- [x] E.9 — Built and ran VIX1's power gate (`alpha/vix1_power_gate.py`). **FAILED at both
+      candidate windows** (5-session half-width 7.57 pts, 20-session 5.45 pts, vs a 3.0-pt
+      MDE) — unlike PEAD-1/orb_1h, this prediction held: realised volatility is noisier to
+      estimate than a return at comparable sample size. **VIX1 CLOSED per its own rule, 0
+      slots spent, no confirmatory measurement run.** See `reports/VIX1_POWER_GATE.md`.
+
+**All six 2026-08-22 account-holder-directed indicators are now resolved**: `vwap_reversion`,
+`orb_1h`, PEAD-1 all measured and REJECTED; VIX1 gate-failed and closed; the options
+execution layer inadmissible. Phase E is fully complete.
 
 ---
 
