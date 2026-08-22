@@ -265,20 +265,63 @@ each against the original, retire Streamlit only once everything is ported.
       of `transactions.json`, restoring it to the identical md5 too — the
       book carries no trace of the test. Fast Python suite unchanged: 1283
       passed, 87 skipped.
-- [ ] **Phase 3 — Research tab.** Read-only; `core.research_view.load()`'s
+- [x] **Phase 3 — The app shell.** Inserted 2026-08-22, ahead of the tab work,
+      because the three finished pages turned out to be unreachable: every
+      `href` in the frontend was `"#"`, `next/link` was imported nowhere, and
+      `<Nav />` rendered only on the landing page, so `/signal`, `/chart` and
+      `/portfolio` could be opened only by typing a URL. Four verified pages
+      and nothing joining them is a missing-structure problem, and it blocked
+      the product reading as a product regardless of how many tabs landed next.
+      New `design-system/shell/src/lib/routes.ts` (the nav in one place, with
+      the still-owed pages recorded but not rendered), a rewritten `nav.tsx`
+      (real routes, `usePathname` active state, one shared `layoutId` pill that
+      travels between entries), and `src/app/(app)/layout.tsx` — a route group,
+      so URLs are unchanged and each page keeps its own `<main>` and width.
+      Dropped the dead "Sign in" control (no auth exists anywhere in this app).
+      Verified by clicking rather than by URL, plus the mobile menu at 390px:
+      zero console/page errors, portfolio still matching Streamlit exactly
+      ($2,870.08 / $2,363.45 / +21.44%, book signal −1 at 14%, NVDA SELL, SPY
+      STRONG BUY). `tsc`/`eslint` clean, `next build` green.
+      **Remaining phases reordered** to group by infrastructure cost, so each
+      one adds exactly one new capability: the three cheap synchronous tabs
+      (Monte Carlo, History, Overview) come next, then Research, then the
+      long-running jobs. Plan at
+      `C:\Users\onurc\.claude\plans\i-want-the-proceed-jolly-book.md`.
+- [ ] **Phase 4 — The three synchronous tabs.** Monte Carlo
+      (`core.montecarlo.run`, already fast/vectorised), History (`core.runs.*`,
+      CRUD plus three per-kind payload charts), and Overview — which is not a
+      new page but the existing `/chart` extended with indicator panes. None of
+      them needs infrastructure that does not already exist, and they take the
+      desk from three pages to six. Two notes carried from the design pass:
+      Monte Carlo must downsample server-side (Streamlit draws 120 paths of a
+      matrix up to 2,000 × 252 — do not serialise the matrix), and chart-shaped
+      tabs consume `core/indicators.py` as JSON rather than `core/charts.py`,
+      which is Plotly-bound and cannot cross to React.
+- [ ] **Phase 5 — Research tab.** Read-only; `core.research_view.load()`'s
       many DataFrames (production panel, leaderboard, promotion requirements,
       calibration) as `GET /api/research/*` endpoints and Next.js
       tables/charts. High-value given it's this session's own subject matter.
-- [ ] **Phase 4 — Forecast + Trading agents (long-running).** LSTM/RL training
+      Two behaviours are integrity features, not UI details, and must survive
+      the port: `research_view.load()` must not construct a ledger when the
+      file is absent (constructing one creates it, and opening a page must
+      never start a research record), and the empty-state captions carry
+      meaning — a thin cell is evidence about coverage and is shown, not
+      hidden, and the replay-vs-production distinction has to stay legible.
+- [ ] **Phase 6 — Forecast + Trading agents (long-running).** LSTM/RL training
       already streams progress via callback (`on_progress`) in the existing
       code; the API equivalent is `POST` starts a background job (FastAPI
       `BackgroundTasks` + an in-memory status dict, no Celery/Redis needed for
       one local user) and `GET /jobs/{id}` the frontend polls.
-- [ ] **Phase 5 — Remaining tabs.** Monte Carlo (`core.montecarlo.run`,
-      already fast/vectorized — trivially synchronous), History
-      (`core.runs.*`), Overview.
-- [ ] **Phase 6 — Cutover.** Once every tab is ported and spot-checked against
+      **Raise before starting:** Phase B above is the unfixed `neural.lstm`
+      reproducibility defect (7.2% sign-flip rate on identical re-runs). Porting
+      the Forecast tab first ships a known-nondeterministic number in a nicer
+      wrapper, so Phase B should land before or alongside this — an owner call,
+      since it touches `forecast.py`.
+- [ ] **Phase 7 — Cutover.** Once every tab is ported and spot-checked against
       Streamlit, retire `streamlit_app.py` or keep it as an internal fallback.
+      The headless habits survive either way: `python -m core.collector` and
+      `python -m core.score_outcomes` are run by hand on trading days and have
+      nothing to do with the UI.
 
 ---
 
