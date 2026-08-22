@@ -74,6 +74,60 @@ system working as designed, not a defect to patch around.
 
 ---
 
+## Phase E — reopening PEAD/VIX and two new candidates (account-holder directive, 2026-08-22)
+
+**Class: research, not operations.** On 2026-08-22 the account holder asked to add six
+indicators (opening-range breakout, VWAP mean reversion, VIX mean reversion, PEAD, option
+selling, option-premium harvesting). Two of the six are not new ground: PEAD is SUE, closed
+at every horizon by V3 and V4; VIX mean reversion is `pine.vix_fix`, already measured and
+rejected by HT-1. `CLAUDE.md` §1.3 requires flagging that conflict before proceeding, which
+was done; the account holder, shown the conflict, **explicitly chose to reopen both**,
+explicitly chose "new alpha claim" over "informational only," and explicitly chose "full
+options extension" over "signal only." This phase is that directive, executed to the same
+pre-registration standard the rest of this programme holds itself to — charter and power
+gate before any measurement, exactly like `alpha/V4_CHARTER.md` was for SUE's last
+reopening.
+
+**Steps:**
+
+- [x] E.1 — `alpha/PEAD1_CHARTER.md`: reopens SUE under an event-time, absolute-return
+      formulation (not V3/V4's calendar-grid cross-sectional IC), passing the same
+      six-condition reuse test `V4_CHARTER.md` §3.2 established. Names the power gate that
+      must be built before any slot is spent; does not build it.
+- [x] E.2 — `reports/OPTIONS1_ADMISSIBILITY.md`: checked directly whether free options data
+      (chains, historical IV, greeks) exists point-in-time. **It does not** — yfinance
+      (and every other free source checked) serves live snapshots only, with expired
+      contracts unrecoverable at any price. **Verdict: FAIL for the options execution
+      layer** (chain/greek/margin/tail-risk modelling cannot be built under the programme's
+      free-data-only rule, §27B, without a provider-spend decision only the account holder
+      can make). The VIX-mean-reversion reformulation itself (timing a realised-vol
+      contraction, not equity direction) remains admissible as a **signal-only** question,
+      answerable from `^VIX` and existing daily price history alone — scoped as VIX1, not
+      yet run.
+- [x] E.3 — `alpha/HT2_TOURNAMENT_PREREGISTRATION.md`: opening-range breakout and VWAP
+      mean reversion, as new (not reopened) candidates. Checked free intraday-data depth
+      directly: 5-minute bars only go back ~2 months, which is inadmissible for a true
+      opening-range design on power grounds alone. Substitutes an hourly-bar proxy
+      (`orb_1h`, needs its own power gate, ≤730 days of data) and a daily swing-VWAP variant
+      (`vwap_reversion`, reuses HT-1's own grid and already-passed power gate outright).
+- [ ] E.4 — **Human decision required before any further work in this phase**: for
+      `OPTIONS1_ADMISSIBILITY.md` §4, choose (a) amend §27B to permit a paid options data
+      source, or (b) proceed on the free-data-only VIX1 signal study and drop the execution
+      build-out. Nothing below is buildable until this is chosen.
+- [ ] E.5 — Build PEAD-1's power gate (`alpha/PEAD1_CHARTER.md` §6): independent-block
+      census of the point-in-time earnings-event calendar, half-width estimated without
+      reading any forward return, compared against the 39 bp / block-length-floor hurdles.
+      **Expected to fail** per the charter's own stated prior — recording that outcome is
+      itself the deliverable, not a setback.
+- [ ] E.6 — Build `orb_1h`'s power gate (`HT2_TOURNAMENT_PREREGISTRATION.md` §4). Also
+      **expected to fail** on the same free-data-depth grounds.
+- [ ] E.7 — Run `vwap_reversion` (gate already satisfied by HT-1's own) and, contingent on
+      E.4/E.5/E.6's outcomes, PEAD-1's and `orb_1h`'s confirmatory measurements.
+- [ ] E.8 — Record results in `reports/EXPERIMENT_REGISTRY.md`, win or lose, per this
+      programme's own append-only convention.
+
+---
+
 ## Phase B — `neural.lstm` reproducibility (HT-1's recorded, unfixed defect)
 
 HT-1 (`reports/HT1_TOURNAMENT_RESULT.md` §6) measured `neural.lstm` at a 7.2%
