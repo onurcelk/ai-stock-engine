@@ -1653,3 +1653,23 @@ document's own sequencing rule (`PEAD1_CHARTER.md` §9.4, `HT2_TOURNAMENT_PREREG
 | `vwap_reversion` | REJECTED (§22) |
 | VIX1 (free-data vol-timing signal) | Not yet built (`reports/OPTIONS1_ADMISSIBILITY.md` §5) |
 | Options execution layer (chains/greeks/margin) | Inadmissible, no free point-in-time data (`reports/OPTIONS1_ADMISSIBILITY.md`) |
+
+---
+
+## 24. orb_1h confirmatory result, 2026-08-22 — REJECTED
+
+**Pre-registration:** `alpha/HT2_TOURNAMENT_PREREGISTRATION.md` Amendment 2, committed after
+the power gate passed (§23) and before this measurement ran.
+
+**orb_1h VERDICT: REJECT.** Advantage +0.9 bp against the pre-registered 39 bp hurdle; 95%
+interval [−6.5, +8.1] bp straddles zero; breadth 0.514 but the first sample half is
+negative. Net of a nominal 5 bp cost: −4.1 bp. Noise control passes (median +1.1 bp,
+0% exceedance) but is uninformative given criteria 1–3 already fail outright. 915
+independent trading dates, well beyond the gate's own resolution requirement — the null
+is a measured absence, not a power shortfall.
+
+**Consistent with HT-1 and `vwap_reversion` (§22):** a fifth price-only technical
+construction finds nothing on this universe. See `reports/ORB1H_RESULT.md`.
+
+**What is barred as a consequence:** no second outcome window, no threshold change, no
+sign flip on the negative first half, no promotion of a noise-control draw.

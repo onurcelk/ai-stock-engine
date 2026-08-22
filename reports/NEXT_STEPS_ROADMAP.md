@@ -130,13 +130,16 @@ reopening.
       pre-registration's stated prior** (the free `1h` cache has accumulated since
       2023-09-26 through ordinary app use, well past the 730-day fresh-fetch ceiling). See
       `reports/ORB1H_POWER_GATE.md`.
-- [ ] E.10 — Write PEAD-1's confirmatory pre-registration (5-session window, CONTINUE rule,
-      controls, noise control) — required before any forward return for the confirmatory
-      study is read. Not started.
-- [ ] E.11 — Write `orb_1h`'s confirmatory pre-registration (CONTINUE rule; whether to read
-      only the same-session outcome the gate used or add a next-session horizon) — required
-      before the first inspected measurement. Not started.
-- [ ] E.12 — Run both confirmatory measurements once their pre-registrations are committed.
+- [x] E.10 — Wrote PEAD-1's confirmatory pre-registration (`alpha/PEAD1_PREREGISTRATION.md`):
+      5-session window, four-criterion CONTINUE rule including a market-relative control,
+      noise control. Committed before the first event-return for this study was read.
+- [x] E.11 — Wrote `orb_1h`'s confirmatory design (`HT2_TOURNAMENT_PREREGISTRATION.md`
+      Amendment 2): same-session outcome unchanged from the gate, three-criterion CONTINUE
+      rule, noise control. Committed before the first inspected measurement.
+- [x] E.12 (orb_1h) — **Run. REJECTED.** Advantage +0.9 bp vs a 39 bp hurdle, interval
+      [−6.5, +8.1] straddles zero, first sample half negative. See
+      `reports/ORB1H_RESULT.md`, registry §24.
+- [ ] E.12 (PEAD-1) — Confirmatory measurement running.
 - [ ] E.9 — If the account holder wants it: build VIX1 (§E.4's free-data-only path) —
       needs its own power gate and confirmatory pre-registration, same discipline as
       everything else in this phase. Not started, not yet requested.

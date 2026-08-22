@@ -190,3 +190,47 @@ possibility that this threshold was picked to flatter `vwap_reversion` specifica
 
 Both parameters are now frozen for `vwap_reversion` and may not be revisited after any
 result exists.
+
+---
+
+## Amendment 2, 2026-08-22 — `orb_1h`'s power gate PASSED; confirmatory design fixed
+
+`reports/ORB1H_POWER_GATE.md`: achieved half-width **7.3 bp** against the 39 bp MDE, a 5.3x
+margin — contrary to §4's own stated expectation. `orb_1h` may now proceed to a
+confirmatory measurement. Fixed here, before any point estimate for the confirmatory study
+is read (the gate itself inspected variance only, never a point estimate):
+
+**Outcome window: the same-session close, unchanged from the gate.** §4 above left open
+whether to add a next-session or multi-day horizon; that is **not done**. Adding an outcome
+window after seeing the gate pass, rather than before, would be exactly the kind of
+post-hoc design choice `CLAUDE.md` §3.2 forbids. The gate measured same-session outcomes;
+the confirmatory study measures the identical quantity.
+
+**CONTINUE rule, all three required:**
+
+1. Advantage (mean, per-independent-date-aggregated, same-session signed return) ≥
+   **+39 bp**, the same MDE the gate was measured against.
+2. 95% moving-block bootstrap interval (block = 4 days, the gate's own choice) excludes
+   zero on the favourable side.
+3. Breadth > 0.50 **and** both chronological halves of the sample (by independent date,
+   split at the median date) show positive mean advantage.
+
+**Anything less is REJECT.**
+
+**Noise control:** 30 permutations of the breakout direction (BUY/SELL relabelled at random
+per session, holding the call/no-call pattern and realised returns fixed), recomputing the
+per-date-aggregated advantage each time. Fails if the median permuted advantage exceeds
++5 bp or more than 10% of draws clear the CONTINUE threshold alone.
+
+**Mandatory control:** always-flat is already the implicit zero in the signed-return
+construction (§3.1); no market-relative control is added, because this candidate's return
+is intraday and same-session-relative by construction — an SPY comparison over the same
+few hours is not a control this design needs the way PEAD-1's multi-day window does.
+
+**Economic significance:** net-of-cost advantage at a nominal 5 bp round-trip cost,
+reported from the first measurement, given the design trades on essentially every
+qualifying session.
+
+**Prohibited, restated:** no second outcome window, no threshold change after this result,
+no sign flip, no promotion of a diagnostic to the candidate's own claim. Committed before
+the first inspected measurement.

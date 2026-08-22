@@ -73,7 +73,8 @@ def _session_rows(symbol: str) -> pd.DataFrame:
         else:
             continue                                    # no breakout, no call
         realised = session_close / entry_close - 1.0
-        rows.append({"symbol": symbol, "date": session, "advantage": realised * call})
+        rows.append({"symbol": symbol, "date": session, "call": call,
+                     "realised": realised, "advantage": realised * call})
     return pd.DataFrame(rows)
 
 
