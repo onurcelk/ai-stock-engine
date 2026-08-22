@@ -513,9 +513,15 @@ def _neural_in_process(closes: list[float]) -> dict[str, dict[str, tuple[float, 
     out: dict[str, dict[str, tuple[float, float]]] = {}
     with _seeded_tensorflow():
         for name in NEURAL_MODELS:
+            # `seed=SEED` explicitly, not `forecast.DEFAULT_SEED`. Phase B
+            # moved the seeding and session-clearing that `_seeded_tensorflow`
+            # monkeypatched in from the outside into `forecast._train_once`
+            # itself; passing this study's own constant keeps HT-1's instrument
+            # pinned to the value it was measured under rather than to whatever
+            # the application's default happens to become.
             projection = forecast.project(
                 close, dates, model=name, epochs=NEURAL_EPOCHS,
-                horizon=NEURAL_ROLLOUT)
+                horizon=NEURAL_ROLLOUT, seed=SEED)
             readings: dict[str, tuple[float, float]] = {}
             for horizon, bars in HORIZON_BARS.items():
                 value = float(projection.path[bars - 1])

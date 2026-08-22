@@ -23,6 +23,30 @@ MODELS: dict[str, int] = {"LSTM": 2, "GRU": 1, "Vanilla RNN": 1}
 
 ProgressFn = Callable[[int, int, int, float, float], None]
 
+#: Default random seed. HT-1 §6 measured `neural.lstm` flipping the sign of its
+#: projection on 7.2% of identical re-runs, with a maximum drift of 1,899
+#: percentage points, while GRU and Vanilla RNN were bit-identical through the
+#: same code path. A default seed makes a re-run reproducible by default;
+#: passing `seed=None` restores the old unseeded behaviour deliberately rather
+#: than by omission.
+DEFAULT_SEED = 1337
+
+#: How far outside its own training range a rollout may wander before it is
+#: called divergence rather than forecast. The series is min-max scaled to
+#: [0, 1] before training, so a scaled prediction beyond ±this is not a
+#: prediction about price — it is the autoregressive loop feeding on itself.
+DIVERGENCE_LIMIT = 10.0
+
+
+class DivergedRollout(RuntimeError):
+    """The autoregressive rollout left the range its training data occupied.
+
+    Raised rather than returned so a diverged path can never be rendered as a
+    number. HT-1 §6 recorded a single re-run moving a projection by 1,899
+    percentage points; that is this failure, and it was previously shown to the
+    user as an ordinary forecast.
+    """
+
 
 @dataclasses.dataclass
 class ForecastResult:
@@ -106,7 +130,7 @@ def _anchor(signal: np.ndarray, weight: float) -> np.ndarray:
     return np.asarray(smoothed)
 
 
-def _build_graph(tf, model: str, learning_rate, num_layers, size, size_layer, output_size, forget_bias):
+def _build_graph(tf, model: str, learning_rate, num_layers, size, size_layer, output_size):
     """The notebook's Model class, with the cell type parameterised."""
     cell_factory = {
         "LSTM": lambda n: tf.nn.rnn_cell.LSTMCell(n, state_is_tuple=False),
@@ -124,7 +148,19 @@ def _build_graph(tf, model: str, learning_rate, num_layers, size, size_layer, ou
     graph["Y"] = tf.placeholder(tf.float32, (None, output_size))
     graph["hidden_layer"] = tf.placeholder(tf.float32, (None, state_width))
 
-    drop = tf.nn.rnn_cell.DropoutWrapper(rnn_cells, output_keep_prob=forget_bias)
+    # Dropout is a *training* device. It was previously baked into the graph as
+    # a constant, so it stayed on during `_predict` and randomly dropped a fifth
+    # of the outputs of every inference call -- which is how a projection came
+    # to change on a re-run of the identical model (HT-1 §6).
+    #
+    # `placeholder_with_default(1.0)` makes the distinction explicit and fails
+    # safe: a caller that forgets to feed it gets inference behaviour (no
+    # dropout), never silent dropout. Training feeds the keep probability.
+    graph["keep_prob"] = tf.placeholder_with_default(
+        tf.constant(1.0, tf.float32), shape=())
+
+    drop = tf.nn.rnn_cell.DropoutWrapper(
+        rnn_cells, output_keep_prob=graph["keep_prob"])
     outputs, last_state = tf.nn.dynamic_rnn(
         drop, graph["X"], initial_state=graph["hidden_layer"], dtype=tf.float32
     )
@@ -279,6 +315,7 @@ def walk_forward(
     dropout: float = 0.8,
     learning_rate: float = 0.01,
     min_train: int = 120,
+    seed: int | None = DEFAULT_SEED,
     progress: ProgressFn | None = None,
 ) -> WalkForwardResult:
     """Rolling-origin evaluation: repeat the train/predict split down the series.
@@ -317,7 +354,7 @@ def walk_forward(
             tf, train_scaled, minmax, model=model, num_layers=num_layers,
             size_layer=size_layer, timestamp=timestamp, epochs=epochs,
             dropout=dropout, learning_rate=learning_rate, horizon=horizon,
-            progress=progress, slot=i,
+            seed=seed, progress=progress, slot=i,
         )
 
         anchor_price = float(prices[test_start - 1])
@@ -360,6 +397,7 @@ def _train_once(
     dropout: float,
     learning_rate: float,
     horizon: int,
+    seed: int | None = DEFAULT_SEED,
     progress: ProgressFn | None = None,
     slot: int = 0,
 ) -> np.ndarray:
@@ -369,9 +407,26 @@ def _train_once(
     same model.
     """
     tf.reset_default_graph()
+    if seed is not None:
+        # `reset_default_graph` plus a seed is not enough on its own, and
+        # `tournament._seeded_tensorflow` says why after measuring it: Keras
+        # state surviving between graphs shifts the op ordering that op-level
+        # seeds are derived from, so four identical sequential LSTM
+        # projections returned two alternating values. That makes a projection
+        # depend on how many ran before it in the same process. Clearing the
+        # session first is what removes it; the reset is repeated afterwards
+        # because clearing installs a fresh graph of its own.
+        try:
+            tf.keras.backend.clear_session()
+        except Exception:                                        # noqa: BLE001
+            # Older/newer TF surfaces move this; a missing clear costs
+            # determinism, not correctness, so it must not break a forecast.
+            pass
+        tf.reset_default_graph()
+        tf.set_random_seed(seed)
     graph = _build_graph(
         tf, model, learning_rate, num_layers, train.shape[1], size_layer,
-        train.shape[1], dropout,
+        train.shape[1],
     )
     session = tf.InteractiveSession()
     session.run(tf.global_variables_initializer())
@@ -388,7 +443,9 @@ def _train_once(
                 logits, state, _, loss = session.run(
                     [graph["logits"], graph["last_state"], graph["optimizer"], graph["cost"]],
                     feed_dict={graph["X"]: batch_x, graph["Y"]: batch_y,
-                               graph["hidden_layer"]: state},
+                               graph["hidden_layer"]: state,
+                               # The one place dropout belongs.
+                               graph["keep_prob"]: dropout},
                 )
                 losses.append(loss)
                 accs.append(accuracy(batch_y[:, 0], logits[:, 0]))
@@ -413,6 +470,7 @@ def run(
     learning_rate: float = 0.01,
     test_size: int = 30,
     simulations: int = 1,
+    seed: int | None = DEFAULT_SEED,
     progress: ProgressFn | None = None,
 ) -> ForecastResult:
     """Train on everything but the last `test_size` bars, then predict them.
@@ -439,7 +497,7 @@ def run(
             tf, train, minmax, model=model, num_layers=num_layers,
             size_layer=size_layer, timestamp=timestamp, epochs=epochs,
             dropout=dropout, learning_rate=learning_rate, horizon=test_size,
-            progress=progress, slot=sim,
+            seed=seed, progress=progress, slot=sim,
         ))
         accuracies.append(accuracy(actual, runs[-1]))
 
@@ -504,6 +562,7 @@ def project(
     dropout: float = 0.8,
     learning_rate: float = 0.01,
     horizon: int = 5,
+    seed: int | None = DEFAULT_SEED,
     progress: ProgressFn | None = None,
 ) -> Projection:
     """Train on every bar available, then predict `horizon` bars beyond the last.
@@ -523,7 +582,7 @@ def project(
         tf, scaled, minmax, model=model, num_layers=num_layers,
         size_layer=size_layer, timestamp=timestamp, epochs=epochs,
         dropout=dropout, learning_rate=learning_rate, horizon=horizon,
-        progress=progress, slot=0,
+        seed=seed, progress=progress, slot=0,
     )
 
     return Projection(
@@ -570,7 +629,26 @@ def _predict(session, graph, train, minmax, timestamp, test_size) -> np.ndarray:
             feed_dict={graph["X"]: np.expand_dims(window, axis=0),
                        graph["hidden_layer"]: state},
         )
-        output[-future_day + i] = logits[-1]
+        step = logits[-1]
+
+        # The rollout feeds its own output back in, so a step that leaves the
+        # scaled range compounds instead of correcting. Caught here, at the step
+        # that did it, rather than after `inverse_transform` has turned it into
+        # a plausible-looking price.
+        if not np.all(np.isfinite(step)):
+            raise DivergedRollout(
+                f"Rollout produced a non-finite value at step {i + 1} of "
+                f"{future_day}. The projection is not usable."
+            )
+        if np.max(np.abs(step)) > DIVERGENCE_LIMIT:
+            raise DivergedRollout(
+                f"Rollout reached {float(np.max(np.abs(step))):.1f} in scaled "
+                f"space at step {i + 1} of {future_day}, outside the "
+                f"±{DIVERGENCE_LIMIT:g} bound the training range implies. "
+                "The projection is not usable."
+            )
+
+        output[-future_day + i] = step
 
     output = minmax.inverse_transform(output)
     return _anchor(output[:, 0], 0.3)[-test_size:]

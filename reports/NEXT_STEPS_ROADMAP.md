@@ -173,15 +173,43 @@ not a re-test of any verdict.
 
 **Steps:**
 
-- [ ] B.1 — Seed the LSTM rollout and disable dropout at inference
-      (distinguish training-time from prediction-time in `forecast.py`).
-- [ ] B.2 — Add a divergence guard on the autoregressive rollout so a
-      diverging path is caught rather than silently shown as a number.
-- [ ] B.3 — Re-run HT-1's stability probe methodology at small scale to
-      confirm GRU/Vanilla-RNN reproducibility is unaffected and LSTM's flip
-      rate drops — a verification measurement, not a new tournament.
-- [ ] B.4 — Record the fix and the before/after numbers in a short report.
-- [ ] B.5 — Full test suite green; commit.
+**Done 2026-08-23**, authorised by the account holder ahead of the frontend
+rebuild's Forecast page, on the grounds that porting the tab first would ship a
+known non-deterministic number in a better-looking wrapper. No record splits:
+all three neural challengers hold n = 0 frozen forecasts, no PRODUCTION entry is
+versioned on `app.core.forecast`, and `ultimate.py` does not reference it.
+Full write-up in `reports/PHASEB_REPRODUCIBILITY.md`.
+
+- [x] B.1 — Dropout was active at inference (a graph constant, so it stayed on
+      through `_predict` and discarded a fifth of every inference call's
+      outputs) and nothing was seeded. `_build_graph` no longer accepts the
+      argument at all; the wrapper reads a `placeholder_with_default(1.0)`, so
+      inference is the default and training is the exception — the old mistake
+      is now unexpressible rather than merely corrected.
+- [x] B.2 — `DivergedRollout` + `DIVERGENCE_LIMIT`. `_predict` checks each
+      rollout step for non-finiteness and for leaving ±10 in scaled space, and
+      raises **at the step that did it** rather than letting
+      `inverse_transform` turn it into a plausible-looking price.
+- [x] B.3 — `alpha/phaseb_stability_probe.py`, two arms. **Every model is now
+      3/3 bit-identical with zero drift and zero sign flips**; the unseeded
+      control is 0/3 with 2.09–7.51 pp drift and Vanilla RNN flipping sign on
+      2 of 3. Two intermediate results are recorded because they are
+      informative rather than flattering: seed + inference-dropout alone left
+      LSTM at 2/3, and adding thread pinning made it **0/3**, so the pinning
+      was removed rather than kept as plausible-sounding insurance.
+      `clear_session()` is what took every model to 3/3 — exactly as
+      `tournament._seeded_tensorflow` predicted after measuring it while
+      building a workaround that could not touch `forecast.py`.
+- [x] B.4 — `reports/PHASEB_REPRODUCIBILITY.md`, including what the probe does
+      **not** say: three trials cannot re-estimate a 7.2% rate, and
+      `DIVERGENCE_LIMIT` is derived from the scaling rather than calibrated
+      against an observed divergence, so it will first prove itself the day it
+      fires.
+- [x] B.5 — Six new tests, the rollout guard driven by a stub session so it
+      stays in the default suite rather than behind `--runslow`.
+      `tournament.py` now passes `seed=SEED` explicitly, keeping HT-1's
+      instrument pinned to its own constant rather than to the application
+      default; `_seeded_tensorflow` is left exactly as it is.
 
 ---
 

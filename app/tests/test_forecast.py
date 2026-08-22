@@ -98,3 +98,100 @@ def test_the_estimate_scales_with_every_input():
     assert forecast.estimate_train_seconds(7, 30, 1_000) == pytest.approx(base * 2)
     assert forecast.estimate_train_seconds(3, 60, 1_000) == pytest.approx(base * 2)
     assert forecast.estimate_train_seconds(3, 30, 2_000) == pytest.approx(base * 2)
+
+
+# ------------------------------------------------- Phase B: the rollout guard
+#
+# HT-1 §6 measured `neural.lstm` flipping the sign of its projection on 7.2% of
+# identical re-runs, with a maximum drift of 1,899 percentage points -- the
+# autoregressive rollout occasionally diverging outright and being shown to the
+# user as an ordinary number. These pin the guard that catches it. No
+# TensorFlow: `_predict`'s loop is driven with a stub session, so the check runs
+# in milliseconds and stays in the default suite rather than behind --runslow.
+
+
+class _StubSession:
+    """A session whose predictions do whatever the test needs them to do."""
+
+    def __init__(self, values):
+        self.values = list(values)
+        self.calls = 0
+
+    def run(self, _fetches, feed_dict=None):
+        value = self.values[min(self.calls, len(self.values) - 1)]
+        self.calls += 1
+        # (logits, state) -- one row per timestep, one column, as the graph
+        # returns for a single-feature series.
+        return np.array([[value]], dtype=float), np.zeros((1, 4))
+
+
+def _rollout(values, *, rows=6, timestamp=2, test_size=3):
+    from sklearn.preprocessing import MinMaxScaler
+
+    prices = np.linspace(100.0, 110.0, rows).reshape(-1, 1)
+    minmax = MinMaxScaler().fit(prices)
+    train = pd.DataFrame(minmax.transform(prices))
+    # Keys only, not tensors: the stub session ignores the feed dict, so these
+    # just have to exist for `_predict` to build one.
+    graph = {
+        "logits": "logits", "last_state": "last_state", "state_width": 4,
+        "X": "X", "hidden_layer": "hidden_layer",
+    }
+    return forecast._predict(
+        _StubSession(values), graph, train, minmax, timestamp, test_size)
+
+
+def test_a_diverging_rollout_is_caught_rather_than_returned():
+    """A value far outside the scaled training range is not a forecast."""
+    with pytest.raises(forecast.DivergedRollout) as raised:
+        _rollout([0.5, 0.5, 0.5, forecast.DIVERGENCE_LIMIT * 100])
+    assert "not usable" in str(raised.value)
+
+
+def test_a_non_finite_rollout_is_caught():
+    with pytest.raises(forecast.DivergedRollout) as raised:
+        _rollout([0.5, 0.5, 0.5, np.inf])
+    assert "non-finite" in str(raised.value)
+
+
+def test_an_ordinary_rollout_passes_the_guard():
+    """The guard must not fire on a projection that stays in range."""
+    path = _rollout([0.5, 0.4, 0.6, 0.55])
+    assert len(path) == 3
+    assert np.all(np.isfinite(path))
+
+
+def test_the_guard_names_the_step_that_diverged():
+    """Which step blew up is the useful half of the message."""
+    with pytest.raises(forecast.DivergedRollout) as raised:
+        _rollout([0.5] * 6 + [1e6], test_size=4)
+    assert "step" in str(raised.value)
+
+
+# --------------------------------------------- Phase B: dropout and the seed
+
+
+def test_the_default_is_reproducible_not_unseeded():
+    """A caller who says nothing gets a seed, and `None` is the explicit opt-out."""
+    assert forecast.DEFAULT_SEED is not None
+    import inspect
+
+    for entry in (forecast.run, forecast.walk_forward, forecast.project):
+        assert inspect.signature(entry).parameters["seed"].default == \
+            forecast.DEFAULT_SEED, entry.__name__
+
+
+def test_dropout_is_not_baked_into_the_graph():
+    """The wrapper must read a placeholder, so inference can turn it off.
+
+    Previously `output_keep_prob` was the constant `dropout`, which stayed
+    active through `_predict` and randomly dropped a fifth of the outputs of
+    every inference call. `_build_graph` no longer takes that argument at all,
+    which is what makes the old mistake unexpressible.
+    """
+    import inspect
+
+    assert "forget_bias" not in inspect.signature(forecast._build_graph).parameters
+    source = inspect.getsource(forecast._build_graph)
+    assert "placeholder_with_default" in source
+    assert 'output_keep_prob=graph["keep_prob"]' in source
