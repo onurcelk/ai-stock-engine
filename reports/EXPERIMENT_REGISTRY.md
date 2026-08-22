@@ -1573,3 +1573,42 @@ not license it. See `alpha/HT1_TOURNAMENT_PREREGISTRATION.md` Amendment 2.
 **Report:** `reports/HT1_TOURNAMENT_RESULT.md`. Tables:
 `reports/ht1_leaderboard.csv`, `ht1_selection_leaderboard.csv`, `ht1_pairs.csv`,
 `ht1_correlation.csv`, `ht1_summary.json`.
+
+---
+
+## 22. HT-2 — swing VWAP mean reversion, 2026-08-22
+
+**Pre-registration:** `alpha/HT2_TOURNAMENT_PREREGISTRATION.md`, window/threshold frozen in
+Amendment 1 before any forward return was read. **Commissioned by account-holder directive
+2026-08-22** to add new price-only candidates alongside a reopening of SUE (PEAD-1, see
+below) and VIX mean reversion (see `reports/OPTIONS1_ADMISSIBILITY.md`) after `CLAUDE.md`
+§1.3's reopening conflict was flagged and explicitly overridden by the account holder.
+
+**Not a reopening.** `vwap_reversion` was never tested by HT-1 or any prior study. It reuses
+HT-1's grid, admission rule and statistics pipeline (`tournament.leaderboard`) without
+modifying `core/tournament.py`'s roster or `app/tournament.sqlite3`.
+
+**HT-2 VERDICT: vwap_reversion REJECTED at all three horizons.** Advantage −0.0391 (1d),
+−0.0240 (1w), −0.1194 (5w); the `5w` interval [−0.2504, −0.0056] lies entirely below zero,
+uncorrected p=0.054, `p Holm=1.0` across the combined 84-test family (HT-1's 81 plus these
+3). 212 calls (10.6% coverage — a rare-event trigger by construction), 64 independent
+cutoffs, both clearing the resolution floor. 0 budget slots spent.
+
+**What did not fail:** power (both floors cleared with margin), the grid/instrument (HT-1's
+own, reused unmodified), redundancy is not applicable (single new candidate).
+
+**What is barred as a consequence:** no sign flip on the negative `5w` interval (the same
+rule HT-1 §0.1 and AMS-1 §11.3 already state); no re-parameterisation of window or threshold
+after this result: both were frozen on variance-only/precedent grounds before this run and
+may not be revisited.
+
+**Standing, alongside this entry:**
+
+| Study | Status |
+|---|---|
+| `alpha/PEAD1_CHARTER.md` (SUE reopened, event-time/absolute-return formulation) | Charter committed. Power gate not yet built (§6) |
+| `reports/OPTIONS1_ADMISSIBILITY.md` (VIX mean reversion reopened + options extension) | Admissibility pilot: FAIL for the options execution layer (no free point-in-time options data exists); VIX-mean-reversion-as-vol-timing-signal (VIX1) remains admissible, not yet built, per account-holder decision 2026-08-22 to proceed free-data-only |
+| `alpha/HT2_TOURNAMENT_PREREGISTRATION.md` `orb_1h` (hourly opening-range-breakout proxy) | Pre-registered. Own power gate required (≤730 days of free `1h` history, HT-1's resolution does not transfer). Not yet built |
+
+**Report:** `reports/HT2_TOURNAMENT_RESULT.md`. Tables: `reports/ht2_vwap_raw.csv`,
+`reports/ht2_vwap_leaderboard.csv`.

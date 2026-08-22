@@ -158,3 +158,35 @@ is its own committed artefact, before any breakout signal is read. Results, if r
 **Neither candidate is authorised to run by this document.** `vwap_reversion` may proceed
 directly to measurement (its gate is already satisfied by HT-1's own). `orb_1h` may proceed
 only after its own power gate is built and passes.
+
+---
+
+## Amendment 1, 2026-08-22 — `vwap_reversion`'s window and threshold, fixed before measurement
+
+Appended before any forward return for this candidate was read; §3.2's wording above is left
+unaltered.
+
+**Window: fixed at 10 sessions**, chosen from the {10, 20} candidate set named in §3.2, on
+variance-only grounds computed from the 30-symbol collection universe's cached daily history
+(`app/cache/*__1d.csv`, no forward return, no cutoff-relative quantity):
+
+| Window | Symbols with usable history | Mean coefficient of variation of the 63-day rolling std of the VWAP deviation | Median |
+|---:|---:|---:|---:|
+| 10 sessions | 28 | **0.3754** | 0.3759 |
+| 20 sessions | 28 | 0.4162 | 0.4280 |
+
+A threshold expressed as "a number of standard deviations above/below VWAP" is only
+well-specified if that standard deviation is itself reasonably stable through time; the
+10-session window's deviation is measurably more homoskedastic (lower CV) than the
+20-session window's, on every one of the 28 symbols with sufficient history. **This is the
+sole criterion. No forward return, accuracy figure, or IC of any kind entered this
+decision.**
+
+**Threshold: fixed at 2.0 standard deviations**, taken directly from this repository's own
+standing convention for a reversion band — `indicators.bollinger`'s `deviations: float =
+2.0` default, already the parameter `technical.bollinger` was measured under in HT-1. Reusing
+an existing, already-precedented constant rather than choosing a new one removes the
+possibility that this threshold was picked to flatter `vwap_reversion` specifically.
+
+Both parameters are now frozen for `vwap_reversion` and may not be revisited after any
+result exists.

@@ -110,21 +110,26 @@ reopening.
       opening-range design on power grounds alone. Substitutes an hourly-bar proxy
       (`orb_1h`, needs its own power gate, ≤730 days of data) and a daily swing-VWAP variant
       (`vwap_reversion`, reuses HT-1's own grid and already-passed power gate outright).
-- [ ] E.4 — **Human decision required before any further work in this phase**: for
-      `OPTIONS1_ADMISSIBILITY.md` §4, choose (a) amend §27B to permit a paid options data
-      source, or (b) proceed on the free-data-only VIX1 signal study and drop the execution
-      build-out. Nothing below is buildable until this is chosen.
+- [x] E.4 — **Decided 2026-08-22 by the account holder**: free-data-only. Drop the options
+      execution build-out (chains/greeks/margin/tail-risk); keep only the free-data VIX1
+      signal study (elevated VIX predicts a realised-vol contraction) as a future candidate.
+- [x] E.7 (partial) — **`vwap_reversion` measured and reported**, gate already satisfied by
+      HT-1's own. **REJECTED at all three horizons** — advantage −0.0391 (1d) / −0.0240 (1w)
+      / −0.1194 (5w), the `5w` interval entirely below zero but `p Holm = 1.0` across the
+      combined 84-test family (HT-1's 81 + these 3). See `reports/HT2_TOURNAMENT_RESULT.md`.
+      New module `app/core/ht2_vwap.py` (8 tests), reuses HT-1's `tournament.leaderboard`
+      pipeline unmodified — does not touch `CANDIDATES` or `app/tournament.sqlite3`.
+- [x] E.8 (partial) — VWAP result recorded in `reports/EXPERIMENT_REGISTRY.md` §22.
 - [ ] E.5 — Build PEAD-1's power gate (`alpha/PEAD1_CHARTER.md` §6): independent-block
       census of the point-in-time earnings-event calendar, half-width estimated without
       reading any forward return, compared against the 39 bp / block-length-floor hurdles.
       **Expected to fail** per the charter's own stated prior — recording that outcome is
-      itself the deliverable, not a setback.
+      itself the deliverable, not a setback. Not started.
 - [ ] E.6 — Build `orb_1h`'s power gate (`HT2_TOURNAMENT_PREREGISTRATION.md` §4). Also
-      **expected to fail** on the same free-data-depth grounds.
-- [ ] E.7 — Run `vwap_reversion` (gate already satisfied by HT-1's own) and, contingent on
-      E.4/E.5/E.6's outcomes, PEAD-1's and `orb_1h`'s confirmatory measurements.
-- [ ] E.8 — Record results in `reports/EXPERIMENT_REGISTRY.md`, win or lose, per this
-      programme's own append-only convention.
+      **expected to fail** on the same free-data-depth grounds. Not started.
+- [ ] E.9 — If the account holder wants it: build VIX1 (§E.4's free-data-only path) —
+      needs its own power gate and confirmatory pre-registration, same discipline as
+      everything else in this phase. Not started, not yet requested.
 
 ---
 
