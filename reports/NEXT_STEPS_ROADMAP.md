@@ -241,12 +241,30 @@ each against the original, retire Streamlit only once everything is ported.
       Read-only: grepped `api/` for any `holdings.execute/save/buy/sell` call
       and found none. Zero console/page errors, `tsc`/`eslint` clean, fast
       Python suite unchanged at 1282 passed.
-- [ ] **Phase 2 — Portfolio writes.** Fix `core/holdings.py::execute()`'s
-      concurrency bug first (naive read-modify-write on `holdings.json`/
-      `transactions.json`, no locking — two concurrent requests can clobber a
-      trade; add a process-wide `threading.Lock`). Then
-      `POST /api/portfolio/trade`, `POST /api/portfolio/ledger/clear`, the
-      trade form UI.
+- [x] **Phase 2 — Portfolio writes.** Built and verified.
+      `core/holdings.py::execute()` now holds a module-level
+      `threading.Lock` around its whole read-modify-write — confirmed the bug
+      was real by temporarily removing the fix and widening the race window:
+      20 concurrent buys collapsed to a book of quantity 1 (19 trades silently
+      lost). With the lock, all 20 land. Regression test
+      (`test_concurrent_buys_do_not_clobber_each_other`) added to
+      `app/tests/test_holdings.py`, plus an end-to-end version through the
+      actual HTTP layer in `api/tests/test_portfolio_trade.py` (new: `api/tests/`,
+      a `TestClient` + `holdings.STORE`/`LEDGER`-redirecting fixture, 7 tests,
+      none touching the network or the real files).
+      `POST /api/portfolio/trade` and `POST /api/portfolio/ledger/clear` added
+      to `api/routers/portfolio.py`, calling `holdings.execute`/`save_ledger([])`
+      unmodified. Frontend: `trade-form.tsx` wired into the Portfolio page.
+      **Live end-to-end verification, on the real book**: snapshotted
+      `holdings.json`/`transactions.json` (md5 before), bought then sold 0.01
+      AAPL at the identical price through the actual UI, confirmed the round
+      trip appeared correctly (positions 18→19→18, realised stayed $0.00,
+      market value/cost basis returned to their exact original figures), then
+      confirmed `holdings.json` was byte-identical to the pre-test snapshot
+      and manually trimmed the two now-superfluous test transactions back out
+      of `transactions.json`, restoring it to the identical md5 too — the
+      book carries no trace of the test. Fast Python suite unchanged: 1283
+      passed, 87 skipped.
 - [ ] **Phase 3 — Research tab.** Read-only; `core.research_view.load()`'s
       many DataFrames (production panel, leaderboard, promotion requirements,
       calibration) as `GET /api/research/*` endpoints and Next.js

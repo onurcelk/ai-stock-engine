@@ -14,6 +14,7 @@ headless run write a position into the real holdings file.
 from __future__ import annotations
 
 import json
+import threading
 
 import pandas as pd
 import pytest
@@ -256,4 +257,30 @@ def test_every_path_resolves_the_store_at_call_time(tmp_path, monkeypatch):
 def test_position_lookup_is_case_and_space_insensitive():
     book = [holdings.Holding("AAPL", 1, 100.0)]
     assert holdings.position(book, " aapl ") is not None
+
+
+# ---------------------------------------------------------- concurrency
+
+
+def test_concurrent_buys_do_not_clobber_each_other(store):
+    """The race `execute()` used to be exposed to: N threads each buying 1
+    unit must leave the book at N, not at 1 (the last writer winning) or
+    anywhere else a lost update could land. Guards against a regression of
+    the `_EXECUTE_LOCK` fix -- without it, this test is flaky-to-failing
+    under load, which is exactly the bug it exists to catch.
+    """
+    threads = [
+        threading.Thread(target=holdings.execute,
+                          args=(holdings.BUY, "AAPL", 1, 100.0))
+        for _ in range(20)
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    book = holdings.load()
+    assert len(book) == 1
+    assert book[0].quantity == pytest.approx(20)
+    assert len(holdings.load_ledger()) == 20
     assert holdings.position(book, "MSFT") is None

@@ -21,11 +21,21 @@ import dataclasses
 import datetime as dt
 import json
 import pathlib
+import threading
 
 import pandas as pd
 
 STORE = pathlib.Path(__file__).resolve().parents[1] / "holdings.json"
 LEDGER = pathlib.Path(__file__).resolve().parents[1] / "transactions.json"
+
+#: `execute()`'s read-modify-write touches both files with no atomicity of
+#: its own. Streamlit serialises this for free -- one script thread at a
+#: time -- but the FastAPI layer serves requests concurrently, so two
+#: overlapping trades could both `load()` the same on-disk state and the
+#: second `save()` would silently discard the first. One process-wide lock
+#: around the whole read-modify-write sequence is enough for a single-user
+#: local app; it costs nothing when trades aren't actually concurrent.
+_EXECUTE_LOCK = threading.Lock()
 
 
 def _store(path: pathlib.Path | None) -> pathlib.Path:
@@ -339,10 +349,11 @@ def execute(side: str, symbol: str, quantity: float, price: float,
     if side not in (BUY, SELL):
         raise ValueError(f"Unknown side {side!r}.")
     store, ledger = _store(store), _ledger(ledger)
-    book, transaction = (buy if side == BUY else sell)(
-        load(store), symbol, quantity, price, fee)
-    save(book, store)
-    record(transaction, ledger)
+    with _EXECUTE_LOCK:
+        book, transaction = (buy if side == BUY else sell)(
+            load(store), symbol, quantity, price, fee)
+        save(book, store)
+        record(transaction, ledger)
     return transaction
 
 
