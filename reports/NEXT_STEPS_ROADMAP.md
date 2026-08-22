@@ -120,13 +120,23 @@ reopening.
       New module `app/core/ht2_vwap.py` (8 tests), reuses HT-1's `tournament.leaderboard`
       pipeline unmodified — does not touch `CANDIDATES` or `app/tournament.sqlite3`.
 - [x] E.8 (partial) — VWAP result recorded in `reports/EXPERIMENT_REGISTRY.md` §22.
-- [ ] E.5 — Build PEAD-1's power gate (`alpha/PEAD1_CHARTER.md` §6): independent-block
-      census of the point-in-time earnings-event calendar, half-width estimated without
-      reading any forward return, compared against the 39 bp / block-length-floor hurdles.
-      **Expected to fail** per the charter's own stated prior — recording that outcome is
-      itself the deliverable, not a setback. Not started.
-- [ ] E.6 — Build `orb_1h`'s power gate (`HT2_TOURNAMENT_PREREGISTRATION.md` §4). Also
-      **expected to fail** on the same free-data-depth grounds. Not started.
+- [x] E.5 — Built PEAD-1's power gate (`alpha/pead1_power_gate.py`). **PASSED for the
+      5-session and 20-session windows** (12.5 bp and 27.8 bp vs a 39 bp MDE) — **contrary
+      to the charter's own stated prior**. 60-session window fails (67.1 bp). 5-session
+      window selected on variance-only grounds (largest margin). See
+      `reports/PEAD1_POWER_GATE.md`.
+- [x] E.6 — Built `orb_1h`'s power gate (`alpha/orb1h_power_gate.py`). **PASSED** — 7.3 bp
+      half-width against the 39 bp MDE, a 5.3x margin, **also contrary to the
+      pre-registration's stated prior** (the free `1h` cache has accumulated since
+      2023-09-26 through ordinary app use, well past the 730-day fresh-fetch ceiling). See
+      `reports/ORB1H_POWER_GATE.md`.
+- [ ] E.10 — Write PEAD-1's confirmatory pre-registration (5-session window, CONTINUE rule,
+      controls, noise control) — required before any forward return for the confirmatory
+      study is read. Not started.
+- [ ] E.11 — Write `orb_1h`'s confirmatory pre-registration (CONTINUE rule; whether to read
+      only the same-session outcome the gate used or add a next-session horizon) — required
+      before the first inspected measurement. Not started.
+- [ ] E.12 — Run both confirmatory measurements once their pre-registrations are committed.
 - [ ] E.9 — If the account holder wants it: build VIX1 (§E.4's free-data-only path) —
       needs its own power gate and confirmatory pre-registration, same discipline as
       everything else in this phase. Not started, not yet requested.

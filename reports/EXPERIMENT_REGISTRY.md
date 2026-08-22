@@ -1612,3 +1612,44 @@ may not be revisited.
 
 **Report:** `reports/HT2_TOURNAMENT_RESULT.md`. Tables: `reports/ht2_vwap_raw.csv`,
 `reports/ht2_vwap_leaderboard.csv`.
+
+---
+
+## 23. PEAD-1 and orb_1h power gates, 2026-08-22 — both PASS, contrary to their own stated priors
+
+**Both gates run before any predictive quantity was read**, per `CLAUDE.md` §3.1/§3.2's
+discipline: half-widths computed from a per-unit advantage series centred on its own sample
+mean immediately after computation, the mean itself discarded and never inspected.
+
+**PEAD-1** (`alpha/pead1_power_gate.py`, full result `reports/PEAD1_POWER_GATE.md`): 5-session
+window half-width **12.5 bp**, 20-session **27.8 bp**, both clear the 39 bp MDE (Single-Name
+Phase 1's covered-book resolution); 60-session **67.1 bp** does not. **5-session window
+selected** on variance-only grounds (largest margin, 3.1×) per charter §6.2 item 4.
+
+**orb_1h** (`alpha/orb1h_power_gate.py`, full result `reports/ORB1H_POWER_GATE.md`): half-width
+**7.3 bp** against the same 39 bp MDE, a 5.3× margin, on 915 independent trading dates from
+the `1h` cache that has accumulated since 2023-09-26 through ordinary app use (not a fresh
+730-day fetch).
+
+**Both charters explicitly predicted these gates were more likely to fail than pass** —
+PEAD-1 on earnings-clustering grounds, `orb_1h` on free intraday-history-depth grounds.
+**Both predictions were wrong, and were checked rather than assumed.** The registry records
+this because it is worth more than the pass itself: two pre-registered priors were falsified
+by the gates they were written to be falsifiable by, which is what a gate is for.
+
+**What this does and does not mean.** Passing a power gate says only that this history can
+*see* an effect of the pre-registered size — it says nothing about whether one exists. Both
+candidates now proceed to their own confirmatory pre-registrations (fixing the CONTINUE rule,
+controls, and noise-control procedure) before any first inspected measurement, per each
+document's own sequencing rule (`PEAD1_CHARTER.md` §9.4, `HT2_TOURNAMENT_PREREGISTRATION.md`
+§4). Neither has been measured. 0 budget slots spent by either gate.
+
+**Standing, alongside this entry:**
+
+| Study | Status |
+|---|---|
+| PEAD-1 (5-session window) | Gate PASSED. Confirmatory pre-registration not yet written |
+| `orb_1h` | Gate PASSED. Confirmatory pre-registration not yet written |
+| `vwap_reversion` | REJECTED (§22) |
+| VIX1 (free-data vol-timing signal) | Not yet built (`reports/OPTIONS1_ADMISSIBILITY.md` §5) |
+| Options execution layer (chains/greeks/margin) | Inadmissible, no free point-in-time data (`reports/OPTIONS1_ADMISSIBILITY.md`) |
