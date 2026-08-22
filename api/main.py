@@ -22,7 +22,7 @@ if str(_APP_DIR) not in sys.path:
 from fastapi import FastAPI                        # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
-from .routers import signal                         # noqa: E402
+from .routers import chart, portfolio, signal        # noqa: E402
 
 app = FastAPI(title="Stock Prediction Models API")
 
@@ -34,6 +34,8 @@ app.add_middleware(
 )
 
 app.include_router(signal.router)
+app.include_router(chart.router)
+app.include_router(portfolio.router)
 
 
 @app.get("/api/health")

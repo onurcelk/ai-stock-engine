@@ -223,9 +223,24 @@ each against the original, retire Streamlit only once everything is ported.
       NVDA: SELL/-23/21%, matching the Portfolio tab's own reading exactly).
       Zero console/page errors, `tsc --noEmit` and `eslint` clean, fast Python
       suite unchanged at 1282 passed.
-- [ ] **Phase 1 — Chart + Portfolio (read side).** `GET /api/ohlcv/{symbol}`,
-      `GET /api/portfolio`; a candlestick chart component (bklit-ui per the
-      manifesto's grounding table) and a portfolio table.
+- [x] **Phase 1 — Chart + Portfolio (read side).** Built and verified. New
+      `api/routers/chart.py` (`GET /api/ohlcv/{symbol}`, wraps `core.live.fetch`
+      unmodified) and `api/routers/portfolio.py` (`GET /api/portfolio`, wraps
+      `holdings.load/load_ledger/value/realised_total/fees_total`,
+      `portfolio.fetch_many` for pricing, and `ultimate.scan` + `book_signal`
+      for per-position calls — the same non-freezing engine call
+      `streamlit_app.py`'s own `scan_book` uses, confirmed by reading its
+      source, so this can never disagree with the tab for the same ticker).
+      New `design-system/shell`: `candlestick-chart.tsx` (hand-built SVG, no
+      new chart-library dependency), `app/chart/page.tsx`,
+      `app/portfolio/page.tsx`. Verified byte-for-byte against a fresh
+      Streamlit screenshot of the same 18-position book: market value
+      $2,870.08, cost basis $2,363.45, +21.44% unrealised, book signal −1/14%
+      confidence, reading buy 2/sell 2, and every row's P&L/weight/call —
+      all matched exactly, including NVDA SELL/-23.2/21% and SPY STRONG BUY.
+      Read-only: grepped `api/` for any `holdings.execute/save/buy/sell` call
+      and found none. Zero console/page errors, `tsc`/`eslint` clean, fast
+      Python suite unchanged at 1282 passed.
 - [ ] **Phase 2 — Portfolio writes.** Fix `core/holdings.py::execute()`'s
       concurrency bug first (naive read-modify-write on `holdings.json`/
       `transactions.json`, no locking — two concurrent requests can clobber a
