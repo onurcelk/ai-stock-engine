@@ -30,6 +30,14 @@ app/replay_study.sqlite3-shm
 app/replay_study.sqlite3-journal
 # One JSON file per historical replay sweep.
 app/study_logs/
+# HT-1's tournament instrument: a fourth database, under a CHECK constraint
+# admitting only HT-1 rows, immutable by trigger. Fully regenerable via
+# `python -m core.tournament` (see reports/HT1_TOURNAMENT_RESULT.md §8), so
+# like the replay ledgers it is never backed up and never tracked.
+app/tournament.sqlite3
+app/tournament.sqlite3-wal
+app/tournament.sqlite3-shm
+app/tournament.sqlite3-journal
 # Copies of the ledger are the same evidence, so the same rule: never a
 # git-tracked binary. Backups live on a separate physical drive
 # (D:\prediction market backup), outside the repository entirely — see
@@ -40,6 +48,8 @@ app/forecast_ledger.sqlite3.superseded_*
 app/ledger_backup_state.json
 # One JSON file per headless collection run.
 app/collection_logs/
+# One JSON file per headless scoring run.
+app/score_logs/
 .pytest_cache/
 
 # .streamlit/config.toml IS committed — it carries the app's theme.
