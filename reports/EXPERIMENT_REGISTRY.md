@@ -1673,3 +1673,42 @@ construction finds nothing on this universe. See `reports/ORB1H_RESULT.md`.
 
 **What is barred as a consequence:** no second outcome window, no threshold change, no
 sign flip on the negative first half, no promotion of a noise-control draw.
+
+---
+
+## 25. PEAD-1 confirmatory result, 2026-08-22 — REJECTED (real effect, too small, market-confounded)
+
+**Pre-registration:** `alpha/PEAD1_PREREGISTRATION.md`, committed after the power gate
+passed (§23) and before this measurement ran. **First read of any PEAD-1 point estimate.**
+
+**PEAD-1 VERDICT: REJECT — but not a flat null.** Advantage **+14.7 bp, 95% CI [+2.1,
++27.0]**, excluding zero on the favourable side (criterion 2 PASSES) with breadth 0.550 and
+both chronological halves positive (criterion 3 PASSES). **Two criteria still fail:**
+magnitude (+14.7 bp against the pre-registered 39 bp economic bar, criterion 1) and the
+market-relative control (`(firm − SPY) × sign(SUE)` = +6.8 bp, **CI low −4.3 bp**, criterion
+4). Noise control passes cleanly (permutation median +7.1 bp, 0% exceedance) — the
+statistical significance is not a multiplicity artefact.
+
+**Reading:** a real, detectable, but economically sub-threshold and substantially
+market-confounded effect. Reconciles with V3 Family 1's own signature — cross-sectional IC
+excluded zero (+0.01305) but the tradeable spread did not (CI spanning zero) — reproduced
+here in event time rather than contradicted. **This closes SUE permanently at every
+formulation tested (V3's and V4's cross-sectional design, and this event-time design). No
+SUE‴; no further reopening by an executing session.**
+
+**Slot status: PEAD-1's one confirmatory slot SPENT.** See `reports/PEAD1_RESULT.md`.
+
+**Standing, alongside this entry — every 2026-08-22 account-holder-directed candidate now
+resolved:**
+
+| Candidate | Verdict |
+|---|---|
+| `vwap_reversion` | REJECTED (§22) |
+| `orb_1h` | REJECTED (§24) |
+| PEAD-1 (SUE, event-time) | REJECTED — real but sub-threshold, market-confounded (§25) |
+| VIX1 (free-data vol-timing signal) | Not built |
+| Options execution layer | Inadmissible, no free point-in-time data |
+
+Three of five original indicators measured today; all three REJECTED, none as a flat null
+across the board — `orb_1h` was the closest to a pure absence, PEAD-1 the closest to a real
+but sub-threshold and confounded effect.

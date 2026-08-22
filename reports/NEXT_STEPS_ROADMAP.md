@@ -139,7 +139,17 @@ reopening.
 - [x] E.12 (orb_1h) — **Run. REJECTED.** Advantage +0.9 bp vs a 39 bp hurdle, interval
       [−6.5, +8.1] straddles zero, first sample half negative. See
       `reports/ORB1H_RESULT.md`, registry §24.
-- [ ] E.12 (PEAD-1) — Confirmatory measurement running.
+- [x] E.12 (PEAD-1) — **Run. REJECTED — but not a flat null.** Advantage +14.7 bp, 95% CI
+      [+2.1, +27.0] (excludes zero — a real, statistically detectable effect), but too
+      small against the 39 bp economic bar and substantially explained by market exposure
+      once the SPY-relative control is applied (CI low −4.3 bp). Caught and fixed a
+      tz-handling bug before trusting this result. See `reports/PEAD1_RESULT.md`,
+      registry §25. **SUE is now closed permanently at every formulation tested.**
+
+**Phase E is complete.** All five 2026-08-22 account-holder-directed indicators are
+resolved: `vwap_reversion`, `orb_1h`, and PEAD-1 all REJECTED (measured); the options
+execution layer is inadmissible (no free point-in-time data, `OPTIONS1_ADMISSIBILITY.md`);
+VIX1 (the free-data vol-timing signal) remains open but was not requested to be built.
 - [ ] E.9 — If the account holder wants it: build VIX1 (§E.4's free-data-only path) —
       needs its own power gate and confirmatory pre-registration, same discipline as
       everything else in this phase. Not started, not yet requested.

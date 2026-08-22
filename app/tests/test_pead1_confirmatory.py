@@ -10,7 +10,10 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from alpha import pead1_confirmatory as confirmatory
+import numpy as np
+import pandas as pd
+
+from alpha import filings_features, pead1_confirmatory as confirmatory
 
 
 def _result(**overrides):
@@ -53,6 +56,36 @@ def test_market_relative_control_failing_rejects_even_with_a_clean_raw_result():
 def test_noise_control_failure_rejects():
     assert _result(noise_median_bp=15.0).verdict == "REJECT"
     assert _result(noise_exceedance=0.5).verdict == "REJECT"
+
+
+def test_event_rows_handles_tz_aware_price_history(monkeypatch):
+    """Regression test: `_load_price` returns tz-aware (UTC) dates, and an
+    earlier draft crashed comparing a tz-aware scalar against SPY's
+    (tz-stripped) numpy datetime64 array. Must run to completion and produce
+    rows without raising."""
+    events = {
+        "AAA": filings_features.FirmEvents(
+            valid_from=np.array(["2020-01-05"], dtype="datetime64[ns]"),
+            sue=np.array([2.0]),
+            period_end=np.array(["2019-12-31"], dtype="datetime64[ns]"),
+            accepted=np.array(["2020-01-05"], dtype="datetime64[ns]"),
+        )
+    }
+    prices = pd.DataFrame({
+        "date": pd.bdate_range("2020-01-01", periods=200, tz="UTC"),
+        "close": np.linspace(100, 120, 200),
+    })
+    spy = pd.DataFrame({
+        "date": pd.bdate_range("2020-01-01", periods=200, tz="UTC"),
+        "close": np.linspace(300, 320, 200),
+    })
+    monkeypatch.setattr(confirmatory.gate_module, "_load_events", lambda: events)
+    monkeypatch.setattr(confirmatory.gate_module, "_load_price", lambda symbol: prices)
+    monkeypatch.setattr(confirmatory, "_spy_frame", lambda: spy)
+
+    rows = confirmatory._event_rows(window=5)
+    assert not rows.empty
+    assert {"symbol", "week", "sign", "advantage", "market_advantage"} <= set(rows.columns)
 
 
 def test_recovering_firm_return_from_signed_advantage_is_exact():

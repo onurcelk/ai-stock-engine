@@ -36,7 +36,13 @@ def _event_rows(window: int = WINDOW) -> pd.DataFrame:
     """One row per event: symbol, week, firm return, SPY return, sue sign."""
     events = gate_module._load_events()
     spy = _spy_frame()
-    spy_dates = spy["date"].to_numpy()
+    # `.values`, not `.to_numpy()`: for a tz-aware series the latter returns
+    # an object array of tz-aware Timestamps (to avoid silently dropping the
+    # zone), which np.searchsorted cannot compare against a tz-naive
+    # np.datetime64. `.values` gives the plain datetime64[ns] array the rest
+    # of this module's date arithmetic already assumes (see gate_module's
+    # own `dates.values` usage, which relies on the identical behaviour).
+    spy_dates = spy["date"].values
     spy_close = spy["close"].to_numpy()
 
     rows: list[dict] = []
@@ -66,7 +72,8 @@ def _event_rows(window: int = WINDOW) -> pd.DataFrame:
             firm_return = matured / anchor - 1.0
 
             anchor_date = dates.iloc[position]
-            spy_pos = int(np.searchsorted(spy_dates, np.datetime64(anchor_date)))
+            spy_pos = int(np.searchsorted(
+                spy_dates, np.datetime64(anchor_date.tz_localize(None))))
             if spy_pos + window >= len(spy_close):
                 continue
             spy_anchor, spy_matured = spy_close[spy_pos], spy_close[spy_pos + window]
