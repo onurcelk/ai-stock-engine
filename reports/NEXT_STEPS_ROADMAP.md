@@ -446,11 +446,41 @@ each against the original, retire Streamlit only once everything is ported.
       `reports/PHASEB_REPRODUCIBILITY.md`; `forecast.py` untouched, because
       changing it again is an owner call and would need a probe with enough
       trials to measure the surviving rate.
-      **Not built, and deliberately out of this phase:** the Next.js Forecast
-      and Trading-agents *pages*. The API and its typed client
-      (`lib/api.ts`: `startWalkForward`/`startProjection`/`startAgent`/
-      `followJob`) are done; the two pages are the remaining half of the
-      roadmap's original Phase 6 entry.
+- [x] **Phase 6c — the Forecast and Trading-agents pages.** The other half of
+      6b, built 2026-08-23. `/forecast` runs a walk-forward and then a
+      projection; `/agents` trains any of the 19 policies and scores it through
+      the same backtester. Both drive the job API and nothing else: a shared
+      `lib/use-job.ts` starts a job, follows it to a terminal state and exposes
+      the four states the server actually reports, and `job-progress.tsx`
+      renders them. `queued` is shown as itself rather than as "loading" —
+      the desk runs one job at a time on purpose, so waiting behind another
+      training is the normal case and a spinner would make the queue look like
+      a hang. A stale `410` offers to start again instead of retrying an id
+      that can never resolve; a `duplicate` is a note, not an error.
+      Two small additions rather than hardcoding: `GET /api/models` serves
+      `forecast.MODELS` the way `GET /api/agents` already served
+      `agents.REGISTRY`, so a page cannot offer an architecture the engine
+      does not have; and `ApiError` now carries `status`, which is what lets a
+      stale job be told from a missing one. Both routes moved out of
+      `routes.ts`'s `PLANNED` into the live nav, which is now empty.
+      **The honesty carried over, not just the controls.** The 0-of-N verdict,
+      the "a single split landing on a good window would have looked
+      convincing" warning, the note that a projection has nothing to score it
+      against and the folds are its track record, and the sizing caveat that
+      fixed-units understates an agent against a fully-invested benchmark are
+      all on the pages. The projection additionally carries the 6b
+      reproducibility finding, since a single path is one draw.
+      Verified live against a running API: duplicate POSTs collapsed to one
+      job, a real Q-learning training completed with visible progress and
+      reached History, `410`/`404` came back for a stale/unknown id, a bad
+      symbol and an impossible fold count were refused at start as `400`
+      rather than as failed jobs, and `GET /api/signal` left the ledger
+      byte-identical while the POST reported `excluded` under
+      `FORECAST_LEDGER_WRITES=off`. The test run was deleted; History is 114.
+      Suite **1392 passed, 91 skipped**; `tsc`/`eslint` clean, `next build`
+      green on all 12 routes.
+      **Still not built:** nothing from Phase 6. `forecast.py` remains
+      untouched — the reproducibility defect is Phase B's and an owner call.
 - [ ] **Phase 7 — Cutover.** Once every tab is ported and spot-checked against
       Streamlit, retire `streamlit_app.py` or keep it as an internal fallback.
       The headless habits survive either way: `python -m core.collector` and

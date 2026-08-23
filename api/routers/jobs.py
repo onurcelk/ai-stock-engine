@@ -129,6 +129,21 @@ def _epoch_progress(job: Job, slots: int, label: str):
     return report
 
 
+# ------------------------------------------------------------------- rosters
+
+
+@router.get("/api/models")
+def get_models() -> dict:
+    """The network architectures a walk-forward or projection can run.
+
+    Served from `forecast.MODELS` itself, the same way `GET /api/agents` is
+    served from `agents.REGISTRY`: a model added there appears here without
+    this file being touched, and a page reading it cannot offer one the engine
+    does not have.
+    """
+    return {"models": list(forecast.MODELS), "default_seed": forecast.DEFAULT_SEED}
+
+
 # ----------------------------------------------------------------- walk-forward
 
 

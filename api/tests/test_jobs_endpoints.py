@@ -295,6 +295,23 @@ def test_the_agent_catalogue_is_the_registry_itself(client):
         "core.backtest", fromlist=["SIZING_MODES"]).SIZING_MODES)
 
 
+def test_the_model_roster_is_the_engine_s_own_list(client):
+    """Same principle as the agent catalogue: served from `forecast.MODELS`.
+
+    A page that hardcoded the three names could offer one the engine does not
+    have, and would not gain one added to the engine.
+    """
+    from core import forecast
+
+    body = client.get("/api/models").json()
+
+    assert body["models"] == list(forecast.MODELS)
+    assert body["default_seed"] == forecast.DEFAULT_SEED
+    # Every name the roster offers must be a name a job will accept.
+    for name in body["models"]:
+        assert name in forecast.MODELS
+
+
 # ------------------------------------------------------- wiring, not behaviour
 
 
