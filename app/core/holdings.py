@@ -215,7 +215,15 @@ class Valuation:
                 "Weight %": (round(position.market_value / total * 100, 2)
                              if position.priced and total else None),
             })
-        frame = pd.DataFrame(rows)
+        # Named explicitly so an empty book still has the shape of a holdings
+        # table. `pd.DataFrame([])` has no columns at all, and the sort below
+        # then raises KeyError("Value") -- which made every read of an empty
+        # book a crash rather than an empty answer. Found 2026-08-23 while
+        # adding the book's value curve to the API; a new user with no
+        # positions could not load the Portfolio endpoint at all.
+        columns = ["Symbol", "Units", "Unit cost", "Cost basis", "Last",
+                   "Value", "P&L", "P&L %", "Weight %"]
+        frame = pd.DataFrame(rows, columns=columns)
         return frame.sort_values("Value", ascending=False,
                                  na_position="last").reset_index(drop=True)
 

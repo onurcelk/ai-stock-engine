@@ -28,7 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from .jobs import REGISTRY as JOB_REGISTRY          # noqa: E402
 from .routers import (                              # noqa: E402
     basket, chart, jobs, montecarlo, portfolio, research, runs, signal,
-    sources, strategies, studies,
+    sources, strategies, studies, watchlist,
 )
 
 
@@ -69,6 +69,7 @@ app.include_router(studies.router)
 app.include_router(strategies.router)
 app.include_router(basket.router)
 app.include_router(sources.router)
+app.include_router(watchlist.router)
 app.include_router(research.router)
 app.include_router(jobs.router)
 

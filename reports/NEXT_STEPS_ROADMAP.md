@@ -607,7 +607,7 @@ they need.
       scoring identically to the same file read as a dataset, and the ledger,
       book and runs directory byte-identical throughout.
 
-## Streamlit retirement audit (2026-08-23, final)
+## Streamlit retirement audit (2026-08-23, superseded by the clean one below)
 
 **Retired by decision — expected, not blocking.**
 
@@ -645,6 +645,84 @@ short for the Signal page specifically. The strategies, studies and jobs have
 no such floor and run on any of them.
 
 **Phase 7 remains blocked** on items 3–6 being built or consciously retired.
+
+- [x] **Phase 6f — the last two builds, and two retirements.** Owner triage of
+      the four untriaged items: build the watchlist and the book's curve,
+      retire direct holdings editing and the training-time estimate.
+      `GET /api/watchlist` serves `quotes.watchlist_symbols` + `quotes.board`
+      and adds nothing to them. The property that matters is negative and a
+      test enforces it by making `live.fetch` raise: the board **never
+      downloads**. `core.quotes` exists because reading two numbers off a dozen
+      symbols through `live.fetch` would parse a decade of bars each and hit
+      the network to do it. The consequence is deliberately visible rather than
+      hidden — an uncached symbol shows a dash, which means "not downloaded
+      yet", not "no such symbol", and selecting it is how it gets downloaded
+      through a page that can report a failure.
+      The book's curve is added to `GET /api/portfolio` rather than given its
+      own route, because `holdings.history` takes the frames that endpoint has
+      already fetched — a test asserts one fetch per holding, not two. Three
+      caveats travel with it because none is visible in the line: it is defined
+      only where every holding traded (`limited_by` names the one that
+      shortened it), it applies today's share counts throughout so it is a
+      what-if rather than a record, and an empty one stays null rather than
+      becoming a stub.
+      **A real bug found on the way.** `Valuation.table()` built
+      `pd.DataFrame([])`, which has no columns, then sorted it by "Value" — so
+      an empty book raised `KeyError` and `GET /api/portfolio` was a 500 for
+      anyone who had not recorded a trade yet. That is the first request a new
+      user makes. Fixed by naming the columns; two regression tests. Pre-dates
+      this phase and was never Streamlit-visible, because the tab only reaches
+      `table()` once the book is non-empty.
+      Also closed while here: the trade ticket's price prefill
+      (`quotes.last_close`), now read through the watchlist endpoint so it
+      stays cache-only, and never overwritten once the field has been touched.
+      16 tests added. Suite **1480 passed, 91 skipped**. `tsc`/`eslint` clean,
+      `next build` green on all 13 routes. Verified live: the board returned
+      eight real cached symbols with asset class and currency, and the curve on
+      the real 18-position book came back limited to 49 bars by SPCX with its
+      final value matching the summary's market value exactly.
+
+## Streamlit retirement audit (2026-08-23, FINAL — clean)
+
+Method: diff every `core.*` call `streamlit_app.py` makes against every call
+the API layer makes. Capabilities, not tabs — comparing tabs is what made the
+first audit miss four things.
+
+**Retired by decision. Four, all deliberate:**
+
+1. `forecast.run` — single-split forecasting. Walk-forward and project are the
+   supported paths.
+2. `ultimate.ModelEvidence` / the `include_agents` toggle — the model-assisted
+   verdict. The API keeps both engine defaults (`include_agents=True`,
+   `model=None`).
+3. `holdings.editable` / `from_frame` — editing positions directly. Direct
+   edits bypass the transaction ledger that makes the book auditable;
+   `POST /api/portfolio/trade` is the only way in.
+4. `forecast.estimate_train_seconds` — the pre-run time estimate. The job API
+   makes the wait explicit instead.
+
+**Nothing else is unique to Streamlit.** What the diff still lists is not
+capability:
+
+- `backtest.ALL_IN` / `PCT_EQUITY`, `holdings.BUY` / `SELL`, `ultimate.MIN_T` —
+  constants the API reaches through `SIZING_MODES` and a validated `side`
+  pattern. Verified live: `sizing=all_in` changes the result.
+- `charts.*`, `theme.*`, `ultimate.scan_table`, `promotion.BLOCK` —
+  presentation. `scan_table` shapes a frame the API already returns per symbol;
+  `promotion.BLOCK` only highlights rows whose `Decision` column the research
+  payload already carries.
+- `live.RequestError`, `live.default_period`, `holdings.position`,
+  `quotes.py` — exception classes, internal helpers, and one docstring
+  reference.
+
+**One data limitation, not a code one.** 16 of the 17 bundled datasets are 252
+bars or fewer; the Signal horizons need 260 (1 day) and 300 (1 week, 4 hours).
+Only `BTC-sentiment` (339) yields an available horizon offline — the rest
+correctly decline rather than interpolate. Strategies, studies and jobs have no
+such floor.
+
+**Phase 7 is unblocked.** The audit is clean apart from the four capabilities
+retired by decision above.
 
 - [ ] **Phase 7 — Cutover.** Once every tab is ported and spot-checked against
       Streamlit, retire `streamlit_app.py` or keep it as an internal fallback.

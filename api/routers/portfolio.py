@@ -59,6 +59,31 @@ def get_portfolio(period: str = DEFAULT_PERIOD, interval: str = DEFAULT_INTERVAL
     weights = {p.symbol: p.market_value for p in book.priced}
     signal = ultimate.book_signal(scanned, weights) if scanned else None
 
+    # The book's market value over time, from the frames already fetched above
+    # -- `holdings.history` takes them rather than re-reading, so the curve
+    # costs no extra download.
+    #
+    # Three properties travel with it because none of them is inferable from
+    # the line, and all three change what it means:
+    #   * it is defined only where every holding traded, so one recent listing
+    #     can shrink it to almost nothing (`shortest_history` names which);
+    #   * it assumes today's share counts throughout, so it is a what-if on the
+    #     current book, not a record of what was actually held;
+    #   * an empty curve is reported as empty rather than as a stub.
+    curve = holdings.history(saved, frames)
+    limiting = holdings.shortest_history(frames)
+    value_curve = None
+    if not curve.empty:
+        totals = curve.sum(axis=1)
+        value_curve = {
+            "dates": [str(d) for d in curve.index],
+            "value": [float(v) for v in totals],
+            "cost_basis": book.cost_basis,
+            "bars": len(curve),
+            "limited_by": limiting[0] if limiting else None,
+            "assumes_today_s_quantities": True,
+        }
+
     positions = book.table().to_dict(orient="records")
     calls = {symbol: {"action": verdict.action, "score": verdict.score,
                        "confidence": verdict.confidence}
@@ -90,6 +115,7 @@ def get_portfolio(period: str = DEFAULT_PERIOD, interval: str = DEFAULT_INTERVAL
         } if signal else None),
         "verdicts": {symbol: verdict_to_dict(verdict) for symbol, verdict in scanned.items()},
         "ledger": to_jsonable(holdings.ledger_table(ledger).to_dict(orient="records")),
+        "curve": value_curve,
     }
 
 
