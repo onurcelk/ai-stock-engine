@@ -15,6 +15,19 @@ guarded by `_EXECUTE_LOCK` (added alongside this endpoint) against the
 concurrent-request race a single-threaded Streamlit script was never exposed
 to. POST /api/portfolio/ledger/clear calls `holdings.save_ledger([])`, the
 same call the roadmap named for this phase.
+
+**Direct position editing, re-authorised by owner decision 2026-08-23.** It
+was retired at the Phase 7 cutover -- `holdings.editable`/`from_frame`
+rewrote the book with nothing anywhere recording that anything had changed,
+so the book and the ledger could disagree and neither said which was wrong.
+The reversal keeps the constraint that actually mattered and drops the
+prohibition: `POST /api/portfolio/position` and `DELETE
+/api/portfolio/position/{symbol}` go through the same `holdings.execute` as a
+trade, take the same lock, and leave a ledger row apiece -- side `adjust` or
+`discard` rather than `buy`/`sell`, because no money moved and pretending
+otherwise would put invented fills in the record. `editable` and `from_frame`
+themselves stay unreached: they are the version with no ledger row, and that
+version is still the wrong one.
 """
 
 from __future__ import annotations
@@ -30,6 +43,15 @@ router = APIRouter()
 
 DEFAULT_PERIOD = "6mo"
 DEFAULT_INTERVAL = "1d"
+
+
+class PositionRequest(BaseModel):
+    """A position stated outright, rather than a fill that produces one."""
+
+    symbol: str
+    quantity: float = Field(gt=0)
+    unit_cost: float = Field(gt=0)
+    note: str = Field(default="", max_length=200)
 
 
 class TradeRequest(BaseModel):
@@ -133,3 +155,39 @@ def post_trade(trade: TradeRequest) -> dict:
 def post_clear_ledger() -> dict:
     holdings.save_ledger([])
     return {"cleared": True}
+
+
+@router.post("/api/portfolio/position")
+def post_position(position: PositionRequest) -> dict:
+    """Add a holding, or set an existing one to these numbers.
+
+    Deliberately not a buy: a buy re-averages the basis over what was already
+    held, which is right when units are being acquired and wrong when the
+    point is to correct what the book says. A mistyped quantity re-averaged is
+    a second error on top of the first.
+    """
+    try:
+        transaction = holdings.execute(
+            holdings.ADJUST, position.symbol, position.quantity,
+            position.unit_cost, note=position.note)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    return to_jsonable(transaction)
+
+
+@router.delete("/api/portfolio/position/{symbol}")
+def delete_position(symbol: str, note: str = "") -> dict:
+    """Drop a holding from the book without selling it.
+
+    Distinct from selling every unit, which books a realised figure and claims
+    the position was closed at a price. This says the row should not be there,
+    and realises nothing -- so it can neither flatter nor damage the realised
+    total. The units and basis that were dropped go into the ledger row, which
+    is what makes it reversible by hand.
+    """
+    try:
+        transaction = holdings.execute(
+            holdings.DISCARD, symbol, note=note)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    return to_jsonable(transaction)

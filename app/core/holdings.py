@@ -96,6 +96,23 @@ def _ledger(path: pathlib.Path | None) -> pathlib.Path:
 
 BUY, SELL = "buy", "sell"
 
+#: The two sides that move the book without money changing hands: setting a
+#: position outright, and dropping one. Re-authorised by owner decision on
+#: 2026-08-23, having been retired at the Phase 7 cutover.
+#:
+#: They are recorded in the ledger exactly like a fill, and that is the whole
+#: point of the reversal. What the cutover actually retired was a *silent*
+#: edit -- `editable`/`from_frame` rewrote holdings.json with nothing anywhere
+#: to say why a position had changed, so the book and the ledger could
+#: disagree with no way to tell which was wrong. A row saying "the owner set
+#: this to 12 units at 41.30" is a worse answer than a fill and a far better
+#: one than silence, and it keeps the ledger a complete explanation of the
+#: book, which is the property that mattered.
+ADJUST, DISCARD = "adjust", "discard"
+
+#: Sides where cash actually moved. The rest are bookkeeping.
+MARKET_SIDES = (BUY, SELL)
+
 # Enough to survive a fat-fingered decimal point without rejecting a real
 # fractional-share purchase.
 MIN_QUANTITY = 1e-9
@@ -252,7 +269,14 @@ class Transaction:
 
     @property
     def cash(self) -> float:
-        """Signed cash effect: negative when buying, positive when selling."""
+        """Signed cash effect: negative when buying, positive when selling.
+
+        Zero for an adjustment or a discard. Those change what the book says
+        is held; no money moved, and reporting the notional as proceeds would
+        put an invented figure into a running cash total.
+        """
+        if self.side not in MARKET_SIDES:
+            return 0.0
         return (-self.notional - self.fee if self.side == BUY
                 else self.notional - self.fee)
 
@@ -332,6 +356,69 @@ def sell(holdings: list[Holding], symbol: str, quantity: float, price: float,
                              fee=float(fee), realised=float(realised))
 
 
+def adjust(holdings: list[Holding], symbol: str, quantity: float,
+           unit_cost: float, note: str = "") -> tuple[list[Holding], Transaction]:
+    """Set a position outright: this many units, at this cost. Returns a new book.
+
+    Not a buy. A buy re-averages the basis across what was already held, which
+    is right when units are actually being acquired and wrong when the point
+    is to correct what the book says -- a mistyped quantity re-averaged is a
+    second error on top of the first. So this replaces both numbers, and the
+    ledger row records the values it was set to rather than a fill.
+
+    Adding a symbol the book does not hold is the same operation with nothing
+    to replace, which is what makes this "add" as well as "correct".
+    """
+    symbol = str(symbol).strip().upper()
+    if not symbol:
+        raise ValueError("Enter a symbol.")
+    if not quantity or quantity < MIN_QUANTITY:
+        raise ValueError("Quantity has to be greater than zero.")
+    if unit_cost <= 0:
+        raise ValueError("Unit cost has to be greater than zero.")
+
+    book = [dataclasses.replace(h) for h in holdings]
+    replaced = Holding(symbol, float(quantity), float(unit_cost))
+    for index, held in enumerate(book):
+        if held.symbol == symbol:
+            book[index] = replaced
+            break
+    else:
+        book.append(replaced)
+
+    return book, Transaction(at=dt.datetime.now(), side=ADJUST, symbol=symbol,
+                             quantity=float(quantity), price=float(unit_cost),
+                             note=note)
+
+
+def discard(holdings: list[Holding], symbol: str,
+            note: str = "") -> tuple[list[Holding], Transaction]:
+    """Drop a position from the book without selling it. Returns a new book.
+
+    Distinct from selling every unit, and deliberately so: a sell books a
+    realised figure and says the position was closed at a price, which is a
+    claim about what happened. This says the row should not be there --
+    entered by mistake, transferred out, or never held. It realises nothing,
+    so it cannot flatter or damage the realised total.
+
+    Discarding something not held is refused rather than ignored: it means the
+    caller and the book disagree about what is held, and silently succeeding
+    would hide that.
+    """
+    symbol = str(symbol).strip().upper()
+    book = [dataclasses.replace(h) for h in holdings]
+    position = next((h for h in book if h.symbol == symbol), None)
+    if position is None:
+        raise ValueError(f"You do not hold any {symbol}.")
+
+    book = [h for h in book if h.symbol != symbol]
+    # The units and the basis that were dropped, so the ledger row is enough
+    # on its own to put the position back.
+    return book, Transaction(at=dt.datetime.now(), side=DISCARD, symbol=symbol,
+                             quantity=float(position.quantity),
+                             price=float(position.unit_cost), note=note)
+
+
 def load_ledger(path: pathlib.Path | None = None) -> list[Transaction]:
     """Every recorded trade, oldest first. A corrupt file reads as empty."""
     path = _ledger(path)
@@ -384,22 +471,41 @@ def record(transaction: Transaction, path: pathlib.Path | None = None) -> None:
     save_ledger(load_ledger(path) + [transaction], path)
 
 
-def execute(side: str, symbol: str, quantity: float, price: float,
-            fee: float = 0.0, *, store: pathlib.Path | None = None,
+def execute(side: str, symbol: str, quantity: float = 0.0, price: float = 0.0,
+            fee: float = 0.0, *, note: str = "",
+            store: pathlib.Path | None = None,
             ledger: pathlib.Path | None = None) -> Transaction:
-    """Run a trade against the saved book and persist both files.
+    """Apply one change to the saved book and persist both files.
 
-    The one place in the app that writes a position. Everything upstream is a
-    pure function, so a failed validation raises before anything touches the
-    disk and the book on disk is never left half-updated.
+    Still the one place in the app that writes a position, which is why the
+    two non-market sides were added here rather than given a writer of their
+    own: the lock, the both-files-or-neither ordering, and the guarantee that
+    every write leaves a ledger row exist once, and a parallel path would have
+    to reproduce all three and would eventually fail to.
+
+    Everything upstream is a pure function, so a failed validation raises
+    before anything touches the disk and the book on disk is never left
+    half-updated.
+
+    `quantity` and `price` default because `discard` takes neither -- it reads
+    what is held and records that. `note` reaches only the two bookkeeping
+    sides, where "why" is the whole difference between a correction and a
+    corruption.
     """
     _assert_writes_allowed(f"{side} {quantity} {symbol}")
-    if side not in (BUY, SELL):
-        raise ValueError(f"Unknown side {side!r}.")
     store, ledger = _store(store), _ledger(ledger)
     with _EXECUTE_LOCK:
-        book, transaction = (buy if side == BUY else sell)(
-            load(store), symbol, quantity, price, fee)
+        book = load(store)
+        if side == BUY:
+            book, transaction = buy(book, symbol, quantity, price, fee)
+        elif side == SELL:
+            book, transaction = sell(book, symbol, quantity, price, fee)
+        elif side == ADJUST:
+            book, transaction = adjust(book, symbol, quantity, price, note)
+        elif side == DISCARD:
+            book, transaction = discard(book, symbol, note)
+        else:
+            raise ValueError(f"Unknown side {side!r}.")
         save(book, store)
         record(transaction, ledger)
     return transaction

@@ -14,10 +14,20 @@ fallback a dependency of the product, which is the opposite of a cutover.
 separate repository; a route deleted here fails there, at runtime, on a page
 nobody happened to open that day.
 
-**The four retired capabilities stay retired.** They were retired by an owner
+**The retired capabilities stay retired.** They were retired by an owner
 decision recorded in `reports/NEXT_STEPS_ROADMAP.md`, not by oversight. Any of
 them reappearing should be a deliberate act with a decision behind it, not a
 convenience someone adds while passing.
+
+*Amended 2026-08-23, by owner decision.* Direct position editing is
+re-authorised, and `POST /api/portfolio/position` / `DELETE
+/api/portfolio/position/{symbol}` now serve it. `editable` and `from_frame`
+stay on the list below regardless, and the distinction is the point: what the
+cutover retired was editing that left **no ledger row**, so the book could
+disagree with the ledger and neither said which was wrong. The new endpoints
+go through `holdings.execute` and record an `adjust` or `discard` transaction
+apiece, which keeps that property. Those two functions are the versions that
+do not, so reaching them is still the mistake.
 
 **The server owns the ledger backup, and the launcher owns the freeze.** The
 two halves of the lifecycle that Phase 7 moved. Getting either backwards is
@@ -228,10 +238,13 @@ RETIRED_ATTRIBUTES = {
     ("forecast", "estimate_train_seconds"): "the pre-run time estimate; the "
                                             "job API makes the wait explicit",
     ("ultimate", "ModelEvidence"): "the model-assisted verdict",
-    ("holdings", "editable"): "editing positions directly, bypassing the "
-                              "transaction ledger",
-    ("holdings", "from_frame"): "editing positions directly, bypassing the "
-                                "transaction ledger",
+    # Still barred after the 2026-08-23 re-authorisation: these are the
+    # ledger-less versions. `holdings.adjust`/`discard` are the supported
+    # path, and they leave a transaction behind.
+    ("holdings", "editable"): "editing positions with no ledger row; "
+                              "holdings.adjust is the recorded path",
+    ("holdings", "from_frame"): "editing positions with no ledger row; "
+                                "holdings.adjust is the recorded path",
 }
 
 #: The other half of the model-assisted verdict: a toggle rather than a type.
