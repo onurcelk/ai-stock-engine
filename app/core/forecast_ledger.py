@@ -78,6 +78,21 @@ RETROSPECTIVE_REPLAY = "RETROSPECTIVE_REPLAY"
 PROSPECTIVE_CLASSES = frozenset({PRODUCTION_INCUMBENT, CHALLENGER})
 RECORD_CLASSES = PROSPECTIVE_CLASSES | {RETROSPECTIVE_REPLAY}
 
+#: Who asked for a freeze, recorded in `metadata["provenance"]["source"]`.
+#:
+#: The record already says *what* was frozen and *when*; until 2026-08-23 it
+#: could not say *which surface asked*.  That mattered the moment a second UI
+#: appeared: a row written because a human opened a page and a row written
+#: because a browser prefetched one are indistinguishable after the fact, and
+#: the prospective ledger's whole value is that a person chose each cutoff.
+#:
+#: Optional, and absent by default, so a caller that supplies nothing writes
+#: exactly the record it wrote before — including the same identity digest.
+SOURCE_STREAMLIT = "streamlit"
+SOURCE_API = "api"
+SOURCE_COLLECTOR = "collector"
+KNOWN_SOURCES = frozenset({SOURCE_STREAMLIT, SOURCE_API, SOURCE_COLLECTOR})
+
 #: Replays live in their own database file, never a column in the prospective
 #: one.  The separation is physical: the prospective ledger's own CHECK
 #: constraint rejects `RETROSPECTIVE_REPLAY` and the replay ledger's rejects
@@ -464,17 +479,29 @@ def _incumbent_records(
     baseline_prediction: Mapping[str, Any] | None = None,
     record_class: str = PRODUCTION_INCUMBENT,
     replay: Mapping[str, Any] | None = None,
+    provenance: Mapping[str, Any] | None = None,
 ) -> list[ForecastRecord]:
     """Serialize each available incumbent horizon from its exact input frame.
 
     `record_class` decides which store the results may enter, and the two
     stores' CHECK constraints enforce it.  A replay additionally carries its
     reconstruction provenance in `metadata["replay"]`.
+
+    `provenance` records *which surface asked* — see `KNOWN_SOURCES`.  It is
+    optional and absent by default, so an existing caller that passes nothing
+    writes byte-identical records, digest included.
     """
     if record_class not in RECORD_CLASSES:
         raise ValueError(f"unknown record class {record_class!r}")
     if (record_class == RETROSPECTIVE_REPLAY) != bool(replay):
         raise ValueError("replay provenance is required for, and only for, replays")
+    if provenance is not None:
+        source = str(provenance.get("source", "")).strip()
+        if not source:
+            # A provenance block that does not name a source is worse than no
+            # provenance at all: it looks like an answer and is not one.
+            raise ValueError("provenance must name a non-empty source")
+        provenance = {**dict(provenance), "source": source}
     generated = _utc_iso(generated_at or dt.datetime.now(dt.timezone.utc))
     supplied_versions = dict(model_versions or {})
     reserved = {"ultimate_ensemble", "technical_sources", "rule_agents"}
@@ -559,6 +586,7 @@ def _incumbent_records(
             basis_probes=basis_probes(frame),
             metadata={
                 **({"replay": dict(replay)} if replay else {}),
+                **({"provenance": dict(provenance)} if provenance else {}),
                 "aggregate_action": verdict.action,
                 "aggregate_score": verdict.score,
                 "aggregate_confidence": verdict.confidence,

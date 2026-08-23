@@ -23,20 +23,11 @@ if str(APP) not in sys.path:
 
 
 # ------------------------------------------------------------------ fast/slow
-
-
-def pytest_addoption(parser):
-    parser.addoption("--runslow", action="store_true", default=False,
-                     help="also run tests that train a model or boot the app")
-
-
-def pytest_collection_modifyitems(config, items):
-    if config.getoption("--runslow"):
-        return
-    skip = pytest.mark.skip(reason="needs --runslow")
-    for item in items:
-        if "slow" in item.keywords:
-            item.add_marker(skip)
+#
+# `--runslow` and the marker that honours it moved to the repository-root
+# `conftest.py` on 2026-08-23. A conftest here is only loaded once collection
+# reaches `app/tests`, so the gate silently did not apply to a run that
+# selected another directory -- see that file's docstring.
 
 
 # -------------------------------------------------------------------- fixtures

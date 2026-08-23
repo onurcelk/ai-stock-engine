@@ -122,7 +122,7 @@ def collect(
     blip must not cost the other twenty-nine their date.  Every failure is
     recorded, surfaced in the summary, and reflected in the exit code.
     """
-    from . import ledger_activation
+    from . import forecast_ledger, ledger_activation
 
     started = dt.datetime.now(dt.timezone.utc)
     names = symbols if symbols is not None else read_universe(universe_file)
@@ -132,7 +132,9 @@ def collect(
     for symbol in names:
         try:
             _, report = ledger_activation.evaluate_and_freeze(
-                symbol, path=path, **freeze_kwargs
+                symbol, path=path,
+                provenance={"source": forecast_ledger.SOURCE_COLLECTOR},
+                **freeze_kwargs
             )
         except Exception as error:                              # noqa: BLE001
             # The engine itself failed for this symbol. Recorded, never

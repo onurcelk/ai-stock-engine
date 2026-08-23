@@ -20,9 +20,9 @@ import streamlit as st
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
 from core import (  # noqa: E402
-    agents, axis_drag, backtest, charts, data, forecast, holdings,
-    ledger_activation, live, montecarlo, pine, portfolio, promotion, quotes,
-    research_view, runs, strategies, theme, ultimate,
+    agents, axis_drag, backtest, charts, data, forecast, forecast_ledger,
+    holdings, ledger_activation, live, montecarlo, pine, portfolio, promotion,
+    quotes, research_view, runs, strategies, theme, ultimate,
 )
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -136,6 +136,7 @@ def read_ultimate(symbol: str, include_agents: bool,
     evidence = ultimate.ModelEvidence(*model) if model else None
     return ledger_activation.evaluate_and_freeze(
         symbol, include_agents=include_agents, model=evidence,
+        provenance={"source": forecast_ledger.SOURCE_STREAMLIT},
     )
 
 

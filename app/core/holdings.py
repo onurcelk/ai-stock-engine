@@ -17,11 +17,13 @@ data and does not belong in version control.
 
 from __future__ import annotations
 
+import contextlib
 import dataclasses
 import datetime as dt
 import json
 import pathlib
 import threading
+from collections.abc import Iterator
 
 import pandas as pd
 
@@ -36,6 +38,42 @@ LEDGER = pathlib.Path(__file__).resolve().parents[1] / "transactions.json"
 #: around the whole read-modify-write sequence is enough for a single-user
 #: local app; it costs nothing when trades aren't actually concurrent.
 _EXECUTE_LOCK = threading.Lock()
+
+
+class WritesDisabledError(RuntimeError):
+    """A trade or a book write was attempted where writes are switched off."""
+
+
+#: Per-thread arming for `writes_disabled`. Thread-local rather than a module
+#: flag because the API serves ordinary requests on other threads at the same
+#: time: a background job disarming the whole process would also disarm the
+#: trade ticket a person is using while it runs.
+_NO_WRITES = threading.local()
+
+
+@contextlib.contextmanager
+def writes_disabled(reason: str) -> Iterator[None]:
+    """Make every write in this module raise, for the current thread only.
+
+    Held open around work that has no business moving the book — a training
+    run, a backtest, anything queued and executed away from the request that
+    asked for it. `backtest.run` and the reinforcement-learning agents deal in
+    a simulated cash balance and never import this module, so nothing *should*
+    reach here; the guard is what turns "should not" into "cannot", including
+    for whatever gets added to a job body later.
+    """
+    previous = getattr(_NO_WRITES, "reason", None)
+    _NO_WRITES.reason = reason
+    try:
+        yield
+    finally:
+        _NO_WRITES.reason = previous
+
+
+def _assert_writes_allowed(what: str) -> None:
+    reason = getattr(_NO_WRITES, "reason", None)
+    if reason:
+        raise WritesDisabledError(f"refusing to {what}: {reason}")
 
 
 def _store(path: pathlib.Path | None) -> pathlib.Path:
@@ -315,6 +353,7 @@ def load_ledger(path: pathlib.Path | None = None) -> list[Transaction]:
 
 
 def save_ledger(ledger: list[Transaction], path: pathlib.Path | None = None) -> None:
+    _assert_writes_allowed("write the transaction ledger")
     path = _ledger(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
@@ -346,6 +385,7 @@ def execute(side: str, symbol: str, quantity: float, price: float,
     pure function, so a failed validation raises before anything touches the
     disk and the book on disk is never left half-updated.
     """
+    _assert_writes_allowed(f"{side} {quantity} {symbol}")
     if side not in (BUY, SELL):
         raise ValueError(f"Unknown side {side!r}.")
     store, ledger = _store(store), _ledger(ledger)
@@ -416,6 +456,7 @@ def load(path: pathlib.Path | None = None) -> list[Holding]:
 
 
 def save(holdings: list[Holding], path: pathlib.Path | None = None) -> None:
+    _assert_writes_allowed("write the holdings file")
     path = _store(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(

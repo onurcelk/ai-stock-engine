@@ -12,6 +12,14 @@ Phase 4 adds two more isolations, on the same principle. `runs.RUNS_DIR` is
 redirected because the History endpoints delete saved runs, and `live.fetch`
 is replaced with a deterministic synthetic series because several Phase 4
 endpoints read bars and this suite never touches the network.
+
+Phase 6 adds the forecast ledger, which is the one file here that could not be
+put back. `app/forecast_ledger.sqlite3` is append-only and never regenerable,
+and until 2026-08-23 this fixture did not redirect it -- so the first test to
+call the Signal endpoint would have appended to the real prospective record.
+`ledger_activation.writes_blocked` refuses that independently, and a test below
+asserts it does; this redirect is the belt to that brace, so the suite is
+hermetic by construction rather than only by refusal.
 """
 
 from __future__ import annotations
@@ -29,7 +37,7 @@ APP_DIR = REPO_ROOT / "app"
 if str(APP_DIR) not in sys.path:
     sys.path.insert(0, str(APP_DIR))
 
-from core import holdings, live, runs  # noqa: E402
+from core import forecast_ledger, holdings, live, runs  # noqa: E402
 
 
 @pytest.fixture
@@ -75,7 +83,10 @@ def stub_bars(monkeypatch):
     the network. Returns the frame the endpoints will see."""
     frame = synthetic_bars()
 
-    def fake_fetch(symbol, period="1y", interval="1d"):
+    def fake_fetch(symbol, period="1y", interval="1d", force=False):
+        # `force` is in the signature because `ultimate.evaluate` passes it,
+        # and a stub that cannot be called the way production calls it is a
+        # stub that quietly excludes the engine from the suite.
         if not str(symbol).strip():
             raise live.FetchError("no symbol")
         return frame.copy(), types.SimpleNamespace(is_fresh=True)
@@ -85,7 +96,41 @@ def stub_bars(monkeypatch):
 
 
 @pytest.fixture
-def client(isolated_holdings, isolated_runs, stub_bars):
+def isolated_ledger(tmp_path, monkeypatch):
+    """Point the forecast ledger at a scratch path, and do not create it.
+
+    Deliberately not created: `ForecastLedger.__init__` creates its file, so a
+    fixture that made one would hide the "reading a page must not start a
+    record" guarantee the Research endpoint's own test rests on.
+    """
+    path = tmp_path / "forecast_ledger.sqlite3"
+    monkeypatch.setattr(forecast_ledger, "DEFAULT_PATH", path)
+    return path
+
+
+@pytest.fixture
+def jobs_registry(monkeypatch):
+    """A private job registry per test, shut down afterwards.
+
+    The app serves from a module-level `api.jobs.REGISTRY` holding a worker
+    thread; sharing one across tests would leak a queue between them and leave
+    threads alive at the end of the run.
+    """
+    from api import jobs as jobs_module
+    from api.routers import jobs as jobs_router
+
+    registry = jobs_module.JobRegistry()
+    monkeypatch.setattr(jobs_module, "REGISTRY", registry)
+    monkeypatch.setattr(jobs_router, "JOBS", registry)
+    try:
+        yield registry
+    finally:
+        registry.shutdown(wait=True)
+
+
+@pytest.fixture
+def client(isolated_holdings, isolated_runs, isolated_ledger, stub_bars,
+           jobs_registry):
     from fastapi.testclient import TestClient
     from api.main import app
 

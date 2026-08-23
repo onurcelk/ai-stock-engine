@@ -8,7 +8,7 @@ chosen on an empty ledger.  That ordering is now discharged: Phase 7's gate,
 Phase 9's arithmetic and AB-1's corporate-action policy were all committed
 while `app/forecast_ledger.sqlite3` did not exist.
 
-Three properties this module exists to guarantee:
+Four properties this module exists to guarantee:
 
 **It never backfills.**  The only way in is `evaluate_and_freeze`, which runs
 the live engine *now* against bars that end now and writes the record before
@@ -27,11 +27,21 @@ state — its source hash *is* the model.
 **It never fails silently.**  A ledger write that goes wrong is reported to
 the caller and surfaced in the UI.  It does not take the forecast down with it
 — a user asking for a reading should still get one — but it is never swallowed.
+
+**It never freezes on behalf of a machine.**  Added 2026-08-23, after a second
+UI made the gap concrete: `writes_blocked` refuses a *production* write from a
+test run or from a process that has switched writes off, and returns the
+reading regardless.  A prospective ledger is worth having because a person
+chose each cutoff; a row appended because a browser prefetched a page is not
+that, and after the fact it is indistinguishable from one that is.  The
+`provenance` metadata the freeze paths now pass is the other half of the same
+correction — the record can finally say which surface asked.
 """
 
 from __future__ import annotations
 
 import dataclasses
+import os
 import pathlib
 from typing import Any
 
@@ -49,6 +59,75 @@ ACTIVE = True
 #: Only the deterministic incumbent accumulates for now.  See the module
 #: docstring for why challengers are excluded rather than merely deferred.
 INCUMBENT_ONLY = True
+
+#: Environment switch for a process that must not add to the production
+#: record: set it to `0`, `off`, `false` or `no`.  Intended for an end-to-end
+#: run, a browser-automation run, or a demo server -- anything that opens
+#: pages the way a person would without a person having chosen to forecast.
+WRITES_ENV_VAR = "FORECAST_LEDGER_WRITES"
+
+_OFF = frozenset({"0", "off", "false", "no"})
+
+#: The real production ledger, resolved once at import from the package's own
+#: location.
+#:
+#: Deliberately *not* read back from `forecast_ledger.DEFAULT_PATH` at call
+#: time. That attribute is what a hermetic test redirects, so comparing against
+#: its current value would invert the guard exactly: it would refuse every
+#: suite that isolates itself properly, and stay silent for the one that forgot
+#: and is writing to the real file. This constant is the file the redirect
+#: exists to protect, and it cannot be moved by moving the redirect.
+PRODUCTION_PATH = pathlib.Path(forecast_ledger.DEFAULT_PATH).resolve()
+
+
+def ledger_path(path: str | pathlib.Path | None = None) -> pathlib.Path:
+    return pathlib.Path(path or forecast_ledger.DEFAULT_PATH)
+
+
+def _same_file(left: pathlib.Path, right: pathlib.Path) -> bool:
+    """Path equality that survives Windows case and `..` segments.
+
+    Neither side need exist: `resolve()` on an absent path is defined, and the
+    interesting comparison here is precisely against a ledger that a test has
+    arranged not to have created yet.
+    """
+    return (os.path.normcase(str(left.resolve()))
+            == os.path.normcase(str(right.resolve())))
+
+
+def writes_blocked(destination: str | pathlib.Path | None = None) -> str | None:
+    """Why this process must not freeze into `destination`, or `None`.
+
+    Only `PRODUCTION_PATH` is defended, and it is compared as a resolved file
+    rather than as whatever `forecast_ledger.DEFAULT_PATH` currently points at.
+    A caller writing to a scratch path is doing exactly what a hermetic test is
+    supposed to do, and refusing it would break every suite that isolates
+    itself correctly while letting through the one that forgot.
+
+    Two detectors, both deliberately narrow, because a false positive here
+    silently costs a prospective date -- the scarcest thing this programme
+    accumulates:
+
+    **A test run.**  `PYTEST_CURRENT_TEST` is set by pytest for the duration of
+    every test.  A test that forgets to redirect the ledger is then refused
+    instead of appending to the real record, which is the failure mode that
+    `forecast_ledger.assert_prospective`'s own docstring records having already
+    happened once ("a UI test froze 2023 bars under a 2026 clock").
+
+    **An explicit switch.**  `FORECAST_LEDGER_WRITES=off` for a run that drives
+    the UI without a human behind it.  Nothing is inferred from `CI` or the
+    like: the collector is run by hand on purpose, and guessing at automation
+    would eventually refuse a real collection sweep.
+    """
+    if not _same_file(ledger_path(destination), PRODUCTION_PATH):
+        return None
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return ("a test run may not write to the production forecast ledger "
+                "(redirect it with the `path` argument)")
+    setting = os.environ.get(WRITES_ENV_VAR, "").strip().lower()
+    if setting in _OFF:
+        return f"{WRITES_ENV_VAR}={setting} -- production ledger writes are switched off"
+    return None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -98,10 +177,6 @@ class FreezeReport:
         return "No horizon was available to freeze."
 
 
-def ledger_path(path: str | pathlib.Path | None = None) -> pathlib.Path:
-    return pathlib.Path(path or forecast_ledger.DEFAULT_PATH)
-
-
 def evaluate_and_freeze(
     symbol: str,
     *,
@@ -136,6 +211,18 @@ def evaluate_and_freeze(
     if not enabled:
         verdict = ultimate.evaluate(symbol, **engine)
         return verdict, FreezeReport(active=False, ledger_path=str(destination))
+
+    blocked = writes_blocked(destination)
+    if blocked:
+        # Decided on the destination alone, so a process that must not add to
+        # the production record cannot do so by any route through this
+        # function. The engine still runs -- refusing to *record* a reading is
+        # no reason to withhold it. Reported as `excluded` rather than `error`:
+        # nothing went wrong, a write was deliberately not attempted.
+        verdict = ultimate.evaluate(symbol, **engine)
+        return verdict, FreezeReport(
+            active=True, ledger_path=str(destination), excluded=blocked,
+        )
 
     if model is not None:
         # A model-assisted verdict blends a neural reading into the ensemble,

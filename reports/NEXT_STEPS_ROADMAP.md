@@ -381,21 +381,109 @@ each against the original, retire Streamlit only once everything is ported.
       Suite: **1324 passed, 87 skipped** (41 API tests, 7 of them new). No app
       test changed. `tsc`/`eslint` clean, `next build` green on all 7 routes,
       no horizontal overflow at 390px, zero console errors.
-- [ ] **Phase 6 — Forecast + Trading agents (long-running).** LSTM/RL training
-      already streams progress via callback (`on_progress`) in the existing
-      code; the API equivalent is `POST` starts a background job (FastAPI
-      `BackgroundTasks` + an in-memory status dict, no Celery/Redis needed for
-      one local user) and `GET /jobs/{id}` the frontend polls.
-      **Raise before starting:** Phase B above is the unfixed `neural.lstm`
-      reproducibility defect (7.2% sign-flip rate on identical re-runs). Porting
-      the Forecast tab first ships a known-nondeterministic number in a nicer
-      wrapper, so Phase B should land before or alongside this — an owner call,
-      since it touches `forecast.py`.
+- [x] **Phase 6a — the forecast-ledger write boundary.** Inserted 2026-08-23,
+      ahead of the job work, because `GET /api/signal/{symbol}` called
+      `evaluate_and_freeze`: a *safe* HTTP method was appending to the
+      append-only, never-regenerable prospective record. Every prefetch,
+      StrictMode double-invoke, end-to-end replay and uptime check that landed
+      on moved bars wrote a row nobody chose. Three guards now, each covering
+      what the one before cannot: the read is a `GET` returning `freeze: null`
+      and the freeze is `POST /api/signal/{symbol}/freeze`; a destination guard
+      (`ledger_activation.writes_blocked`) refuses a *production* write from a
+      test run or a process with `FORECAST_LEDGER_WRITES=off`, whatever method
+      asked; and `api/tests/conftest.py` finally redirects
+      `forecast_ledger.DEFAULT_PATH`, which it never had — the first Signal
+      test written before this would have appended to the real ledger.
+      All three surfaces still share **one** write path
+      (`ledger_activation.evaluate_and_freeze`) and now stamp
+      `metadata["provenance"]["source"]` — `streamlit`, `api`, `collector` —
+      optional and absent by default, so no existing caller's records or
+      identity digests move.
+      **Found while doing it, recorded rather than fixed:** 21 of the 229
+      production rows were written in small AAPL-first bursts on the exact
+      dates of the frontend rebuild (2026-08-17 through 08-22), and the record
+      cannot say whether a person or a page load asked for them, because
+      provenance did not exist yet. Nothing was deleted. See §"Ledger
+      provenance gap" below.
+      Verified live against the real ledger: five `GET /api/signal/AAPL` page
+      loads left it byte-identical (md5 `6851209e…`, 229 forecasts / 93
+      outcomes, unchanged), and a `POST .../freeze` on a server started with
+      `FORECAST_LEDGER_WRITES=off` returned the reading with
+      `excluded: "FORECAST_LEDGER_WRITES=off …"` and wrote nothing.
+- [x] **Phase 6b — Forecast + Trading agents as background jobs.** Built.
+      New `api/jobs.py` (a `JobRegistry` on a **single** worker thread, since
+      `clear_session()` is process-global) and `api/routers/jobs.py`:
+      `POST /api/jobs/walkforward|project|agent` start,
+      `GET /api/jobs/{id}` polls, `GET /api/jobs` lists, `GET /api/agents`
+      serves the roster from `agents.REGISTRY` itself (all 19 names across the
+      7 implementation modules, not a hand-copied subset). Each body is a
+      transcription of the Streamlit button — same calls, same arguments, same
+      `runs.save`, and the existing `progress`/`on_progress` callbacks carried
+      into `Job.progress` instead of a `st.progress` widget.
+      States are `queued → running → completed | failed`; every exception
+      including `BaseException` leaves a terminal state, because a page polling
+      a stuck `running` has no way out. An identical request still in flight
+      returns the *same* job flagged `duplicate`, so a double-clicked button
+      cannot start two trainings. Job ids carry a per-process boot id, so a
+      poll after a restart is `410 Gone` with the reason rather than a `404`
+      that reads like a typo.
+      **No job can move the book.** `holdings.writes_disabled()` (new,
+      thread-local so a concurrent trade ticket is unaffected) is armed by the
+      registry around every job body, and `execute`/`save`/`save_ledger` raise
+      inside it. Structural half asserted too: the jobs router names `holdings`
+      nowhere.
+      Verified live: two identical agent POSTs collapsed to one job, a third
+      queued behind it and ran after, real LSTM walk-forward and projection
+      completed with visible progress, results reached `GET /api/runs`, and
+      `holdings.json`/`transactions.json` were untouched. The three saved runs
+      were deleted afterwards; History is back to 114.
+      **Phase B's precondition did not hold, and it is not this layer's
+      fault.** Re-running `alpha/phaseb_stability_probe.py` unmodified today
+      gives 1/3 models bit-identical in the `fixed` arm, not 3/3, with a sign
+      flip in the Vanilla RNN cell — and two identical `forecast.project` calls
+      on the main thread with no job involved still disagree intermittently
+      (up to 3.66%). Dated correction appended to
+      `reports/PHASEB_REPRODUCIBILITY.md`; `forecast.py` untouched, because
+      changing it again is an owner call and would need a probe with enough
+      trials to measure the surviving rate.
+      **Not built, and deliberately out of this phase:** the Next.js Forecast
+      and Trading-agents *pages*. The API and its typed client
+      (`lib/api.ts`: `startWalkForward`/`startProjection`/`startAgent`/
+      `followJob`) are done; the two pages are the remaining half of the
+      roadmap's original Phase 6 entry.
 - [ ] **Phase 7 — Cutover.** Once every tab is ported and spot-checked against
       Streamlit, retire `streamlit_app.py` or keep it as an internal fallback.
       The headless habits survive either way: `python -m core.collector` and
       `python -m core.score_outcomes` are run by hand on trading days and have
       nothing to do with the UI.
+
+---
+
+## Ledger provenance gap (found 2026-08-22/23, not remediable)
+
+`app/forecast_ledger.sqlite3` holds 229 forecasts. Their `generated_at` values
+fall into three collector sweeps (2026-08-15: 86 rows, 08-16: 32, 08-22: 86)
+and eight small bursts of 2–6 rows, every one of them beginning with AAPL:
+
+    08-17 13:52 AAPL      08-20 19:01 AAPL, NVDA     08-21 12:42 AAPL, ORCL
+    08-18 01:21 AAPL      08-20 19:04 META           08-22 23:10 AAPL
+    08-19 14:37 AAPL
+
+21 rows. Those dates and symbols are the frontend rebuild's own verification
+history — Phase 0 checked AAPL and NVDA, Phase 4 checked ORCL — and AAPL is
+simultaneously the Streamlit app's default symbol (`streamlit_app.py:373`) and
+the new Signal page's (`signal/page.tsx`). **The record cannot say which**, and
+that is the finding: until 2026-08-23 no row carried provenance, so a forecast
+frozen because a person asked and one frozen because a page mounted are
+identical after the fact.
+
+Nothing was deleted, and nothing should be: the ledger is append-only and a row
+whose origin is uncertain is still a row, while a ledger someone has pruned on
+a judgement call is no longer evidence of anything. What changed is forward:
+`GET` no longer writes at all, and every new row names its source. Whether the
+21 should be excluded from a future promotion count is an owner decision, and
+it can be made because the dates are enumerated above — it cannot be made by
+inspecting the rows, which is the point.
 
 ---
 

@@ -159,3 +159,69 @@ the default suite instead of behind `--runslow`:
 - the default is reproducible, and `None` is the explicit opt-out
 - `_build_graph` no longer accepts the dropout argument, and the wrapper reads
   the placeholder — the old mistake is unexpressible
+
+---
+
+## Appended 2026-08-23 — the 3/3 result does not reproduce
+
+Nothing above is altered. This section is appended because a re-measurement
+contradicts §3's headline, and §6 above had already named the reason it could:
+*"three trials cannot re-estimate a 7.2% rate."*
+
+**What was re-run.** `python -m alpha.phaseb_stability_probe`, unmodified, on
+the same machine, while wiring the Forecast and Trading-agents work into the
+Phase 6 background-job API. No engine file was touched.
+
+**What it returned.** Two consecutive invocations of the same probe disagreed
+with each other and with §3:
+
+| arm | model | 1st invocation | 2nd invocation | §3 reported |
+|-----|-------|----------------|----------------|-------------|
+| fixed | LSTM | 3/3 identical | 3/3 identical | 3/3 |
+| fixed | GRU | 3/3 identical | **1/3**, max drift 0.0506 pp | 3/3 |
+| fixed | Vanilla RNN | 3/3 identical | **1/3**, 1 sign flip (33.3%), max drift 1.7942 pp | 3/3 |
+
+The probe's own summary line went from `2/3 model(s) bit-identical on every
+compared pair` to `1/3`.
+
+**Confirmed outside the probe.** Two identical `forecast.project` calls, same
+process, same main thread, same `ORCL` 2y series, seeded at `DEFAULT_SEED`, no
+background job involved:
+
+| epochs | pair 1 | pair 2 |
+|--------|--------|--------|
+| 10 | identical | **differ, max drift 0.169%** |
+| 12 | **differ, max drift 3.657%** | identical |
+
+So the residual nondeterminism is not a function of epochs, of the series, of
+real-versus-synthetic data, or of which thread runs the training. It is
+intermittent at the level of the individual call.
+
+**What this does and does not say.**
+
+- The seeding, the inference-dropout fix and `clear_session()` are not
+  reversed by this. The `unseeded` control is still far worse in every cell
+  (0/3 identical, up to 7.78 pp drift, sign flips at 33–67%), so the Phase B
+  changes remain a large improvement on what preceded them.
+- What is withdrawn is the *completeness* of §3's claim. "Every model is now
+  3/3 bit-identical with zero drift and zero sign flips" was true of the three
+  trials that were run and is not a property of the engine. A three-trial
+  probe cannot distinguish 3/3 from a high-but-not-unity rate, which §6 said
+  in advance.
+- A sign flip was observed in the `fixed` arm (Vanilla RNN), which §3 did not
+  see. HT-1 §6's original 7.2% sign-flip finding is therefore **reduced, not
+  closed**, and no number in this report re-estimates the surviving rate.
+
+**Not fixed here, and why.** `forecast.py` is engine code; changing it again is
+an owner decision, and it would need a probe with enough trials to measure the
+surviving rate rather than three that can only fail to see it. Nothing was
+adjusted to make this go away.
+
+**Consequence for Phase 6.** The background-job API (`api/jobs.py`) runs each
+training on a single worker, which is necessary — concurrent trainings would
+clear each other's session — but it is now documented there as *not
+sufficient*. A projection served over HTTP is exactly as reproducible as the
+same `forecast.project` call anywhere else, which is to say: not reliably.
+Anything the Forecast page eventually shows from `neural.*` still carries this,
+and `neural.*` still holds n = 0 frozen forecasts, so no prospective record is
+affected either way.
