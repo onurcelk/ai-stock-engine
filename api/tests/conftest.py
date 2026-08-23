@@ -37,7 +37,7 @@ APP_DIR = REPO_ROOT / "app"
 if str(APP_DIR) not in sys.path:
     sys.path.insert(0, str(APP_DIR))
 
-from core import forecast_ledger, holdings, live, runs  # noqa: E402
+from core import forecast_ledger, holdings, live, runs, watchlist  # noqa: E402
 
 
 @pytest.fixture
@@ -45,6 +45,19 @@ def isolated_holdings(tmp_path, monkeypatch):
     """Redirect both holdings files into a scratch directory for one test."""
     monkeypatch.setattr(holdings, "STORE", tmp_path / "holdings.json")
     monkeypatch.setattr(holdings, "LEDGER", tmp_path / "transactions.json")
+
+
+@pytest.fixture
+def isolated_watchlist(tmp_path, monkeypatch):
+    """Redirect the saved board, since the watchlist endpoints now write.
+
+    Deliberately not created: absence is the `auto` mode the endpoint reports,
+    and a fixture that wrote an empty file would start every test in `custom`
+    -- the one state the derived-default tests are about.
+    """
+    path = tmp_path / "watchlist.json"
+    monkeypatch.setattr(watchlist, "STORE", path)
+    return path
 
 
 @pytest.fixture
@@ -129,8 +142,8 @@ def jobs_registry(monkeypatch):
 
 
 @pytest.fixture
-def client(isolated_holdings, isolated_runs, isolated_ledger, stub_bars,
-           jobs_registry):
+def client(isolated_holdings, isolated_runs, isolated_ledger,
+           isolated_watchlist, stub_bars, jobs_registry):
     from fastapi.testclient import TestClient
     from api.main import app
 

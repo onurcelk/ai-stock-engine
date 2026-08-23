@@ -61,6 +61,11 @@ app/score_logs/
 app/holdings.json
 app/transactions.json
 
+# The saved watchlist — one person's board, regenerable from nothing
+# but their own clicks. Not sensitive like the two above, but no more
+# shareable than a browser's bookmarks.
+app/watchlist.json
+
 # --- V2 alpha research: derived data, deliberately not versioned. ---
 # Excluded at programme closure because each is regenerable from committed code
 # and too large to version (alpha/cache/ ~171 MB of vendor CSVs; panel.pkl 212 MB).
