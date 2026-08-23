@@ -280,3 +280,64 @@ def test_a_blocked_freeze_still_returns_the_reading(client, monkeypatch, tmp_pat
     assert body["freeze"]["frozen_ids"] == []
     assert body["freeze"]["error"] is None, "declining is not failing"
     assert not production.exists(), "the blocked write created the ledger anyway"
+
+
+# ----------------------------------------------------- the offline read path
+
+
+def test_a_signal_can_be_read_from_a_bundled_dataset(client, isolated_ledger,
+                                                     monkeypatch):
+    """The offline path for the app's primary page.
+
+    `live.fetch` is made to fail, which is the situation whose error message
+    has always recommended a bundled dataset -- so this is the recommendation
+    actually working rather than pointing at a Streamlit sidebar.
+    """
+    from core import data
+
+    def unreachable(*args, **kwargs):
+        raise live.FetchError("Yahoo is unreachable")
+
+    monkeypatch.setattr(live, "fetch", unreachable)
+
+    name = data.list_datasets()[0]
+    response = client.get("/api/signal/IGNORED", params={"dataset": name})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["verdict"]["action"]
+    assert body["freeze"] is None
+    assert not isolated_ledger.exists(), "reading a dataset recorded a forecast"
+
+
+def test_an_offline_read_declines_the_horizons_the_file_cannot_express(
+        client, monkeypatch):
+    """A daily CSV answers 1 day and 1 week and declines 4 hours. Declining is
+    the honest answer; interpolating one would invent a reading."""
+    from core import data
+
+    body = client.get("/api/signal/IGNORED",
+                      params={"dataset": data.list_datasets()[0]}).json()
+
+    horizons = body["verdict"]["horizons"]
+    assert horizons, "a daily file must still answer something"
+    assert any(not h["available"] for h in horizons), (
+        "a daily file cannot express every horizon and must say so")
+
+
+def test_an_unknown_dataset_is_a_bad_request(client):
+    response = client.get("/api/signal/IGNORED", params={"dataset": "nope"})
+
+    assert response.status_code == 400
+    assert "Unknown dataset" in response.json()["detail"]
+
+
+def test_freezing_offers_no_dataset_option(client, isolated_ledger, recent_bars):
+    """Recording a 2017 CSV as a *prospective* forecast is exactly what
+    `assert_prospective` exists to refuse, so the option does not exist. A
+    dataset parameter on the POST is ignored, not honoured."""
+    import inspect
+
+    from api.routers import signal as signal_router
+
+    assert "dataset" not in inspect.signature(signal_router.freeze_signal).parameters

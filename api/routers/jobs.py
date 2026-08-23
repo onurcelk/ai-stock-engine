@@ -30,7 +30,9 @@ import numpy as np
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from core import agents, backtest, data, forecast, live, runs
+from core import agents, backtest, data, forecast, runs
+
+from ..bars import DEFAULT_INTERVAL, DEFAULT_PERIOD, resolve as resolve_bars
 
 from ..jobs import BOOT_ID, REGISTRY as JOBS, Job, StaleJob, UnknownJob
 from ..schemas import to_jsonable
@@ -41,19 +43,28 @@ WALKFORWARD = "walkforward"
 PROJECT = "project"
 AGENT = "agent"
 
-DEFAULT_PERIOD = "5y"
-DEFAULT_INTERVAL = "1d"
 
 
 # --------------------------------------------------------------- request bodies
 
 
 class _Series(BaseModel):
-    """Which bars to run on. Shared by all three kinds."""
+    """Which bars to run on. Shared by all three kinds.
+
+    `dataset`, `start` and `end` are the same three the read endpoints take,
+    resolved by the same `bars.resolve`, so a walk-forward can be run on a
+    bundled CSV or on one year of a series and mean what it does everywhere
+    else. `symbol` stays required even for a dataset: it is what the saved
+    History run is filed under, and a run labelled only "GOOG-year" would not
+    say which request produced it.
+    """
 
     symbol: str = Field(min_length=1)
     period: str = DEFAULT_PERIOD
     interval: str = DEFAULT_INTERVAL
+    dataset: str | None = None
+    start: str | None = None
+    end: str | None = None
 
 
 class _Network(_Series):
@@ -98,15 +109,11 @@ class AgentRequest(_Series):
 # -------------------------------------------------------------------- helpers
 
 
-def _bars(symbol: str, period: str, interval: str):
+def _bars(request: _Series):
     """The one data door, and the label the History tab files a run under."""
-    try:
-        frame, _ = live.fetch(symbol.strip().upper(), period=period, interval=interval)
-    except Exception as error:                                    # noqa: BLE001
-        raise HTTPException(status_code=400, detail=str(error)) from error
-    if not len(frame):
-        raise HTTPException(status_code=400, detail=f"No bars for {symbol!r}.")
-    return frame, f"{symbol.strip().upper()} · {interval}"
+    return resolve_bars(request.symbol, period=request.period,
+                        interval=request.interval, dataset=request.dataset,
+                        start=request.start, end=request.end)
 
 
 def _accepted(job: Job, duplicate: bool) -> dict:
@@ -149,7 +156,7 @@ def get_models() -> dict:
 
 @router.post("/api/jobs/walkforward", status_code=202)
 def start_walkforward(request: WalkForwardRequest) -> dict:
-    frame, label = _bars(request.symbol, request.period, request.interval)
+    frame, label = _bars(request)
     close, dates = frame["close"], frame["date"]
 
     available = forecast.max_folds(len(frame), request.horizon, request.min_train)
@@ -221,7 +228,7 @@ def start_walkforward(request: WalkForwardRequest) -> dict:
 
 @router.post("/api/jobs/project", status_code=202)
 def start_project(request: ProjectRequest) -> dict:
-    frame, label = _bars(request.symbol, request.period, request.interval)
+    frame, label = _bars(request)
     close, dates = frame["close"], frame["date"]
 
     if len(frame) <= request.timestamp + request.horizon + 5:
@@ -293,7 +300,7 @@ def start_agent(request: AgentRequest) -> dict:
             detail=f"Unknown sizing {request.sizing!r}. Expected one of: "
                    f"{', '.join(sorted(backtest.SIZING_MODES))}.",
         )
-    frame, label = _bars(request.symbol, request.period, request.interval)
+    frame, label = _bars(request)
     close, dates = frame["close"], frame["date"]
 
     def work(job: Job) -> dict:

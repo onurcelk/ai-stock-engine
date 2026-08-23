@@ -100,6 +100,43 @@ def test_every_study_scores(client, key):
     assert body["settings"]["bars"] > 0
 
 
+def test_the_scored_candles_travel_with_the_signal(client):
+    """The chart's bars come back in the same response as its markers.
+
+    A page that fetched candles separately could get a different window -- a
+    new bar, a cache refresh, a different default period -- and a buy marker
+    drawn at the wrong index is worse than no marker. `buys`/`sells` index
+    these rows, so they can only disagree if this response is inconsistent
+    with itself.
+    """
+    body = client.get("/api/strategies/AAPL", params={"key": "turtle"}).json()
+
+    assert set(body["ohlc"]) == {"open", "high", "low", "close"}
+    for series in body["ohlc"].values():
+        assert len(series) == len(body["dates"])
+    for index in [*body["buys"], *body["sells"]]:
+        assert 0 <= index < len(body["dates"]), "a marker outside the candles"
+
+
+def test_a_close_only_series_still_scores_a_rule(client, monkeypatch):
+    """No OHLC columns is a fact about the data, not a failure. The rules read
+    `close`, so they still run -- the response simply carries fewer series."""
+    import types as _types
+
+    from core import live
+
+    from .conftest import synthetic_bars
+
+    close_only = synthetic_bars()[["date", "close"]]
+    monkeypatch.setattr(live, "fetch", lambda *a, **k: (
+        close_only.copy(), _types.SimpleNamespace(is_fresh=True)))
+
+    body = client.get("/api/strategies/AAPL", params={"key": "rolling"}).json()
+
+    assert set(body["ohlc"]) == {"close"}
+    assert body["metrics"]["return_pct"] is not None
+
+
 def test_an_overlay_study_returns_its_lines_and_an_oscillator_does_not(client):
     """`pine.bands` is None for an oscillator by design -- nothing it draws
     belongs on a price axis. The response says so rather than inventing one."""

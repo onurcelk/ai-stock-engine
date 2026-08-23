@@ -514,7 +514,7 @@ each against the original, retire Streamlit only once everything is ported.
       lines and oscillators returned `null`, and the ledger, book and runs
       directory were byte-identical afterwards.
 
-## Streamlit parity: what is still missing (audited 2026-08-23)
+## Streamlit parity: the first audit (2026-08-23, superseded below)
 
 Every tab is ported and the tab-for-tab list is complete. Seven capabilities
 are not, and Phase 7 should not begin until each is either built or
@@ -559,6 +559,92 @@ Pro lacks, so nothing is lost by the new shell not having a reduced variant.
 The return-distribution histogram and the raw-bars table from the Overview tab
 are likewise frontend-only omissions — `GET /api/ohlcv` already carries what
 they need.
+
+- [x] **Phase 6e — the retained parity gaps, closed.** Five built, two retired
+      by decision, one found late and closed, three found late and left for
+      triage.
+      **Built.** `api/bars.py` is now the API's one data door — the two private
+      `_bars` helpers in `jobs.py` and `strategies.py` had drifted into being
+      the same function, and adding three capabilities to each separately is
+      how they would have stopped agreeing about what "the window" means. It
+      resolves a live symbol, a bundled CSV, or either trimmed to a date
+      window. `GET /api/sources` serves intervals with their *per-interval*
+      valid periods (Yahoo will not serve five years of hourly bars, so a
+      selector offering it produces a failure nobody can diagnose), plus the
+      dataset list. `GET /api/basket` and `/api/basket/options` are
+      `core.portfolio` over HTTP — `fetch_many`, `align`, `normalise_weights`,
+      `build`, `per_symbol_stats`, `correlations`, `diversification_note`, each
+      called once, with a test computing the same basket directly and
+      comparing. `POST /api/strategies/upload` scores a CSV sent as the raw
+      body (a `File` is a `Blob`, so multipart would add a dependency for one
+      field); the upload is parsed, scored and dropped. The strategy response
+      now carries the `ohlc` it was scored on, so the new candlestick chart's
+      buy/sell markers index the same rows that produced them — a second fetch
+      could resolve to a different window, and a marker on the wrong candle is
+      worse than no marker.
+      Frontend: `DataWindow` (interval, period, from/to, dataset, upload) on
+      Signal, Forecast and Agents; a new `/basket` page with the drift bars,
+      the correlation matrix and the module's own diversification verdict; and
+      candles with markers and study bands on Agents.
+      **Retired by decision, not by omission.** `forecast.run` single-split
+      forecasting — walk-forward and project are the supported paths. The
+      Ultimate-signal `include_agents` and model-assisted toggles — the API
+      keeps both at their defaults (`include_agents=True`, `model=None`).
+      **Found late and closed:** `ultimate.evaluate_offline`, the Signal
+      verdict on a bundled file. `GET /api/signal/{symbol}?dataset=` reads it;
+      the freeze deliberately takes no `dataset`, because those files end in
+      2017–2019 and recording one as a *prospective* forecast is exactly what
+      `assert_prospective` exists to refuse.
+      **Nothing new writes.** Every added route is a `GET` except the upload,
+      which carries a body rather than a side effect. Structural tests assert
+      the basket router imports no writer and the strategies router still
+      imports none.
+      74 tests added (1464 passed, 91 skipped, from 1390). `tsc`/`eslint`
+      clean, `next build` green on all 13 routes. Verified live: a 3-symbol
+      basket on real bars (drift 6.7pp, quarterly rebalancing cutting it to
+      3.4 and moving the return), weekly and hourly intervals, a 2024 date
+      window, a training job run entirely off a bundled CSV, an uploaded CSV
+      scoring identically to the same file read as a dataset, and the ledger,
+      book and runs directory byte-identical throughout.
+
+## Streamlit retirement audit (2026-08-23, final)
+
+**Retired by decision — expected, not blocking.**
+
+1. `forecast.run` single-split forecasting.
+2. Ultimate-signal `include_agents` / model-assisted verdict toggles.
+
+**Still unique to Streamlit, and never triaged.** Found by diffing every
+`core.*` call `streamlit_app.py` makes against every call the API layer makes,
+which is how the first audit missed them — it compared tabs, not capabilities:
+
+3. **The watchlist / quote board.** `quotes.board`, `quotes.watchlist_symbols`,
+   `quotes.asset_class`, `quotes.currency` drive the Overview rail: a cached
+   board of related symbols with prices and changes. No endpoint reads
+   `core.quotes` at all.
+4. **The book's value over time.** `holdings.history` and
+   `holdings.shortest_history` — the Portfolio tab's "Value over the window
+   every holding shares", plus the note saying which holding limits that
+   window. `GET /api/portfolio` returns positions, summary, ledger and
+   per-symbol calls, but no equity curve for the book.
+5. **Editing holdings directly.** `holdings.editable` / `from_frame` behind a
+   `st.data_editor`: setting a quantity or a cost basis without recording a
+   trade. The API offers `POST /api/portfolio/trade` only. Arguably this
+   *should* stay retired — direct edits bypass the transaction ledger that
+   makes the book auditable — but that is a decision, not an omission.
+6. **`forecast.estimate_train_seconds`**, the "this will take about N seconds"
+   estimate before a training run. Trivial, and now more useful than it was:
+   the job API makes the wait explicit rather than blocking a script rerun.
+
+**A data limitation, not a code one.** 16 of the 17 bundled datasets are 252
+bars or fewer; the Signal engine's horizons need 260 (1 day) and 300 (1 week,
+4 hours). So only `BTC-sentiment` (339 bars) yields an available horizon
+offline — every other file correctly declines all three rather than
+interpolating. The offline *path* works; the bundled *data* is mostly too
+short for the Signal page specifically. The strategies, studies and jobs have
+no such floor and run on any of them.
+
+**Phase 7 remains blocked** on items 3–6 being built or consciously retired.
 
 - [ ] **Phase 7 — Cutover.** Once every tab is ported and spot-checked against
       Streamlit, retire `streamlit_app.py` or keep it as an internal fallback.

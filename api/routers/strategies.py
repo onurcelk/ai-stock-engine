@@ -33,18 +33,21 @@ this module names neither `holdings` nor `ledger_activation`.
 
 from __future__ import annotations
 
+import io as _io
 import math
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 
-from core import backtest, data, live, pine, strategies
+from core import backtest, data, pine, strategies
 
+# Imported by name rather than as the module: this router's catalogue takes a
+# `bars` query parameter, and a module of the same name shadowed inside one
+# function while meaning something else in the next is a trap.
+from ..bars import (DEFAULT_INTERVAL, DEFAULT_PERIOD, MIN_BARS,
+                    resolve as resolve_bars, trim as trim_bars)
 from ..schemas import to_jsonable
 
 router = APIRouter()
-
-DEFAULT_PERIOD = "5y"
-DEFAULT_INTERVAL = "1d"
 
 RULE = "rule"
 STUDY = "study"
@@ -105,16 +108,6 @@ def _param_spec(spec: dict, bars: int) -> dict:
     return out
 
 
-def _bars(symbol: str, period: str, interval: str):
-    try:
-        frame, _ = live.fetch(symbol.strip().upper(), period=period, interval=interval)
-    except Exception as error:                                    # noqa: BLE001
-        raise HTTPException(status_code=400, detail=str(error)) from error
-    if not len(frame):
-        raise HTTPException(status_code=400, detail=f"No bars for {symbol!r}.")
-    return frame, f"{symbol.strip().upper()} · {interval}"
-
-
 @router.get("/api/strategies")
 def get_strategies(bars: int = Query(1000, ge=1, description="Series length the "
                                      "defaults should be scaled to.")) -> dict:
@@ -164,6 +157,10 @@ def run_strategy(
     key: str = Query(..., description="A rule key or a study key."),
     period: str = DEFAULT_PERIOD,
     interval: str = DEFAULT_INTERVAL,
+    dataset: str | None = Query(None, description="A bundled CSV instead of a "
+                                                  "live symbol."),
+    start: str | None = Query(None, description="ISO date; trims the window."),
+    end: str | None = Query(None, description="ISO date; trims the window."),
     # Rule parameters. All optional: an omitted one takes the same
     # series-scaled default the tab's slider would have started on.
     window: int | None = Query(None, ge=2),
@@ -182,6 +179,38 @@ def run_strategy(
     size_pct: float = Query(100.0, gt=0, le=100),
 ) -> dict:
     """Score one rule or study, now. No training, no queue, no write."""
+    frame, label = resolve_bars(symbol, period=period, interval=interval,
+                                dataset=dataset, start=start, end=end)
+    return score(
+        frame, label, key,
+        window=window, follow_breakout=follow_breakout,
+        short_window=short_window, long_window=long_window, delay=delay,
+        initial_money=initial_money, max_buy=max_buy, max_sell=max_sell,
+        fee_pct=fee_pct, slippage_pct=slippage_pct, sizing=sizing,
+        size_pct=size_pct,
+    )
+
+
+def score(
+    frame,
+    label: str,
+    key: str,
+    *,
+    window: int | None = None,
+    follow_breakout: bool = False,
+    short_window: int | None = None,
+    long_window: int | None = None,
+    delay: int | None = None,
+    initial_money: float = 10_000.0,
+    max_buy: int = 1,
+    max_sell: int = 1,
+    fee_pct: float = 0.0,
+    slippage_pct: float = 0.0,
+    sizing: str = backtest.FIXED_UNITS,
+    size_pct: float = 100.0,
+) -> dict:
+    """Score already-resolved bars. Shared by the live/dataset GET and the
+    upload POST, so an uploaded CSV is scored by exactly the same code."""
     if sizing not in backtest.SIZING_MODES:
         raise HTTPException(
             status_code=400,
@@ -196,7 +225,6 @@ def run_strategy(
                    f"({', '.join(pine.INDICATORS)}).",
         )
 
-    frame, label = _bars(symbol, period, interval)
     close, dates = frame["close"], frame["date"]
     n = len(frame)
 
@@ -257,7 +285,7 @@ def run_strategy(
     )
 
     return to_jsonable({
-        "symbol": symbol.strip().upper(),
+        "symbol": label.split(" · ")[0],
         "label": label,
         "kind": kind,
         "key": key,
@@ -275,6 +303,16 @@ def run_strategy(
             "profit": result.profit,
         },
         "dates": [str(d) for d in dates],
+        # The candles this signal was scored on, carried in the same response
+        # rather than fetched again by the page. A second request could resolve
+        # to a different window -- a cache refresh, a new bar, a different
+        # default -- and a buy marker drawn at the wrong index is worse than no
+        # marker at all. `buys`/`sells` index these rows.
+        "ohlc": {
+            column: list(frame[column])
+            for column in ("open", "high", "low", "close")
+            if column in frame.columns
+        },
         "equity": list(result.equity),
         "buys": result.buys,
         "sells": result.sells,
@@ -286,3 +324,78 @@ def run_strategy(
             if bands is not None else None
         ),
     })
+
+
+#: An uploaded CSV is read into memory in one go, so it is capped. Comfortably
+#: larger than any bundled dataset (the biggest is a few hundred KB) and far
+#: below anything that would trouble the process.
+MAX_UPLOAD_BYTES = 8 * 1024 * 1024
+
+
+@router.post("/api/strategies/upload")
+async def run_uploaded(
+    request: Request,
+    key: str = Query(..., description="A rule key or a study key."),
+    name: str = Query("upload.csv", description="What to label the series."),
+    start: str | None = Query(None, description="ISO date; trims the window."),
+    end: str | None = Query(None, description="ISO date; trims the window."),
+    window: int | None = Query(None, ge=2),
+    follow_breakout: bool = False,
+    short_window: int | None = Query(None, ge=2),
+    long_window: int | None = Query(None, ge=3),
+    delay: int | None = Query(None, ge=1),
+    initial_money: float = Query(10_000.0, gt=0),
+    max_buy: int = Query(1, ge=1, le=100),
+    max_sell: int = Query(1, ge=1, le=100),
+    fee_pct: float = Query(0.0, ge=0, le=100),
+    slippage_pct: float = Query(0.0, ge=0, le=100),
+    sizing: str = backtest.FIXED_UNITS,
+    size_pct: float = Query(100.0, gt=0, le=100),
+) -> dict:
+    """Score a rule or study on a CSV the caller sends, bring-your-own-data.
+
+    The body is the file itself rather than a multipart form: a browser can
+    `fetch(url, {method: "POST", body: file})` a `File` directly, and multipart
+    would add a dependency (`python-multipart`) for no gain at one field.
+
+    Parsing is `data.load_upload`, the same function the Streamlit uploader
+    calls, so a file that works in one works in the other -- including the
+    column-name guessing that lets an arbitrary price table through.
+
+    A `POST` because it carries a body, not because it writes. It writes
+    nothing, and the upload is never stored: it is parsed, scored and dropped.
+    Keeping it would mean holding someone's data on disk to no purpose, and the
+    next request can send it again for the cost of a few hundred kilobytes.
+    """
+    payload = await request.body()
+    if not payload:
+        raise HTTPException(status_code=400, detail="No CSV in the request body.")
+    if len(payload) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"That file is {len(payload):,} bytes; the limit is "
+                   f"{MAX_UPLOAD_BYTES:,}.",
+        )
+    try:
+        frame = data.load_upload(_io.BytesIO(payload))
+    except Exception as error:                                    # noqa: BLE001
+        raise HTTPException(
+            status_code=400, detail=f"Could not read that file: {error}",
+        ) from error
+
+    frame = trim_bars(frame, start, end)
+    if len(frame) < MIN_BARS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"That file has {len(frame)} usable bars; at least "
+                   f"{MIN_BARS} are needed.",
+        )
+
+    return score(
+        frame, f"{name} · upload", key,
+        window=window, follow_breakout=follow_breakout,
+        short_window=short_window, long_window=long_window, delay=delay,
+        initial_money=initial_money, max_buy=max_buy, max_sell=max_sell,
+        fee_pct=fee_pct, slippage_pct=slippage_pct, sizing=sizing,
+        size_pct=size_pct,
+    )

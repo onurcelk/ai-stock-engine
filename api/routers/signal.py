@@ -33,9 +33,11 @@ say which surface asked rather than leaving it to be inferred from timestamps.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
-from core import forecast_ledger, ledger_activation
+from core import forecast_ledger, ledger_activation, ultimate
+
+from .. import bars
 
 from ..schemas import to_jsonable, verdict_to_dict
 
@@ -46,10 +48,27 @@ PROVENANCE = {"source": forecast_ledger.SOURCE_API}
 
 
 @router.get("/api/signal/{symbol}")
-def get_signal(symbol: str) -> dict:
-    """The reading, and nothing else. This route cannot write to the ledger."""
+def get_signal(
+    symbol: str,
+    dataset: str | None = Query(None, description="Read a bundled CSV instead "
+                                                  "of fetching the symbol."),
+) -> dict:
+    """The reading, and nothing else. This route cannot write to the ledger.
+
+    `dataset` is the offline path, and it takes a different door into the same
+    engine: `ultimate.evaluate_offline` scores an already-loaded frame, because
+    a bundled CSV cannot be re-fetched at another resolution. A daily file
+    answers 1 day and 1 week and declines 4 hours, which is the honest answer
+    rather than an interpolated one.
+    """
     try:
-        verdict, _ = ledger_activation.evaluate_and_freeze(symbol, active=False)
+        if dataset:
+            frame, label = bars.resolve(dataset=dataset)
+            verdict = ultimate.evaluate_offline(frame, label)
+        else:
+            verdict, _ = ledger_activation.evaluate_and_freeze(symbol, active=False)
+    except HTTPException:
+        raise
     except Exception as error:                                    # noqa: BLE001
         raise HTTPException(status_code=400, detail=str(error)) from error
 
@@ -64,6 +83,13 @@ def freeze_signal(symbol: str) -> dict:
     reading is valid whether or not the ledger accepted it, and withholding it
     would help nobody. That is `evaluate_and_freeze`'s own contract and this
     endpoint keeps it rather than reinterpreting it.
+
+    There is deliberately no `dataset` option here. The bundled CSVs end in
+    2017-2019, so freezing one would be recording a "prospective" forecast
+    about bars that already happened -- precisely what
+    `forecast_ledger.assert_prospective` exists to refuse, and what its
+    docstring records having once slipped through. Reading a dataset is
+    offered; recording one is not.
     """
     try:
         verdict, report = ledger_activation.evaluate_and_freeze(
