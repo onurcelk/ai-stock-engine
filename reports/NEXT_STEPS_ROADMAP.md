@@ -481,6 +481,85 @@ each against the original, retire Streamlit only once everything is ported.
       green on all 12 routes.
       **Still not built:** nothing from Phase 6. `forecast.py` remains
       untouched — the reproducibility defect is Phase B's and an owner call.
+- [x] **Phase 6d — the instant agents, and a parity audit.** Added 2026-08-23.
+      The Trading-agents tab offered three kinds of thing in one dropdown; only
+      the RL policies needed Phase 6b's job machinery. The three fixed rules and
+      the seven ported studies run in milliseconds, so `api/routers/strategies.py`
+      serves them as plain `GET`s: `GET /api/strategies` is the catalogue and
+      `GET /api/strategies/{symbol}` scores one. Everything delegates —
+      `strategies.turtle`/`.moving_average`/`.signal_rolling`, `pine.signals`,
+      `pine.bands`, and `backtest.run` — and a test computes the same numbers
+      independently and compares, which is what would fail if the router ever
+      grew its own copy of a rule.
+      The dispatch table is deliberately **not** a new registry in `core`:
+      `strategies.py`'s source hash is the version key for the three registered
+      `rule_agent.*` models (`forecast_ledger._module_version`), so adding one
+      would re-version live models against a ledger holding 229 real
+      prospective forecasts. Same reasoning `pine.py` already gives for
+      restating the buy/sell constants rather than importing them.
+      **Nothing here writes** — no ledger, no book, no History run. Streamlit
+      does not file a run for a rule or a study either (`runs.save` is reached
+      only from the RL branch), so this is parity, not a shortcut. Asserted
+      structurally from the parsed AST rather than by grepping the text, so the
+      docstring is free to name the modules it promises not to import.
+      The page groups the dropdown into "Instant · fixed rules", "Instant ·
+      ported studies" and "Trains first · RL policies", badges the selected one
+      by cost, and keeps every caveat: each study's published rule and its
+      "tuning them on the series you are about to score is how a backtest
+      flatters itself", the turtle's mean-reverting default, the RL learning
+      curve's simplified objective, and the fixed-units sizing caveat.
+      26 tests added. Suite **1418 passed, 91 skipped**; `tsc`/`eslint` clean,
+      `next build` green on all 12 routes. Verified live: all ten instant
+      agents scored against real AAPL bars, overlay studies returned their
+      lines and oscillators returned `null`, and the ledger, book and runs
+      directory were byte-identical afterwards.
+
+## Streamlit parity: what is still missing (audited 2026-08-23)
+
+Every tab is ported and the tab-for-tab list is complete. Seven capabilities
+are not, and Phase 7 should not begin until each is either built or
+consciously dropped. Enumerated so the choice is explicit rather than
+discovered after `streamlit_app.py` is gone:
+
+1. **Bundled datasets and CSV upload.** The sidebar's "Data source" offers
+   Live ticker / Bundled dataset / Upload CSV. The API has one data door,
+   `live.fetch`, so `dataset/*.csv` and `data.load_upload` are unreachable —
+   and the offline fallback the live path's own error message recommends
+   ("switch to a bundled dataset to keep working offline") does not exist.
+2. **The multi-symbol portfolio builder.** `portfolio.build`, `align`,
+   `normalise_weights`, `correlations`, `per_symbol_stats`,
+   `diversification_note`, `REBALANCE` and `MAX_HOLDINGS` are exposed nowhere.
+   `GET /api/portfolio` prices the *book you hold*; it cannot construct and
+   backtest a weighted basket with a rebalance schedule. This is the single
+   largest gap.
+3. **Single-split forecasting.** `forecast.run` — the Forecast tab's other
+   evaluation mode, with its 1–10 simulations — has no endpoint. Only
+   `walk_forward` and `project` do. Arguably the honest half survived, but it
+   is a capability that would disappear.
+4. **Non-daily bars anywhere in the UI.** The API passes `interval` through
+   and all five of `live.INTERVALS` work; no page exposes a switcher, so the
+   new frontend is daily-only. Streamlit's toolbar carries 1H/4H/D/W/M across
+   every tab. Intraday analysis is reachable by hand-editing a URL and by no
+   other means.
+5. **The date-range trim.** Streamlit slices the frame once and every tab
+   works off that slice. The API takes `period`, not an explicit start/end
+   window, so "score this rule on 2021 only" cannot be asked.
+6. **The two Ultimate-signal toggles.** `ultimate.evaluate` accepts
+   `include_agents` and `model`; `GET /api/signal/{symbol}` passes neither, so
+   both sit at their defaults. Turning the rule-based agents off, and the whole
+   model-assisted verdict ("Include the forecast" — walk-forward plus
+   projection folded in through the significance gate), are unavailable.
+7. **The agents price chart.** Streamlit draws candles with buy/sell markers
+   and the study's overlay bands beneath them. The API already returns `bands`,
+   `buys` and `sells`; the page renders an equity curve and a trade table
+   instead. Frontend-only — no API work needed.
+
+Also absent, and deliberately: **Lite mode**. No capability lives there that
+Pro lacks, so nothing is lost by the new shell not having a reduced variant.
+The return-distribution histogram and the raw-bars table from the Overview tab
+are likewise frontend-only omissions — `GET /api/ohlcv` already carries what
+they need.
+
 - [ ] **Phase 7 — Cutover.** Once every tab is ported and spot-checked against
       Streamlit, retire `streamlit_app.py` or keep it as an internal fallback.
       The headless habits survive either way: `python -m core.collector` and
