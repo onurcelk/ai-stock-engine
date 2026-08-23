@@ -724,11 +724,151 @@ such floor.
 **Phase 7 is unblocked.** The audit is clean apart from the four capabilities
 retired by decision above.
 
-- [ ] **Phase 7 — Cutover.** Once every tab is ported and spot-checked against
-      Streamlit, retire `streamlit_app.py` or keep it as an internal fallback.
-      The headless habits survive either way: `python -m core.collector` and
-      `python -m core.score_outcomes` are run by hand on trading days and have
-      nothing to do with the UI.
+- [x] **Phase 7 — Cutover.** Done 2026-08-23. The desk is the API and the
+      Next.js frontend; Streamlit is the fallback.
+
+      **The disposition, and why.** `app/streamlit_app.py` is **kept as an
+      internal fallback**, not deleted. Deleting it would take
+      `app/tests/test_ui.py` — 925 lines that boot the real app headlessly and
+      catch the class of breakage unit tests cannot — with it, and would
+      destroy the parity reference every phase from 0 to 6f was checked
+      against. Keeping a second UI has a cost, and it is paid deliberately:
+      the fallback still shares the *one* write path into the forecast ledger
+      (`ledger_activation.evaluate_and_freeze`) and now stamps
+      `provenance.source = "streamlit"`, so a row frozen there is
+      distinguishable after the fact, which was the whole point of Phase 6a.
+
+      **The one thing that was actually load-bearing.** `run_app.py` was not
+      just "the Streamlit launcher" — it owned the session lifecycle, and
+      cutting over without moving it would have silently lost the ledger
+      backup and the startup collection sweep. It is now split by owner, which
+      is a strict improvement over what Streamlit allowed:
+
+      - The prospective freeze then the missed-day replays moved into
+        `app/core/startup.py::collect_then_replay`, called by **both**
+        launchers. It stays in a launcher rather than the server because it
+        appends to the append-only record and `uvicorn --reload` reboots on
+        every file save; a server that froze the universe on boot would be
+        Phase 6a's hazard arriving through a different door.
+        `test_the_launcher_snapshots_before_it_collects` now asserts the
+        ordering against the shared module, so it covers both launchers, and a
+        new `test_both_launchers_share_one_startup_sequence` refuses either of
+        them a private copy.
+      - The ledger backup moved into `api/main.py`'s `lifespan`. **This is the
+        hook Streamlit never had** — its process outlives the browser tab, which
+        is why the lifecycle had to live in a launcher at all. The API has a
+        real shutdown, so the guarantee now holds for a hand-started uvicorn
+        too, and does not depend on remembering a launcher.
+      - `launcher/stop.ps1` takes the snapshot a killed process cannot. Before,
+        a hard kill deferred it to the next start's recovery pass — the path
+        meant for a crash, not for the stop button.
+
+      **A guard that had quietly stopped being one.** Moving the lifecycle into
+      the app made `never_touch_the_backup_drive` load-bearing for `api/tests`,
+      where it had never applied: it lived in `app/tests/conftest.py`, which is
+      loaded only once collection reaches that directory. Its own docstring
+      justified staying there by noting no test imports `run_app.py` — true
+      until this phase. Moved to the rootdir `conftest.py`, the same fix and
+      the same reason as `--runslow` on 2026-08-23, and
+      `test_a_test_run_still_cannot_reach_the_backup_drive` now asserts it.
+
+      **New: `api/tests/test_cutover.py`, 40 tests.** The final retirement
+      audit was a diff run by hand; this is the part of it a machine can keep
+      re-running. Four properties: nothing the API reaches imports Streamlit
+      (transitive through the `core` graph, with `core.theme` used as the proof
+      the detector works); all 30 endpoints the cutover shipped are still
+      served; none of the four retired capabilities is reachable, checked from
+      the parsed AST so the docstrings may name them; and the two lifecycle
+      halves are wired the right way round, including a `TestClient` context
+      manager that counts the hooks actually firing.
+
+      **The launcher.** New `run_desk.py` (`--dev`, `--api-only`,
+      `--no-collect`, `--no-browser`). It prefers `npm run start` and falls
+      back to `npm run dev` when `.next` holds no production build, saying
+      why. `launcher/start.ps1` starts it, `-Streamlit` starts the fallback,
+      and the `.vbs` shortcuts are unchanged. Two things found by running it:
+      `.venv` has uvicorn installed **without FastAPI**, so the venv probe
+      tests for the `fastapi` package and not for the runner — checking the
+      runner picks the one virtualenv that cannot serve; and Python
+      block-buffers a redirected stdout, so every diagnostic the launcher
+      printed was arriving after the process it was diagnosing had ended.
+
+      **A stale claim, removed at the front door.** The landing page's three
+      headline figures were hardcoded, by its own admission "until Phase 5
+      exposes `core.research_view` over the API" — and by the cutover they read
+      227 forecasts against a ledger holding 229. They now come from
+      `GET /api/research`, the same single `research_view.load()` the Research
+      page reads, so the two cannot disagree; a dash means "not read yet",
+      never zero. A page whose argument is that a figure without its resolution
+      is not a result cannot open with a number nobody remembered to update.
+
+      **Verified live**, with `FORECAST_LEDGER_WRITES=off` and
+      `V5_LEDGER_BACKUP_DISABLED=1` so the verification could not touch the
+      record: `run_desk.py` brought both servers up, all ten routes returned
+      200, CORS allowed the frontend's origin, and a headless render of the
+      landing page showed 229 / 93 / 2 of 50 — matching `GET /api/research`
+      exactly. The book came back at the same figures Phase 6f recorded
+      (market value $2,870.08, cost basis $2,363.45, curve 49 bars limited by
+      SPCX with its last point equal to the summary), the watchlist served 14
+      cached quotes and downloaded nothing, and `GET /api/signal/AAPL` returned
+      `freeze: null`. `stop.ps1` took the whole tree down and released both
+      ports. Afterwards `forecast_ledger.sqlite3` (md5 `6851209e…`),
+      `holdings.json` and `transactions.json` were byte-identical to their
+      pre-test snapshots.
+
+      **One real write, and it was the point.** On the second `stop.ps1` run --
+      exercised without `V5_LEDGER_BACKUP_DISABLED`, to check the new backup
+      step end to end -- the snapshot fired for real and wrote
+      `forecast_ledger_2026-08-23_13-03-34.sqlite3` (229 forecasts) to
+      `D:\prediction market backup`. The drive had been two rows behind since
+      2026-08-22 (its manifest recorded 227), so this closed a genuine gap
+      rather than opening one. Additive, verified, and the live ledger is
+      untouched -- `Connection.backup` from a read-only connection, never a
+      file copy. It is also the first evidence that the stop button now covers
+      what a killed process cannot.
+
+      Two smaller defects were found by running the launchers rather than
+      reading them, both fixed: `start.ps1 -Streamlit` forwarded
+      `--no-browser` through `run_app.py` into Streamlit, which has no such
+      flag (each mode now passes its own arguments); and `stop.ps1`'s backup
+      call embedded the repository path inside `python -c`, where PowerShell's
+      native-argument parsing ate the quotes and the interpreter received a
+      bare `r C:\Users\...` (the path travels by `PYTHONPATH` now).
+
+      **Not verified, and named rather than implied:** SIGTERM teardown.
+      `run_desk.py` installs a handler that turns it into a `KeyboardInterrupt`
+      so the children are stopped before the process ends -- needed because
+      `ledger_lifecycle.install` chains onto SIGTERM's `SIG_DFL` and would
+      otherwise back up and exit on the spot, orphaning uvicorn and Node with
+      the ports still held. Windows does not deliver SIGTERM to a native
+      process, so that path could not be exercised here. The two that were are
+      Ctrl-C (SIGINT's `default_int_handler` already raises, and `install`
+      chains onto it) and `stop.ps1`'s `taskkill /T /F`; both released both
+      ports.
+
+      **The fallback still works, checked rather than assumed.**
+      `pytest app/tests/test_ui.py --runslow` boots the real Streamlit app
+      headlessly: **58 passed in 36 minutes**, after the launcher rewrite and
+      after `never_touch_the_backup_drive` moved out from under it. Keeping
+      `streamlit_app.py` is only worth anything if it still runs, and that is
+      what this establishes.
+
+      Suite **1521 passed, 91 skipped** (from 1480). No existing test changed
+      except `test_the_launcher_snapshots_before_it_collects`, which follows
+      the sequence into `core/startup.py` and is stronger for it. `tsc`,
+      `eslint` and `next build` clean on all 13 routes.
+
+      **The headless habits are unaffected, as predicted.**
+      `python -m core.collector` and `python -m core.score_outcomes` are run by
+      hand on trading days and have nothing to do with either UI.
+
+      **Not done, and deliberately.** The four retired capabilities stay
+      retired and nothing was deleted from `core` to enforce it — deleting any
+      of it would re-version modules the forecast ledger identifies by source
+      hash. The bundled-dataset horizon shortfall is documented as a data
+      constraint in `CLAUDE.md` §9.5 and was not worked around; lowering a
+      horizon's `min_bars` or padding a series to make offline Signal readings
+      appear would be a silent methodology change under §1.2.
 
 ---
 

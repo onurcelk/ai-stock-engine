@@ -109,7 +109,10 @@ Claude should:
    `test_future_cannot_change_the_verdict` passes
 3. If the change touches alpha infrastructure, run the relevant
    `test_alpha_v2_*.py` file
-4. For UI changes, run with `--runslow` or boot the Streamlit app and verify
+4. For UI changes, boot the desk (`python run_desk.py`) and verify in the
+   browser; `--runslow` additionally drives the Streamlit fallback headlessly.
+   Frontend changes also need `tsc --noEmit`, `eslint` and `next build` green
+   in `design-system/shell`
 
 ### 4.3 Hermetic test discipline
 
@@ -237,6 +240,71 @@ pytest --runslow
 python -m validation.predict   # writes predictions, refuses to overwrite
 python -m validation.score     # reveals outcomes
 
-# Streamlit app
-streamlit run app/streamlit_app.py
+# The desk — FastAPI on :8000 plus the Next.js frontend on :3000
+python run_desk.py             # or launcher\start.ps1 / the desktop shortcut
+python run_desk.py --api-only  # just the API
+python run_desk.py --dev       # Next in dev mode, uvicorn with --reload
+
+# Headless, run by hand on trading days. Nothing to do with the UI.
+python -m core.collector       # freeze today's prospective forecasts
+python -m core.score_outcomes  # resolve the ones whose horizon has passed
 ```
+
+### 9.1 Two virtualenvs
+
+`.venv` and `venv` both exist and both carry pytest, TensorFlow and Streamlit.
+**Only `venv` has FastAPI**, so only `venv` can serve the desk — `.venv` has
+uvicorn installed without it, which is why `launcher/start.ps1` tests for the
+`fastapi` package rather than for the runner. Python must be 3.9–3.12.
+
+### 9.2 The frontend is a separate repository
+
+`design-system/shell` sits **beside** this repo, not inside it, and has its own
+git history. `run_desk.py` resolves it at `../design-system/shell`; set
+`DESK_FRONTEND` to override, and if it is absent the API still starts and says
+so. Build it once with `npm run build` there — without a production build
+`run_desk.py` falls back to `npm run dev` and says why.
+
+### 9.3 Streamlit is the fallback, not the desk
+
+Phase 7 (2026-08-23) cut the product over to the API and the Next.js frontend.
+`app/streamlit_app.py` is **retained as an internal fallback** and as the parity
+reference the rebuild was checked against; `app/tests/test_ui.py` still drives
+it headlessly under `--runslow`. Start it with `python run_app.py` (never
+`streamlit run app/streamlit_app.py` directly — only the launcher attaches the
+ledger backup lifecycle), or `launcher\start.ps1 -Streamlit`.
+
+**Four capabilities were retired by owner decision at the cutover and may not
+be reintroduced into the API without a new decision:** `forecast.run`
+single-split forecasting, the `ultimate.ModelEvidence` / `include_agents`
+model-assisted verdict, `holdings.editable` direct position editing (it
+bypasses the transaction ledger that makes the book auditable), and
+`forecast.estimate_train_seconds`. None was deleted from `core` — deleting them
+would re-version modules the forecast ledger identifies by source hash — so the
+constraint is that the API layer does not *reach* them.
+`api/tests/test_cutover.py` enforces this, along with the endpoint inventory
+and the absence of any Streamlit import in the graph the API reaches.
+
+### 9.4 Where the session lifecycle lives
+
+Split at the cutover, because the two halves have different owners:
+
+| Concern | Owner | Why |
+|---|---|---|
+| Startup prospective freeze, then missed-day replays | `run_desk.py` / `run_app.py`, via `core.startup.collect_then_replay` | It appends to the append-only ledger, so it belongs to a process a person started. `uvicorn --reload` reboots on every file save. |
+| Ledger backup: recovery in, snapshot out | `api/main.py`'s `lifespan`, and both launchers | Fingerprint-guarded and never raises. The API has the real shutdown hook Streamlit never had, so the guarantee holds even for a hand-started uvicorn. |
+| Backup after a hard kill | `launcher/stop.ps1` | A killed process runs no hooks; the stop button takes the snapshot itself rather than deferring it to the next start's recovery pass. |
+
+### 9.5 Bundled datasets: a documented data constraint
+
+16 of the 17 files in `dataset/` are 252 bars or fewer. The Signal engine's
+horizons need 260 (1 day) and 300 (1 week, 4 hours), so only `BTC-sentiment`
+(339 bars) yields an available horizon offline — every other file correctly
+declines all three rather than interpolating. **This is a property of the
+bundled data, not a defect in the offline path**, which works: strategies,
+studies and jobs have no such floor and run on any of them. Do not "fix" it by
+lowering a horizon's `min_bars` or by padding a series; both would be silent
+methodology changes under §1.2. `GET /api/signal/{symbol}?dataset=` reads a
+bundled file, and the freeze deliberately takes no `dataset` — those files end
+in 2017–2019 and recording one as a *prospective* forecast is what
+`assert_prospective` exists to refuse.

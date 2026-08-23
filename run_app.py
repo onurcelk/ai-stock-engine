@@ -1,6 +1,18 @@
-"""Launch the Streamlit app with the ledger backup lifecycle attached.
+"""Launch the **Streamlit fallback** with the ledger backup lifecycle attached.
 
     python run_app.py
+
+**Since Phase 7 (the cutover, 2026-08-23) this is not the desk.**  The product
+is the FastAPI service plus the Next.js frontend, started by `run_desk.py`.
+`app/streamlit_app.py` is retained as an internal fallback and as the parity
+reference the rebuild was checked against, so this launcher is retained with
+it -- it is the only way to boot that app with the ledger lifecycle attached,
+and booting it without one is how a session's forecasts go unbacked.
+
+Nothing here is deprecated in the sense of "about to be deleted": the four
+capabilities that were retired at the cutover are listed in
+`reports/NEXT_STEPS_ROADMAP.md` and stay retired, but the tab-for-tab app
+itself still runs and `app/tests/test_ui.py` still drives it headlessly.
 
 Use this rather than `streamlit run app/streamlit_app.py` directly.  Both start
 the same application; only this one backs the forecast ledger up when the
@@ -11,7 +23,8 @@ re-executes that script top to bottom on every interaction, and its process
 outlives the browser tab — closing the tab is a websocket disconnect, not a
 shutdown.  There is no reliable "the app is closing" callback inside the script.
 The process that owns the lifecycle is this one, so this is where `try/finally`,
-`atexit` and the signal handlers belong.
+`atexit` and the signal handlers belong.  (The API does not have that problem:
+`run_desk.py` and `api/main.py`'s own lifespan both hold the same hooks.)
 
 It also keeps the test suite structurally safe: `app/tests/test_ui.py` boots
 `streamlit_app.py` directly and therefore cannot reach any of this, so no test
@@ -26,49 +39,7 @@ import sys
 APP_DIR = pathlib.Path(__file__).resolve().parent / "app"
 sys.path.insert(0, str(APP_DIR))
 
-from core import ledger_lifecycle          # noqa: E402
-
-
-def _collect_then_replay() -> None:
-    """Freeze the current session, then recover missed ones. Never the reverse.
-
-    Neither step may stop the app starting. A data outage should cost you a
-    day's accumulation, not the ability to open the application, so both are
-    reported and neither propagates.
-    """
-    from core import collector, replay
-
-    try:
-        symbols = collector.read_universe()
-    except Exception as error:                                   # noqa: BLE001
-        print(f"[startup] no collection universe: {error}", file=sys.stderr)
-        return
-
-    # Before anything is frozen: what did the record already cover? The
-    # prospective freeze below advances every symbol's newest cutoff to today,
-    # so asking afterwards would answer "nothing was missed" however long the
-    # gap really was.
-    covered_through = replay.snapshot_cutoffs(symbols)
-
-    try:
-        run = collector.collect(symbols=symbols)
-        print(f"[startup] prospective: {run.summary()}")
-        for failure in run.failures:
-            print(f"[startup] prospective FAILED {failure.symbol}: "
-                  f"{failure.detail}", file=sys.stderr)
-    except Exception as error:                                   # noqa: BLE001
-        print(f"[startup] prospective freeze failed: {error}", file=sys.stderr)
-        # Deliberately still attempt replays: they write to a different store
-        # and cannot corrupt the prospective record whatever happened above.
-
-    try:
-        replayed = replay.replay_missed(symbols, since_by_symbol=covered_through)
-        print(f"[startup] replay: {replayed.summary()}")
-        for failure in replayed.failures:
-            print(f"[startup] replay FAILED {failure.symbol}: "
-                  f"{failure.detail}", file=sys.stderr)
-    except Exception as error:                                   # noqa: BLE001
-        print(f"[startup] missed-session replay failed: {error}", file=sys.stderr)
+from core import ledger_lifecycle, startup          # noqa: E402
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -76,6 +47,9 @@ def main(argv: list[str] | None = None) -> int:
 
     arguments = list(argv if argv is not None else sys.argv[1:])
     script = str(APP_DIR / "streamlit_app.py")
+
+    print("[startup] Streamlit fallback. The desk is `python run_desk.py`.",
+          file=sys.stderr)
 
     # Recovery first: if the last run died before its shutdown backup, take one
     # now, before any forecast can be frozen on top of the unbacked state.
@@ -85,11 +59,12 @@ def main(argv: list[str] | None = None) -> int:
 
     # START -> CURRENT PROSPECTIVE FREEZE -> MISSED-DAY REPLAYS -> UI.
     #
-    # The order is the whole point. Today's bar must be claimed by the genuine
-    # prospective freeze before any reconstruction runs, so a replay can never
-    # be the row that owns the current session. Replays then fill in sessions
-    # that were missed — into a different database, as diagnostics.
-    _collect_then_replay()
+    # The order is the whole point, and it is asserted against
+    # `core/startup.py` by `test_replay.py::test_the_launcher_snapshots_before
+    # _it_collects`. Today's bar must be claimed by the genuine prospective
+    # freeze before any reconstruction runs, so a replay can never be the row
+    # that owns the current session.
+    startup.collect_then_replay()
 
     try:
         sys.argv = ["streamlit", "run", script, *arguments]

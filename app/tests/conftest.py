@@ -22,36 +22,17 @@ if str(APP) not in sys.path:
     sys.path.insert(0, str(APP))
 
 
-# ------------------------------------------------------------------ fast/slow
+# --------------------------------------------- fast/slow, and the backup guard
 #
-# `--runslow` and the marker that honours it moved to the repository-root
-# `conftest.py` on 2026-08-23. A conftest here is only loaded once collection
-# reaches `app/tests`, so the gate silently did not apply to a run that
-# selected another directory -- see that file's docstring.
+# `--runslow` (2026-08-23) and `never_touch_the_backup_drive` (Phase 7) both
+# moved to the repository-root `conftest.py`. A conftest here is only loaded
+# once collection reaches `app/tests`, so neither applied to a run that
+# selected another directory -- see that file's docstring. The backup guard
+# matters more since the cutover, because `api/main.py`'s lifespan now installs
+# the lifecycle hooks that only `run_app.py` used to.
 
 
 # -------------------------------------------------------------------- fixtures
-
-
-@pytest.fixture(autouse=True, scope="session")
-def never_touch_the_backup_drive():
-    """No automated run may write to `D:\\prediction market backup`, ever.
-
-    The backup drive holds copies of prospective forecasts that cannot be
-    regenerated. Tests that want backup behaviour pass their own `tmp_path`
-    root explicitly; this stops anything that forgets — a default argument, a
-    launcher imported by accident — from reaching the real drive.
-
-    Belt and braces: `run_app.py` is the only thing that installs the lifecycle
-    hooks, and no test imports it.
-    """
-    import os
-
-    from core import ledger_backup
-
-    os.environ[ledger_backup.DISABLE_ENV] = "1"
-    yield
-    os.environ.pop(ledger_backup.DISABLE_ENV, None)
 
 
 @pytest.fixture(scope="session")

@@ -344,17 +344,42 @@ def test_missed_days_survive_the_prospective_freeze_running_first(tmp_path):
 
 
 def test_the_launcher_snapshots_before_it_collects():
-    """Structural: the fix is an ordering, so assert the ordering."""
-    import inspect
-    import pathlib as _pathlib
+    """Structural: the fix is an ordering, so assert the ordering.
 
-    source = (_pathlib.Path(__file__).resolve().parents[2] / "run_app.py"
-              ).read_text(encoding="utf-8")
-    body = source.split("def _collect_then_replay")[1]
+    The sequence moved from `run_app.py` into `core/startup.py` at Phase 7,
+    when a second launcher (`run_desk.py`) appeared. Asserting it against the
+    shared module rather than against one launcher's copy is what makes the
+    guarantee cover both -- and `test_both_launchers_share_one_startup_sequence`
+    below is what stops a launcher growing a private copy to escape it.
+    """
+    import inspect
+
+    from core import startup
+
+    body = inspect.getsource(startup.collect_then_replay)
 
     assert body.index("snapshot_cutoffs") < body.index("collector.collect")
     assert body.index("collector.collect") < body.index("replay_missed")
     assert "since_by_symbol=covered_through" in body
+
+
+def test_both_launchers_share_one_startup_sequence():
+    """Neither launcher may reimplement the freeze/replay ordering privately.
+
+    Two copies would agree the day they were written and disagree the first
+    time either was touched -- and the one that drifted would still pass the
+    test above, because that test reads the shared module.
+    """
+    import pathlib as _pathlib
+
+    root = _pathlib.Path(__file__).resolve().parents[2]
+    for name in ("run_app.py", "run_desk.py"):
+        source = (root / name).read_text(encoding="utf-8")
+        assert "startup.collect_then_replay()" in source, name
+        # The calls themselves belong to `core/startup.py` alone. A launcher
+        # naming them again is a private copy, whatever it is called.
+        assert "collector.collect(" not in source, name
+        assert "replay.replay_missed(" not in source, name
 
 
 # ------------------------------------------------- excluded from every counter

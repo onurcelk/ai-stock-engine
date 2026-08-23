@@ -13,10 +13,21 @@ tensorflow==2.15.1
 streamlit==1.39.0
 protobuf==4.25.5
 
+# The desk's server, since the Phase 7 cutover. `api/` serves `core` over HTTP
+# to the Next.js frontend in `design-system/shell`; `run_desk.py` starts both.
+# Unpinned deliberately: nothing here is version-sensitive the way TF/Streamlit
+# are, and the layer is a thin one. These were missing until the cutover, so a
+# fresh environment installed Streamlit and could not serve the actual product.
+fastapi
+uvicorn
+
 # Only needed to open the original .ipynb files:
 jupyterlab
 notebook
 
 # Test suite. `pytest` runs the fast checks; `pytest --runslow` adds the
-# 19-agent sweep and the headless UI drivers, which take minutes.
+# 19-agent sweep and the headless UI drivers, which take minutes. `httpx` is
+# what `fastapi.testclient.TestClient` drives `api/tests` through -- without it
+# 40% of the suite errors on import rather than failing visibly.
 pytest
+httpx
