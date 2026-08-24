@@ -131,10 +131,15 @@ def jobs_registry(monkeypatch):
     """
     from api import jobs as jobs_module
     from api.routers import jobs as jobs_router
+    from api.routers import scan as scan_router
 
     registry = jobs_module.JobRegistry()
     monkeypatch.setattr(jobs_module, "REGISTRY", registry)
     monkeypatch.setattr(jobs_router, "JOBS", registry)
+    # Every router that submits work binds `JOBS` at import; one missed here is
+    # a test quietly queueing onto the process-wide registry and leaving a
+    # worker thread alive at the end of the run.
+    monkeypatch.setattr(scan_router, "JOBS", registry)
     try:
         yield registry
     finally:
