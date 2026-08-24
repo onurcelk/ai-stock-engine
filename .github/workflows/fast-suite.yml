@@ -1,0 +1,28 @@
+# Fast suite CI: the hermetic tests only. The --runslow gate in the repo-root
+# conftest already excludes model training and app boots from the default run,
+# so this workflow is just that default run on a clean machine — which is also
+# what keeps requirements.txt honest: if a dependency goes missing here, the
+# next clone would have found out the hard way.
+name: fast suite
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install pinned dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run the fast suite
+        run: python -m pytest -q
