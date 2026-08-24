@@ -7,6 +7,7 @@ worth pinning down: same seed, same fan; no seed, a different one.
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from core import montecarlo
@@ -52,3 +53,29 @@ def test_spread_widens_with_horizon(bundled_close):
     short = montecarlo.run(bundled_close, days=10, simulations=400, seed=5)
     long = montecarlo.run(bundled_close, days=200, simulations=400, seed=5)
     assert long.endings.std() > short.endings.std()
+
+
+def test_drift_is_the_gbm_log_drift(bundled_close):
+    """The regression for the notebook-port bug: half the variance once.
+
+    `simulation/monte-carlo-drift.ipynb` subtracted σ²/2 twice, so the
+    effective log-drift was μ − σ². This pins the corrected convention,
+    E[ln(1+r)] ≈ μ − σ²/2, and fails if the double subtraction ever
+    comes back.
+    """
+    result = montecarlo.run(bundled_close, days=30, simulations=10, seed=0)
+    mean = float(bundled_close.pct_change().dropna().mean())
+    variance = float(bundled_close.pct_change().dropna().var())
+
+    assert result.drift == pytest.approx(mean - variance / 2)
+    assert result.drift != pytest.approx(mean - variance)  # the old bug
+
+
+def test_flat_series_has_zero_drift_and_constant_paths():
+    """No movement, no opinion: the fan must collapse onto the last price."""
+    flat = pd.Series([100.0] * 30)
+    result = montecarlo.run(flat, days=10, simulations=5, seed=1)
+
+    assert result.drift == 0.0
+    assert result.daily_volatility == 0.0 or np.isnan(result.daily_volatility)
+    assert np.allclose(result.paths.to_numpy(), 100.0)

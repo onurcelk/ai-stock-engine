@@ -46,8 +46,14 @@ def run(
     returns = close.pct_change().dropna()
     daily_vol = float(returns.std())
     variance = float(returns.var())
-    daily_drift = float(returns.mean()) - variance / 2
-    drift = daily_drift - 0.5 * daily_vol ** 2
+    # GBM log-drift implied by the arithmetic mean return: half the variance is
+    # subtracted exactly once, converting between the simple-return and log
+    # conventions (E[ln(1+r)] ≈ μ − σ²/2). The ported notebook subtracted it a
+    # second time, compounding to μ − σ² and biasing every fan downward.
+    # Fixed 2026-08-24 with owner sign-off — the one deliberate deviation from
+    # simulation/monte-carlo-drift.ipynb, pinned by test_montecarlo.py's
+    # test_drift_is_the_gbm_log_drift.
+    drift = float(returns.mean()) - variance / 2
 
     last_price = float(close.iloc[-1])
 
