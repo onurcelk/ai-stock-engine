@@ -40,7 +40,7 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 
-from . import data, indicators, live, strategies
+from . import data, filings_evidence, indicators, live, strategies
 
 # ------------------------------------------------------------------- verdicts
 
@@ -82,7 +82,7 @@ MIN_SAMPLES = 25
 # did, handing 70% of the weight to a 54% hit rate at t = 0.7.
 #
 # 1.65 is the one-sided 5% point. It is deliberately not the ~2.3 that a full
-# Bonferroni correction over thirteen sources would demand: the multiplicity
+# Bonferroni correction over sixteen sources would demand: the multiplicity
 # is handled downstream instead, by requiring FULL_BREADTH families to agree
 # before a horizon speaks at full volume, which is a much harder bar to clear
 # by chance than any single-source threshold. Measured over eighteen symbols
@@ -938,7 +938,12 @@ def evaluate(
             try:
                 frame, _ = fetch(symbol, period=horizon.period,
                                  interval=horizon.interval, force=force)
-                frames[key] = frame
+                # The earnings-drift source reads two columns the price feed
+                # does not carry. Attached here, at the one place that knows
+                # which firm this is, so `evaluate_frame` below stays a pure
+                # function of a frame. A machine without the EDGAR cache gets
+                # the frame back untouched and the source stays silent.
+                frames[key] = filings_evidence.attach(frame, symbol)
             except live.FetchError as error:
                 frames[key] = None
                 errors[horizon.label] = str(error)

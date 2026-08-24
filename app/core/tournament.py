@@ -34,11 +34,18 @@ did.
 **What this module must never do**, restated because the roster is large enough
 that a shortcut would be tempting:
 
-- **No candidate enters `indicators.SOURCES`.**  `ultimate.evaluate` consumes
-  that dict wholesale, so a source added there changes the live incumbent's
-  evidence set while the ensemble's version — the sha256 of `ultimate.py` —
-  stays put, and the prospective record silently splits across two engines
+- **No candidate enters `indicators.SOURCES` on this module's initiative.**
+  `ultimate.evaluate` consumes that dict wholesale, so a source added there
+  changes the live incumbent's evidence set, and unless the ensemble is
+  re-versified alongside it the prospective record splits across two engines
   wearing one version string.
+
+  *Amended 2026-08-24.* The owner directed three measured-and-rejected
+  candidates into the engine (`reports/ENGINE_SOURCES_2026_08_24.md`). That
+  decision is the owner's to make and this module does not block it — but it
+  does not reach back into HT-1 either. `HT1_TECHNICAL` below names the ten
+  sources this study measured, so the roster stays 27 no matter what the
+  engine later holds.
 - **`ultimate.py` and `forecast.py` are read, never written.**  The three
   horizons are passed to `evaluate_frame`; the neural seed is applied by a
   wrapper contained in this file.  Editing either module would re-version
@@ -219,6 +226,20 @@ PIT_RL_AGENTS = (
 
 RULE_AGENTS = ("Turtle", "Moving average crossover", "Signal rolling")
 
+#: The ten `indicators.SOURCES` entries HT-1 actually measured, frozen by name.
+#:
+#: This tuple was implicit until 2026-08-24, when it was read straight off the
+#: live `indicators.SOURCES` dict. That was safe only while that dict never
+#: changed, and the owner decision recorded in
+#: `reports/ENGINE_SOURCES_2026_08_24.md` added three entries to it — which
+#: silently grew this frozen roster from 27 candidates to 30 until the census
+#: test caught it. A frozen study's roster is what it measured, not what the
+#: engine happens to hold today, so it is named here rather than derived.
+#: Sources added to the engine after HT-1 ran are **not** HT-1 entrants and
+#: are not backfilled into its leaderboard.
+HT1_TECHNICAL = ("trend_ma", "trend_slope", "macd", "adx", "rsi", "roc",
+                 "bollinger", "donchian", "obv", "structure")
+
 NEURAL_MODELS = ("LSTM", "GRU", "Vanilla RNN")
 
 
@@ -234,7 +255,8 @@ def _build_roster() -> dict[str, Candidate]:
             key=f"pine.{key}", label=indicator.name, family=PINE,
             describe=pine.SIGNAL_RULES[key], model_id=f"pine.{key}")
 
-    for key, source in indicators.SOURCES.items():
+    for key in HT1_TECHNICAL:
+        source = indicators.SOURCES[key]
         roster[f"technical.{key}"] = Candidate(
             key=f"technical.{key}", label=source.name, family=TECHNICAL,
             describe=f"{source.describe} Called on the sign, with no threshold.",
@@ -406,7 +428,8 @@ def closed_form_calls(frame: pd.DataFrame) -> dict[str, float]:
         except pine.MissingColumns:
             calls[f"pine.{key}"] = HOLD
 
-    for key, source in indicators.SOURCES.items():
+    for key in HT1_TECHNICAL:
+        source = indicators.SOURCES[key]
         try:
             value = float(source.read(frame).iloc[-1])
         except Exception:                                       # noqa: BLE001

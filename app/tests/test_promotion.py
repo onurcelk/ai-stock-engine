@@ -365,11 +365,30 @@ def test_nothing_has_been_promoted_on_evidence():
 
 
 def test_the_grandfathered_list_names_the_incumbent_debt_separately():
+    """Three kinds of debt, three reasons. No blanket excuse.
+
+    Was two until 2026-08-24. The third arrived with the owner-directed
+    sources, and it is a genuinely different admission from the other two: not
+    "the gate is the wrong instrument" and not "incumbent by history", but
+    "measured, rejected, and here anyway because the account holder said so".
+    Folding that into the closed-form excuse would hide the only one of the
+    three a reader needs to be warned about.
+    """
     reasons = set(promotion.GRANDFATHERED.values())
-    assert len(reasons) == 2, (
-        "closed-form components and the adapting incumbent are tolerated for "
-        "different reasons and must not share one blanket excuse")
+    assert len(reasons) == 3, (
+        "closed-form components, the adapting incumbent and the owner-directed "
+        "sources are tolerated for different reasons and must not share one "
+        "blanket excuse")
     assert "Phase 11" in promotion.GRANDFATHERED[model_registry.ULTIMATE_ENSEMBLE]
+
+    directed = ["technical.vwap_reversion", "technical.vix_reversion",
+                "technical.opening_range", "technical.pead"]
+    for model_id in directed:
+        reason = promotion.GRANDFATHERED[model_id]
+        assert "REJECTED" in reason, (
+            f"{model_id} holds PRODUCTION after a standalone rejection; the "
+            "reason it is tolerated must say so in words")
+        assert reason != promotion.GRANDFATHERED["technical.rsi"]
 
 
 def test_the_gate_decides_and_never_acts():

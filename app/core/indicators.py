@@ -41,6 +41,12 @@ MOMENTUM = "momentum"
 REVERSION = "reversion"
 VOLUME = "volume"
 STRUCTURE = "structure"
+# Added 2026-08-24. Its own family rather than a REVERSION or MOMENTUM label:
+# `ultimate.cap_families` stops one family carrying a verdict alone, and that
+# only works if the grouping tracks what would actually double-count. An
+# earnings surprise does not double-count a moving average — it is the one
+# source here that is not a reading of the price at all.
+FUNDAMENTAL = "fundamental"
 
 SourceFn = Callable[[pd.DataFrame], pd.Series]
 
@@ -293,6 +299,148 @@ def _volume_trend(frame: pd.DataFrame) -> pd.Series:
     return squash(gap / (noise * np.sqrt(40)), scale=1.0)
 
 
+def _vwap_reversion(frame: pd.DataFrame) -> pd.Series:
+    """Distance from a 10-bar volume-weighted mean, argued against.
+
+    `_bollinger_reversion`'s construction with VWAP swapped in for the simple
+    moving average as the band's centre — the same window and the same
+    "against the move" sign HT-2 froze in `ht2_vwap.py` before reading a
+    forward return, restated here rather than imported because that module's
+    source hash is not part of this one's version key.
+
+    Measured and REJECTED as a standalone candidate (EXPERIMENT_REGISTRY §22).
+    It sits here as one weighted voice among many, not as a claim that it
+    works: an unskilled source is calibrated to zero weight by arithmetic.
+    """
+    if "volume" not in frame.columns:
+        return pd.Series(0.0, index=frame.index)
+
+    close = frame["close"]
+    high = frame["high"] if "high" in frame.columns else close
+    low = frame["low"] if "low" in frame.columns else close
+
+    window = 10
+    typical = (high + low + close) / 3.0
+    volume = frame["volume"].fillna(0.0)
+    turnover = volume.rolling(window).sum().replace(0.0, np.nan)
+    vwap = (typical * volume).rolling(window).sum() / turnover
+
+    spread = close.rolling(window).std(ddof=0).replace(0.0, np.nan)
+    return squash(-(close - vwap) / spread, scale=1.5)
+
+
+def _vix_reversion(frame: pd.DataFrame) -> pd.Series:
+    """Williams' synthetic VIX, read as fear that mean-reverts.
+
+    One-sided on purpose. The Vix Fix is a bottom finder: an elevated reading
+    is capitulation and argues up, but a *low* reading is merely the absence
+    of fear and the study has never claimed that predicts a fall. Inventing
+    the short half would be asserting something nobody measured, so this
+    source is silent — 0, no opinion — everywhere below its own threshold.
+
+    Not `pine.vix_fix`, which HT-1 measured as a directional signal and placed
+    among its worst (EXPERIMENT_REGISTRY §26 records the VIX1 reformulation's
+    power gate failing at 0 slots). The construction is restated rather than
+    imported for the same version-key reason as `_vwap_reversion`.
+    """
+    close = frame["close"]
+    low = frame["low"] if "low" in frame.columns else close
+
+    lookback = 22
+    peak = close.rolling(lookback).max().replace(0.0, np.nan)
+    fear = (peak - low) / peak * 100.0
+
+    # Elevated against its *own* recent distribution, not an absolute level:
+    # a 4% drawdown is capitulation on a utility and a Tuesday on a biotech.
+    middle = fear.rolling(lookback).mean()
+    spread = fear.rolling(lookback).std(ddof=0).replace(0.0, np.nan)
+    return squash(((fear - middle) / spread - 2.0).clip(lower=0.0), scale=1.0)
+
+
+def _opening_range(frame: pd.DataFrame) -> pd.Series:
+    """Where price sits against the session's first bar, in average true ranges.
+
+    Intraday only, and it works that out from the frame's own timestamps
+    rather than being told: on a daily, weekly or monthly frame every session
+    holds exactly one bar, so there is no range to break out of and this
+    returns zeros — the same "no opinion" a close-only frame gets from the
+    volume sources, for the same reason.
+
+    Causal within the session. The range is fixed by the opening bar, so a bar
+    at 14:00 is scored against something known at 10:00; the opening bar
+    itself is scored 0 because it cannot break its own range.
+
+    Measured and REJECTED standalone as `orb_1h` (EXPERIMENT_REGISTRY §24:
+    +0.9 bp against a 39 bp hurdle, −4.1 bp net of costs).
+    """
+    if "date" not in frame.columns:
+        return pd.Series(0.0, index=frame.index)
+
+    stamps = pd.to_datetime(frame["date"], errors="coerce")
+    if stamps.isna().all():
+        return pd.Series(0.0, index=frame.index)
+
+    session = stamps.dt.normalize()
+    order = stamps.groupby(session).cumcount()
+    if order.max() < 1:
+        # One bar per calendar day: not an intraday frame.
+        return pd.Series(0.0, index=frame.index)
+
+    close = frame["close"]
+    high = frame["high"] if "high" in frame.columns else close
+    low = frame["low"] if "low" in frame.columns else close
+
+    opening = order == 0
+    range_high = high.where(opening).groupby(session).transform("max")
+    range_low = low.where(opening).groupby(session).transform("min")
+
+    beyond = pd.Series(
+        np.where(close > range_high, close - range_high,
+                 np.where(close < range_low, close - range_low, 0.0)),
+        index=frame.index, dtype=float)
+    return squash(beyond / atr(frame, 14), scale=1.0).where(~opening, 0.0)
+
+
+#: How long post-earnings drift is read for, in calendar days. The
+#: conventional PEAD window, and deliberately not fitted: no code in this
+#: module reads a forward return, so there is nothing here to fit it against.
+DRIFT_DAYS = 60.0
+
+
+def _pead_drift(frame: pd.DataFrame) -> pd.Series:
+    """Standardized earnings surprise, decaying over the weeks after the filing.
+
+    The one source here that reads something other than the price. It needs
+    `sue` and `days_since_filing`, which `filings_evidence.attach` puts on the
+    frame from the EDGAR acceptance record; without them this is zeros — the
+    same "no opinion" the volume sources give a close-only frame, and the
+    reason this fits the source contract without bending it.
+
+    Sign is the surprise's own. Magnitude decays linearly to nothing across
+    `DRIFT_DAYS`, because the claim PEAD makes is about the weeks *after* an
+    announcement, not about a firm's last earnings forever — without the decay
+    a stale surprise would still be voting eleven months later.
+
+    Measured and REJECTED (EXPERIMENT_REGISTRY §25): a real effect, but
+    sub-threshold and substantially market-confounded, and §25 closes SUE
+    permanently at every formulation tested. Present here as a weighted voice
+    by owner decision, not as an accepted signal.
+    """
+    if "sue" not in frame.columns or "days_since_filing" not in frame.columns:
+        return pd.Series(0.0, index=frame.index)
+
+    sue = pd.to_numeric(frame["sue"], errors="coerce")
+    age = pd.to_numeric(frame["days_since_filing"], errors="coerce")
+
+    # A negative age would mean the filing is in the future relative to the
+    # bar. `filings_evidence` cannot produce one, and if some other caller
+    # supplied the columns by hand, silently trusting it is how a leak enters.
+    fresh = (age >= 0) & (age <= DRIFT_DAYS)
+    decay = (1.0 - age / DRIFT_DAYS).where(fresh, 0.0)
+
+    return squash(sue, scale=2.0) * decay
+
+
 def _market_structure(frame: pd.DataFrame) -> pd.Series:
     """Higher highs against lower lows over the last 20 bars.
 
@@ -337,6 +485,23 @@ SOURCES: dict[str, Source] = {
                _volume_trend),
         Source("structure", "Market structure", STRUCTURE,
                "Higher highs against lower lows over 20 bars.", _market_structure),
+        # Added 2026-08-24 by owner decision (reports/ENGINE_SOURCES_2026_08_24.md).
+        # All three were measured standalone and rejected; they are entered as
+        # weighted evidence, never as accepted signals, and the calibrator is
+        # free to price them at zero.
+        Source("vwap_reversion", "VWAP reversion", REVERSION,
+               "Stretch from the 10-bar volume-weighted mean, argued against.",
+               _vwap_reversion),
+        Source("vix_reversion", "Vix Fix capitulation", REVERSION,
+               "Synthetic VIX two deviations above its own mean. Long only — "
+               "silent when fear is ordinary.", _vix_reversion),
+        Source("opening_range", "Opening range break", TREND,
+               "Break beyond the session's first bar, in average true ranges. "
+               "Intraday frames only.", _opening_range),
+        Source("pead", "Earnings drift", FUNDAMENTAL,
+               "Standardized earnings surprise, decaying over the 60 days "
+               "after the filing was accepted. Needs the EDGAR cache.",
+               _pead_drift),
     ]
 }
 

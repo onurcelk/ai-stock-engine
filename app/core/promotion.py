@@ -118,7 +118,19 @@ _NOTHING_IS_FITTED = (
     "promotion gate measures whether a *fitted* candidate earned its status; "
     "for this component the registry's own retraining policy is 'nothing is "
     "fitted, so nothing is refitted'. It is listed rather than exempted so "
-    "that adding a fourteenth production component stays a deliberate act."
+    "that adding an eighteenth production component stays a deliberate act."
+)
+_OWNER_DIRECTED = (
+    "Closed form, so `_NOTHING_IS_FITTED` applies — but this component carries "
+    "a second debt that one does not, and it is recorded separately rather "
+    "than folded in. It was measured standalone on this repository's own "
+    "instrument and REJECTED (EXPERIMENT_REGISTRY §22/§24/§26), and it holds "
+    "PRODUCTION because the account holder directed it into the engine on "
+    "2026-08-24, not because any evidence carried it there. See "
+    "`reports/ENGINE_SOURCES_2026_08_24.md`. The gate cannot pass it and was "
+    "not asked to; what protects the verdict is downstream, in `ultimate.py`'s "
+    "calibrator, which weights a source by measured skill and may lower that "
+    "weight to zero but may never flip its sign."
 )
 _INCUMBENT_DEBT = (
     "Incumbent since before the V5 programme began, and the one production "
@@ -147,6 +159,10 @@ GRANDFATHERED: dict[str, str] = {
     "technical.structure": _NOTHING_IS_FITTED,
     "technical.trend_ma": _NOTHING_IS_FITTED,
     "technical.trend_slope": _NOTHING_IS_FITTED,
+    "technical.vwap_reversion": _OWNER_DIRECTED,
+    "technical.vix_reversion": _OWNER_DIRECTED,
+    "technical.opening_range": _OWNER_DIRECTED,
+    "technical.pead": _OWNER_DIRECTED,
     "rule_agent.crossover": _NOTHING_IS_FITTED,
     "rule_agent.rolling": _NOTHING_IS_FITTED,
     "rule_agent.turtle": _NOTHING_IS_FITTED,

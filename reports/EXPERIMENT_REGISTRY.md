@@ -1747,3 +1747,41 @@ Three candidates measured and rejected, one gate-failed and closed without spend
 measurement, one structurally inadmissible under the free-data-only rule. Two closed
 programme reopenings (SUE, VIX mean reversion) both returned to closed status, on new
 evidence rather than by assumption. See `reports/VIX1_POWER_GATE.md`.
+
+---
+
+## 27. Engine source additions, 2026-08-24 — an owner decision, not a result
+
+**Class: production decision. 0 budget slots spent. No forward return read, no gate
+evaluated, no measurement performed. Nothing in §22, §24, §25 or §26 is amended, rescored or
+reinterpreted by this entry.**
+
+On 2026-08-24 the account holder re-directed the same six indicators resolved on 2026-08-22,
+was shown the standing verdicts above, and chose to enter the four free-data candidates into
+the live prediction engine and to scope the options half to a live-chain screener.
+
+| Candidate | Standing verdict (unchanged) | Now in the engine? |
+|---|---|---|
+| `vwap_reversion` | REJECTED (§22) | Yes, as `technical.vwap_reversion` |
+| `orb_1h` | REJECTED (§24) | Yes, as `technical.opening_range` |
+| PEAD-1 (SUE) | REJECTED (§25) | Yes, as `technical.pead` |
+| VIX1 | Gate FAILED, closed (§26) | Yes, as `technical.vix_reversion` |
+| Options execution layer | Inadmissible (`OPTIONS1_ADMISSIBILITY.md` §3) | No — screener only, no backtest |
+
+**The verdicts stand.** Entering the engine is a production decision and is not evidence
+about any of these candidates. All four hold PRODUCTION under
+`promotion.GRANDFATHERED` with a reason that names the rejection in words; `PROMOTED` remains
+empty, as it has always been.
+
+**Both engine version keys moved** — `technical_sources` and `ultimate_ensemble`. Forecasts
+frozen from 2026-08-24 onward are a different engine from earlier ones and must not be pooled
+with them.
+
+**HT-1's roster is still 27.** `tournament.py` derived its technical family from the live
+`indicators.SOURCES` dict, so this decision silently grew the frozen roster to 30 until the
+census test caught it. The ten sources HT-1 measured are now named explicitly in
+`tournament.HT1_TECHNICAL`. Sources added after HT-1 ran are not HT-1 entrants and are not
+backfilled into its leaderboard.
+
+Full record, including what was deliberately not built and why:
+`reports/ENGINE_SOURCES_2026_08_24.md`.

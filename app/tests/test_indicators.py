@@ -219,3 +219,101 @@ def test_registry_keys_match_their_sources():
         assert source.key == key
         assert source.name and source.describe
         assert source.family
+
+
+# ------------------------------------------------- 2026-08-24 owner additions
+#
+# Three sources added to the engine by owner decision after each had been
+# measured standalone and rejected. Their verdicts are not this file's
+# business; their *signs* are, for the same reason as everything above — the
+# calibrator may lower a source's weight and may never flip it, so an inverted
+# source here is a bug no amount of measurement can undo.
+
+
+def intraday(rows_per_day: int = 7, days: int = 40,
+             direction: int = 1) -> pd.DataFrame:
+    """An hourly frame with a real session structure to break out of."""
+    rng = np.random.default_rng(11)
+    stamps, closes = [], []
+    price = 100.0
+    for day in range(days):
+        base = pd.Timestamp("2024-03-04") + pd.Timedelta(days=day)
+        # A flat open, then a directional push away from it.
+        for bar in range(rows_per_day):
+            stamps.append(base + pd.Timedelta(hours=9 + bar))
+            price += direction * 0.3 + rng.standard_normal() * 0.02
+            closes.append(price)
+    close = pd.Series(closes, dtype=float)
+    return pd.DataFrame({
+        "date": stamps,
+        "open": close, "high": close + 0.05, "low": close - 0.05,
+        "close": close, "volume": np.full(len(close), 5_000.0),
+    })
+
+
+def test_opening_range_is_silent_on_a_daily_frame(rising):
+    """One bar per session is not a range. It must say nothing, not guess."""
+    assert (indicators.SOURCES["opening_range"].read(rising) == 0.0).all()
+
+
+def test_opening_range_follows_the_break_it_sees():
+    """Above the session's first bar is a buy, below it is a sell."""
+    up = indicators.SOURCES["opening_range"].read(intraday(direction=1))
+    down = indicators.SOURCES["opening_range"].read(intraday(direction=-1))
+    assert up.iloc[-1] > 0
+    assert down.iloc[-1] < 0
+
+
+def test_opening_range_scores_the_opening_bar_at_zero():
+    """A bar cannot break out of its own range."""
+    frame = intraday()
+    stamps = pd.to_datetime(frame["date"])
+    opening = stamps.groupby(stamps.dt.normalize()).cumcount() == 0
+    reading = indicators.SOURCES["opening_range"].read(frame)
+    assert (reading[opening] == 0.0).all()
+
+
+def test_opening_range_is_causal_within_the_session():
+    """Bar t must read the same whether or not bars after it exist.
+
+    The property the whole point-in-time discipline rests on, checked on the
+    one source here that reads a session rather than a rolling window.
+    """
+    frame = intraday()
+    full = indicators.SOURCES["opening_range"].read(frame)
+    for position in (20, 45, 91, len(frame) - 1):
+        truncated = indicators.SOURCES["opening_range"].read(
+            frame.iloc[: position + 1])
+        assert truncated.iloc[-1] == pytest.approx(full.iloc[position]), position
+
+
+def test_vwap_reversion_argues_against_the_stretch(rising, falling):
+    """Same contrarian sign as `bollinger`, with VWAP as the band's centre."""
+    assert indicators.SOURCES["vwap_reversion"].read(rising).iloc[-1] < 0
+    assert indicators.SOURCES["vwap_reversion"].read(falling).iloc[-1] > 0
+
+
+def test_vwap_reversion_has_no_opinion_without_volume(rising):
+    """It is a *volume*-weighted mean. Without volume it is not defined."""
+    no_volume = rising.drop(columns=["volume"])
+    assert (indicators.SOURCES["vwap_reversion"].read(no_volume) == 0.0).all()
+
+
+def test_vix_reversion_fires_long_on_capitulation():
+    """A sharp break of the lows after a calm run is what it exists to catch."""
+    rows = 200
+    close = pd.Series(np.full(rows, 100.0) + np.linspace(0, 4, rows))
+    close.iloc[-3:] = [88.0, 82.0, 79.0]
+    frame = pd.DataFrame({
+        "date": pd.bdate_range("2022-01-03", periods=rows),
+        "open": close, "high": close + 0.2, "low": close - 0.2,
+        "close": close, "volume": np.full(rows, 1_000.0),
+    })
+    assert indicators.SOURCES["vix_reversion"].read(frame).iloc[-1] > 0
+
+
+def test_vix_reversion_stays_silent_when_fear_is_ordinary(rising):
+    """One-sided by design: no short half was ever measured, so none is made up."""
+    reading = indicators.SOURCES["vix_reversion"].read(rising)
+    assert (reading >= 0.0).all(), "the Vix Fix source must never argue short"
+    assert reading.iloc[-1] == 0.0

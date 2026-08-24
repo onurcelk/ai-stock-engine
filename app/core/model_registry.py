@@ -306,6 +306,14 @@ _TECHNICAL: tuple[tuple[str, str, str, tuple[str, ...], tuple[str, ...], str], .
      ("close", "volume"), (), "_volume_trend"),
     ("structure", "Market structure", TECHNICAL_INDICATOR,
      ("close",), ("high", "low"), "_market_structure"),
+    ("vwap_reversion", "VWAP reversion", TECHNICAL_INDICATOR,
+     ("close", "volume"), ("high", "low"), "_vwap_reversion"),
+    ("vix_reversion", "Vix Fix capitulation", TECHNICAL_INDICATOR,
+     ("close",), ("low",), "_vix_reversion"),
+    ("opening_range", "Opening range break", TECHNICAL_INDICATOR,
+     ("close", "date"), ("high", "low"), "_opening_range"),
+    ("pead", "Earnings drift", TECHNICAL_INDICATOR,
+     ("sue", "days_since_filing"), (), "_pead_drift"),
 )
 
 #: Registry label -> (ledger key, implementation) for the three rule agents

@@ -1,7 +1,7 @@
 """The consensus engine, and the gates that keep it honest.
 
 Most of this file is about what the indicator *refuses* to say. That is the
-hard part: producing a confident BUY from thirteen sources is trivial, and
+hard part: producing a confident BUY from sixteen sources is trivial, and
 every one of the guards below exists because an earlier version of this
 module produced one it had no business producing.
 
