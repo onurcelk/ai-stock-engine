@@ -1,0 +1,385 @@
+We now have the historical PIT replay framework and the new Pine indicators have been ported to Python.
+
+Do **not** modify or promote anything into the frozen production Ultimate yet.
+
+The next task is to run a **full historical forecasting tournament** and determine which components actually have predictive value.
+
+## Objective
+
+For each historical cutoff `T`:
+
+1. Show every model/agent/indicator only data available at or before `T`.
+2. Generate and freeze its BUY / HOLD / SELL prediction.
+3. Advance to the future outcome at:
+
+   * `1d`
+   * `1w`
+   * `5w`
+4. Reveal the real price only after prediction is frozen.
+5. Score the prediction.
+6. Repeat across many symbols and independent historical cutoffs.
+
+This must use the existing PIT replay infrastructure, not a separate toy backtester.
+
+---
+
+# A — Existing technical indicators
+
+Evaluate the current Ultimate technical sources individually:
+
+1. ADX direction
+2. Donchian position
+3. EMA 12/48 spread
+4. EMA 50 slope
+5. MACD histogram
+6. RSI 14
+7. 20-bar return
+8. Bollinger reversion
+9. OBV / volume trend
+10. Market structure
+
+Do not alter `indicators.py` or the frozen Ultimate registration to achieve this. Use a research-only evaluation path if necessary.
+
+---
+
+# B — Newly ported indicators
+
+The following are now implemented in `app/core/pine.py`.
+
+Convert them from display-only indicators into **research-only signal agents** with deterministic BUY / HOLD / SELL semantics:
+
+11. SuperTrend
+12. MavilimW
+13. HOTT / LOTT
+14. Leledc Exhaustion
+15. WaveTrend
+16. Squeeze Momentum
+17. Williams Vix Fix
+
+These must remain isolated from the production Ultimate.
+
+Do not add them to `indicators.SOURCES`.
+
+Do not change the current Ultimate hash/version.
+
+The two empty source files are not candidates and should remain excluded unless actual source material later appears.
+
+For every new signal, document exactly how the indicator output maps to:
+
+`BUY / HOLD / SELL`
+
+and confidence if confidence is used.
+
+Do not choose thresholds after looking at future outcomes. Use the original indicator semantics or a fixed causal interpretation declared before scoring.
+
+---
+
+# C — Existing trading / RL agents
+
+Inspect the existing repository and test every agent that can be reconstructed in a genuine PIT-safe historical setting.
+
+Candidate set:
+
+1. Turtle
+2. Moving Average
+3. Signal Rolling
+4. Policy Gradient
+5. Q-Learning
+6. Evolution Strategy
+7. Double Q-Learning
+8. Recurrent Q-Learning
+9. Double Recurrent Q-Learning
+10. Duel Q-Learning
+11. Double Duel Q-Learning
+12. Duel Recurrent Q-Learning
+13. Double Duel Recurrent Q-Learning
+14. Actor-Critic
+15. Actor-Critic Duel
+16. Actor-Critic Recurrent
+17. Actor-Critic Duel-Recurrent
+18. Curiosity Q-Learning
+19. Recurrent Curiosity Q-Learning
+20. Duel Curiosity Q-Learning
+21. Neuro-Evolution
+22. Neuro-Evolution Novelty Search
+23. ABCD Strategy
+
+Do not silently exclude an agent.
+
+For every excluded agent, report:
+
+* exact reason,
+* whether the problem is PIT safety,
+* reconstruction cost,
+* unsupported dependency,
+* nondeterminism,
+* runtime,
+* or missing implementation.
+
+Historical training must occur using only information available at the historical cutoff.
+
+---
+
+# D — Neural forecasting
+
+Include the existing neural forecasting path from `forecast.py`.
+
+At minimum test separately:
+
+* LSTM
+* GRU
+* vanilla RNN
+
+If other already-implemented forecasting architectures exist, inspect and include them where appropriate.
+
+For each historical cutoff:
+
+**train using only pre-cutoff data → freeze artefact/config/version → forecast → reveal outcome**
+
+No future information may enter:
+
+* training
+* validation split
+* scaling
+* normalization
+* early stopping
+* model selection
+* feature selection
+* hyperparameter selection
+
+If fitted-model artefact tracking is missing, implement the minimum research-only versioning needed so every neural prediction is traceable to the exact trained model/configuration.
+
+Do not weaken ledger integrity.
+
+---
+
+# E — Tournament structure
+
+First evaluate every candidate **individually**.
+
+I want one comparable table containing:
+
+`component | family | horizon | scored calls | independent cutoffs | BUY | HOLD | SELL | actionable accuracy | overall accuracy | baseline accuracy | excess vs baseline | MAE | MAE advantage | CI`
+
+The purpose is to identify the best individual predictors before constructing ensembles.
+
+---
+
+# F — Correlation / redundancy analysis
+
+Accuracy alone is not sufficient.
+
+Measure prediction agreement/correlation between candidates.
+
+Specifically identify cases where several indicators are effectively the same information expressed differently.
+
+Examples:
+
+* EMA / MA / SuperTrend / HOTT / MavilimW may all represent trend.
+* RSI / WaveTrend / MACD may share momentum information.
+* Several Q-learning variants may produce highly similar forecasts.
+
+Do not allow ten correlated models to count as ten independent votes.
+
+Produce a correlation/agreement matrix and cluster components into information families.
+
+Report:
+
+* highly redundant components,
+* genuinely independent predictors,
+* components whose forecasts are negatively correlated,
+* components that appear directionally inverted.
+
+---
+
+# G — Baselines
+
+Every candidate must be compared against the existing trivial controls:
+
+### Direction
+
+`always bullish`
+
+### Error
+
+`zero-return forecast`
+
+Also compare against:
+
+* frozen current Ultimate
+* best individual technical source
+* best new Pine indicator
+* best trading/RL agent
+* best neural forecast
+
+The current Ultimate historical reference remains approximately:
+
+* `1d`: 0.4797
+* `1w`: 0.5006
+* `5w`: 0.5068
+
+Do not treat these numbers as targets to fit against.
+
+They are comparison references only.
+
+---
+
+# H — Challenger discovery
+
+Only after the individual tournament and redundancy analysis are complete, construct research challengers.
+
+At minimum evaluate:
+
+1. Best technical-only combination
+2. Best new-indicator combination
+3. Best trading-agent combination
+4. Best neural model
+5. Technical + new indicators
+6. Indicators + neural
+7. Agents + neural
+8. Best independent components across all families
+
+The final ensemble must **not** simply contain every available component.
+
+Prefer a small number of demonstrably useful, non-redundant sources over a large voting ensemble.
+
+Any component selection must be clearly separated into:
+
+**discovery evidence**
+
+versus
+
+**final unbiased evaluation**
+
+Do not select components on a dataset and then quote performance on the same observations as if it were out-of-sample evidence.
+
+Use an appropriate development / sealed evaluation split or existing research discipline already present in the repository.
+
+---
+
+# I — PIT leakage guarantees
+
+Add/retain tests proving:
+
+1. Changing every post-cutoff bar cannot change the forecast.
+2. No RL/neural training sees post-cutoff samples.
+3. Scaling/normalization is pre-cutoff only.
+4. Prediction is frozen before outcome access.
+5. Correct maturity date is used.
+6. Model version/configuration is stored with the prediction.
+7. Different model versions never silently pool.
+8. Historical study records never count toward live promotion.
+9. Live ledger remains unchanged.
+10. `ultimate.py`, `indicators.py`, `strategies.py`, and current production model identities remain untouched.
+
+---
+
+# J — Runtime
+
+This study may be expensive.
+
+Use local compute intelligently:
+
+* parallelise safely,
+* cache PIT-safe preprocessing,
+* avoid retraining identical artefacts unnecessarily,
+* use fixed seeds where meaningful.
+
+If running every RL/neural agent over all 12,873 historical calls would take an unreasonable amount of time, define a **fixed representative sample before outcomes are inspected**.
+
+The sample still needs enough:
+
+* symbols,
+* market regimes,
+* independent cutoffs,
+* and horizon coverage
+
+to make comparison useful.
+
+Report the exact sampling rule.
+
+Do not reduce the study to a tiny convenience sample.
+
+---
+
+# K — Existing Curiosity test flake
+
+Do not confuse the previously observed process-global TensorFlow/Curiosity UI training flake with predictive performance.
+
+If it recurs during the full slow suite:
+
+* record it,
+* determine whether it is reproducible,
+* keep it separate from the research result.
+
+Do not block the historical tournament solely because an unrelated long-process TensorFlow session leak exists, unless it compromises forecast correctness.
+
+---
+
+# L — UI and permanent report
+
+Add a new Research UI section:
+
+**Historical PIT — Full Tournament**
+
+I want to be able to sort/filter by:
+
+* model/agent
+* family
+* horizon
+* accuracy
+* actionable accuracy
+* baseline advantage
+* MAE advantage
+* HOLD rate
+* independent cutoff count
+
+Also show:
+
+### Individual leaderboard
+
+### Family leaderboard
+
+### Correlation / redundancy view
+
+### Challenger vs Current Ultimate
+
+### Neural vs Agents vs Indicators
+
+Generate a permanent report under `reports/`.
+
+---
+
+# Final deliverable
+
+Do not stop after writing infrastructure.
+
+**Actually run the tournament and return measured results.**
+
+The final response must directly answer:
+
+1. Which individual component is best at `1d`?
+2. Which is best at `1w`?
+3. Which is best at `5w`?
+4. Which new Pine indicator performs best?
+5. Which existing trading/RL agent performs best?
+6. Which neural architecture performs best?
+7. Does any individual component beat the trivial baseline convincingly?
+8. Which components are actively harmful?
+9. Which components are mostly redundant copies of each other?
+10. Are any components consistently inverted?
+11. Does neural forecasting add information beyond technical indicators?
+12. Do RL agents add information beyond deterministic indicators?
+13. What is the best small, non-redundant challenger ensemble?
+14. Does that challenger beat the frozen Ultimate?
+15. Does it beat the trivial baseline?
+16. On which horizon is its strongest evidence?
+17. What should Ultimate V2 contain based strictly on the measured evidence?
+
+Do **not** promote Ultimate V2 automatically.
+
+The goal of this task is:
+
+**discover → measure → compare → select a challenger**
+
+Production promotion comes only after we see the evidence.
