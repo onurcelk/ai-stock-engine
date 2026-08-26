@@ -5,6 +5,18 @@
 # (`.venv/`) was missing fastapi, which made every api/tests file fail
 # collection under it. Install with:
 #     python -m venv .venv && .venv/Scripts/pip install -r requirements.txt
+#
+# Two pins carry `; sys_platform == "win32"` markers: pywinpty, which arrives
+# transitively via terminado, and tensorflow-intel, which is the Windows-only
+# companion `tensorflow` depends on when it installs on Windows. `pip freeze`
+# writes markers for neither, because a freeze describes one machine and has
+# no idea another exists. Without them this file cannot install anywhere but
+# Windows, which is not a theoretical problem: the fast-suite workflow runs on
+# ubuntu-latest and failed on `No matching distribution found for
+# tensorflow-intel==2.15.1` the first time it was ever allowed to run.
+#
+# If you regenerate this file with `pip freeze`, the markers will be lost.
+# Put them back, or CI breaks again and macOS with it.
 absl-py==2.5.0
 altair==5.5.0
 annotated-doc==0.0.5
@@ -130,7 +142,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.2.3
 python-json-logger==4.1.0
 pytz==2026.3.post1
-pywinpty==3.0.5
+pywinpty==3.0.5 ; sys_platform == "win32"
 PyYAML==6.0.3
 pyzmq==27.1.0
 referencing==0.37.0
@@ -156,7 +168,7 @@ tensorboard==2.15.2
 tensorboard-data-server==0.7.2
 tensorflow==2.15.1
 tensorflow-estimator==2.15.0
-tensorflow-intel==2.15.1
+tensorflow-intel==2.15.1 ; sys_platform == "win32"
 tensorflow-io-gcs-filesystem==0.31.0
 termcolor==3.3.0
 terminado==0.18.1

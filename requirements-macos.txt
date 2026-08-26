@@ -1,21 +1,26 @@
 # macOS environment for Stock-Prediction-Models.
 #
 # Derived from requirements.txt (the Windows pin, generated 2026-08-24 by
-# `pip freeze` from `venv/`, Python 3.11.9) by removing five pins that cannot
-# install on macOS. Every other pin is byte-identical to the Windows file, so
-# the two environments stay in step: change requirements.txt and regenerate
-# this from it rather than editing the two by hand.
+# `pip freeze` from `venv/`, Python 3.11.9) by removing the TensorFlow family.
+# Every other pin is byte-identical to that file, so the two stay in step:
+# change requirements.txt and regenerate this from it rather than editing both
+# by hand.
 #
 # Install with:
 #     python3.11 -m venv venv && venv/bin/pip install -r requirements-macos.txt
 #
-# REMOVED — Windows-only wheels, no macOS distribution exists at all:
-#     pywinpty==3.0.5              transitive via terminado
-#     tensorflow-intel==2.15.1     the Windows-only companion package that
-#                                  `tensorflow` depends on when it installs
-#                                  on Windows; meaningless elsewhere
+# WHY THIS FILE IS SMALLER THAN IT WAS
 #
-# REMOVED — the TensorFlow family, deliberately optional. See below.
+# It used to remove five pins. Two of those, pywinpty and tensorflow-intel,
+# now carry `; sys_platform == "win32"` markers in requirements.txt itself, so
+# pip skips them off Windows and they need no separate file. That fix was
+# forced by CI rather than chosen: the fast-suite workflow runs on
+# ubuntu-latest, and the first time it was ever allowed to run it failed on
+# `No matching distribution found for tensorflow-intel==2.15.1` — the same
+# incompatibility this file was written for, reached from Linux instead of
+# macOS.
+#
+# What remains is the TensorFlow family, which markers cannot fix cleanly:
 #     tensorflow==2.15.1
 #     tensorflow-estimator==2.15.0
 #     tensorflow-io-gcs-filesystem==0.31.0
@@ -56,9 +61,10 @@
 # own.
 #
 # NOT VERIFIED ON macOS. This file was written on the Windows machine and the
-# removals are reasoned from wheel availability, not from a test install. If
-# a pin below turns out to have no macOS wheel either, remove it here and add
-# a line to this header saying so.
+# removals are reasoned from wheel availability, not from a test install. The
+# Linux half of that reasoning is now confirmed by CI; the macOS half is not.
+# If a pin below turns out to have no macOS wheel either, remove it here and
+# add a line to this header saying so.
 #
 absl-py==2.5.0
 altair==5.5.0
@@ -185,6 +191,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.2.3
 python-json-logger==4.1.0
 pytz==2026.3.post1
+pywinpty==3.0.5 ; sys_platform == "win32"
 PyYAML==6.0.3
 pyzmq==27.1.0
 referencing==0.37.0
@@ -208,6 +215,7 @@ streamlit==1.39.0
 tenacity==9.1.4
 tensorboard==2.15.2
 tensorboard-data-server==0.7.2
+tensorflow-intel==2.15.1 ; sys_platform == "win32"
 termcolor==3.3.0
 terminado==0.18.1
 threadpoolctl==3.6.0
