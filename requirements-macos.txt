@@ -1,0 +1,234 @@
+# macOS environment for Stock-Prediction-Models.
+#
+# Derived from requirements.txt (the Windows pin, generated 2026-08-24 by
+# `pip freeze` from `venv/`, Python 3.11.9) by removing five pins that cannot
+# install on macOS. Every other pin is byte-identical to the Windows file, so
+# the two environments stay in step: change requirements.txt and regenerate
+# this from it rather than editing the two by hand.
+#
+# Install with:
+#     python3.11 -m venv venv && venv/bin/pip install -r requirements-macos.txt
+#
+# REMOVED — Windows-only wheels, no macOS distribution exists at all:
+#     pywinpty==3.0.5              transitive via terminado
+#     tensorflow-intel==2.15.1     the Windows-only companion package that
+#                                  `tensorflow` depends on when it installs
+#                                  on Windows; meaningless elsewhere
+#
+# REMOVED — the TensorFlow family, deliberately optional. See below.
+#     tensorflow==2.15.1
+#     tensorflow-estimator==2.15.0
+#     tensorflow-io-gcs-filesystem==0.31.0
+#
+# ---------------------------------------------------------------------------
+# TensorFlow is NOT needed to run the desk.
+# ---------------------------------------------------------------------------
+#
+# `app/core/forecast.py` imports TensorFlow lazily, inside the projection
+# function rather than at module scope, and says why at the top of the file:
+# the import costs several seconds and the rest of the module does not need
+# it. The consequence is that the whole desk starts without it. Verified by
+# import, not by assumption: `import api.main` and
+# `import app.core.forecast_ledger` both complete with `tensorflow` absent
+# from `sys.modules`.
+#
+# So `python run_desk.py` — the API, the Next.js frontend, the ledger, the
+# scan router, the whole UI — runs against this file as it stands. TensorFlow
+# loads only when the LSTM projection is actually called, which in practice
+# means the headless daily freeze, `python -m core.collector`, and the
+# `app.core.forecast.project` model registered in the model registry.
+#
+# ADDING TENSORFLOW ON APPLE SILICON
+#
+# The 2.15 generation predates the unified macOS wheel: on arm64 there is no
+# `tensorflow==2.15.1` to install, and the distribution for that era is
+# `tensorflow-macos` (with `tensorflow-metal` as the optional GPU plugin).
+# On Intel Macs the plain `tensorflow` wheel does exist. Either way it is a
+# separate step, taken when you need the collector rather than when you first
+# bring the desk up:
+#
+#     venv/bin/pip install tensorflow-macos==2.15.0     # Apple Silicon
+#     venv/bin/pip install tensorflow-metal             # optional, GPU
+#
+# `keras==2.15.0` and `tensorboard==2.15.2` are LEFT IN below, at versions
+# matching that TensorFlow generation, so the install completes rather than
+# needing a second pass. They are cross-platform wheels and inert on their
+# own.
+#
+# NOT VERIFIED ON macOS. This file was written on the Windows machine and the
+# removals are reasoned from wheel availability, not from a test install. If
+# a pin below turns out to have no macOS wheel either, remove it here and add
+# a line to this header saying so.
+#
+absl-py==2.5.0
+altair==5.5.0
+annotated-doc==0.0.5
+annotated-types==0.8.0
+anyio==4.14.2
+argon2-cffi==25.1.0
+argon2-cffi-bindings==25.1.0
+arrow==1.4.0
+asttokens==3.0.2
+astunparse==1.6.3
+async-lru==2.3.0
+attrs==26.1.0
+babel==2.18.0
+beautifulsoup4==4.15.0
+bleach==6.4.0
+blinker==1.9.0
+cachetools==5.5.2
+certifi==2026.7.22
+cffi==2.1.1
+charset-normalizer==3.4.9
+click==8.4.2
+colorama==0.4.6
+comm==0.2.3
+contourpy==1.3.3
+cryptography==50.0.0
+curl_cffi==0.16.0
+cycler==0.12.1
+debugpy==1.8.21
+defusedxml==0.7.1
+executing==2.2.1
+fastapi==0.141.1
+fastjsonschema==2.22.1
+flatbuffers==25.12.19
+fonttools==4.63.0
+fqdn==1.5.1
+gast==0.7.0
+gitdb==4.0.12
+GitPython==3.1.58
+google-auth==2.56.3
+google-auth-oauthlib==1.4.0
+google-pasta==0.2.0
+greenlet==3.5.4
+grpcio==1.83.0
+h11==0.16.0
+h5py==3.16.0
+httpcore==1.0.9
+httptools==0.8.0
+httpx==0.28.1
+idna==3.18
+iniconfig==2.3.0
+ipykernel==7.3.0
+ipython==9.16.1
+ipython_pygments_lexers==1.1.1
+isoduration==20.11.0
+jedi==0.20.0
+Jinja2==3.1.6
+joblib==1.5.3
+json5==0.15.0
+jsonpointer==3.1.1
+jsonschema==4.26.0
+jsonschema-specifications==2025.9.1
+jupyter-events==0.12.1
+jupyter-lsp==2.3.1
+jupyter_builder==1.2.2
+jupyter_client==8.9.1
+jupyter_core==5.9.1
+jupyter_server==2.20.0
+jupyter_server_terminals==0.5.4
+jupyterlab==4.6.2
+jupyterlab_pygments==0.3.0
+jupyterlab_server==2.28.0
+keras==2.15.0
+kiwisolver==1.5.0
+lark==1.3.1
+libclang==18.1.1
+Markdown==3.10.3
+markdown-it-py==4.2.0
+MarkupSafe==3.0.3
+matplotlib==3.11.1
+matplotlib-inline==0.2.2
+mdurl==0.1.2
+mistune==3.3.4
+ml-dtypes==0.3.2
+multitasking==0.0.13
+narwhals==2.24.0
+nbclient==0.11.0
+nbconvert==7.17.1
+nbformat==5.11.0
+nest-asyncio2==1.7.2
+notebook==7.6.1
+notebook_shim==0.2.4
+numpy==1.26.4
+oauthlib==3.3.1
+opt_einsum==3.4.0
+overrides==7.7.0
+packaging==24.2
+pandas==2.3.3
+pandocfilters==1.5.1
+parso==0.8.7
+peewee==4.3.0
+pillow==10.4.0
+platformdirs==4.11.0
+playwright==1.62.0
+plotly==6.9.0
+pluggy==1.6.0
+prometheus_client==0.26.0
+prompt_toolkit==3.0.53
+protobuf==4.25.5
+psutil==7.2.2
+pure_eval==0.2.3
+pyarrow==25.0.0
+pyasn1==0.6.4
+pyasn1_modules==0.4.2
+pycparser==3.0
+pydantic==2.13.4
+pydantic_core==2.46.4
+pydeck==0.9.3
+pyee==13.0.1
+Pygments==2.20.0
+pyparsing==3.3.2
+pytest==9.1.1
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.3
+python-json-logger==4.1.0
+pytz==2026.3.post1
+PyYAML==6.0.3
+pyzmq==27.1.0
+referencing==0.37.0
+requests==2.34.2
+requests-oauthlib==2.0.0
+rfc3339-validator==0.1.4
+rfc3986-validator==0.1.1
+rfc3987-syntax==1.1.0
+rich==13.9.4
+rpds-py==2026.6.3
+scikit-learn==1.9.0
+scipy==1.17.1
+seaborn==0.13.2
+Send2Trash==2.1.0
+six==1.17.0
+smmap==5.0.3
+soupsieve==2.9.2
+stack-data==0.6.3
+starlette==1.6.0
+streamlit==1.39.0
+tenacity==9.1.4
+tensorboard==2.15.2
+tensorboard-data-server==0.7.2
+termcolor==3.3.0
+terminado==0.18.1
+threadpoolctl==3.6.0
+tinycss2==1.5.1
+toml==0.10.2
+tornado==6.5.8
+tqdm==4.70.0
+traitlets==5.16.1
+typing-inspection==0.4.4
+typing_extensions==4.16.0
+tzdata==2026.3
+uri-template==1.3.0
+urllib3==2.7.0
+uvicorn==0.52.4
+watchdog==5.0.3
+watchfiles==1.2.0
+wcwidth==0.8.2
+webcolors==25.10.0
+webencodings==0.5.1
+websocket-client==1.9.0
+websockets==17.0.1
+Werkzeug==3.1.8
+wrapt==1.14.2
+yfinance==1.5.2
